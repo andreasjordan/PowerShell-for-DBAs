@@ -24,4 +24,22 @@ https://www.devart.com/dotconnect/postgresql/docs/
 
 Installation works, Add-Type as well.
 
+```powershell
+try {
+    Add-Type -Path 'C:\Program Files (x86)\Devart\dotConnect\PostgreSQL\Devart.Data.PostgreSql.dll'
+} catch {
+    $ex = $_
+    $ex.Exception.Message
+    $ex.Exception.LoaderExceptions
+}
+
+$connection = [Devart.Data.PostgreSql.PgSqlConnection]::new()
+$connection.Host = 'SQLLAB08'
+$connection.Port = 5432
+$connection.UserId = 'postgresql'
+$connection.Password = 'start123'
+
+$connection.Open()
+```
+
 Now my PostgreSQL server has to be configured...
