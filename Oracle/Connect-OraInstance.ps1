@@ -15,8 +15,7 @@ function Connect-OraInstance {
         Write-Verbose -Message "Adding SYSDBA to connection string"
         $connectionString += ';DBA Privilege=SYSDBA'
     }
-    Write-Verbose -Message $connectionString
-
+    
     Write-Verbose -Message "Creating connection"
     $connection = [Oracle.ManagedDataAccess.Client.OracleConnection]::new($connectionString)
     
