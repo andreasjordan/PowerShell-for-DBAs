@@ -40,3 +40,4 @@ Could not load file or assembly 'System.Memory, Version=4.0.1.1, Culture=neutral
 
 I don't know where to get the requested version of "System.Memory". Using https://www.nuget.org/packages/System.Memory does not work.
 
+Just asked here: https://forums.mysql.com/list.php?38
