@@ -19,7 +19,7 @@ flush privileges;
 
 https://dev.mysql.com/downloads/connector/net/ is only 32bit and I think I had problems - still have to retry.
 
-https://dev.mysql.com/downloads/windows/installer/8.0.html is the full install where I only installed the client - is 32bit only as well.
+https://dev.mysql.com/downloads/windows/installer/8.0.html is the full install where I only installed the client.
 
 Problem: 
 
