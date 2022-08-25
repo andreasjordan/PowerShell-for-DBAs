@@ -26,6 +26,8 @@ $firewallConfig = @{
 }
 $null = New-NetFirewallRule @firewallConfig
 
+
+"ALTER USER 'root'@'%' IDENTIFIED BY 'start123'; GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION; flush privileges;" | D:\MySQL\mysql\current\bin\mysql.exe -uroot -p
 ```
 
 ## Client
@@ -55,4 +57,30 @@ I don't know where to get the requested version of "System.Memory". Using https:
 
 Just asked here: https://forums.mysql.com/list.php?38
 
-Will also try this: https://www.devart.com/dotconnect/mysql/editions.html
+### dotConnect
+
+https://www.devart.com/dotconnect/mysql/editions.html
+
+This works:
+```
+try {
+    Add-Type -Path 'C:\Program Files (x86)\Devart\dotConnect\MySQL\Devart.Data.dll'
+    Add-Type -Path 'C:\Program Files (x86)\Devart\dotConnect\MySQL\Devart.Data.MySql.dll'
+} catch {
+    $ex = $_
+    $ex.Exception.Message
+    $ex.Exception.LoaderExceptions
+}
+
+$connection = [Devart.Data.MySql.MySqlConnection]::new()
+$connection.Host = 'SQLLAB08'
+$connection.Port = 3306
+$connection.UserId = 'root'
+$connection.Password = 'start123'
+
+try {
+    $connection.Open()
+} catch {
+    Write-Warning -Message "Failed to open the connection: $_"
+}
+```
