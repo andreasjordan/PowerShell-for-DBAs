@@ -13,6 +13,19 @@ choco install mysql --confirm --limitoutput --no-progress --params "/installLoca
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'start123';
 flush privileges;
 "@ | D:\MySQL\mysql\current\bin\mysql.exe -uroot
+
+
+$firewallConfig = @{
+    DisplayName = 'MySQL'
+    Name        = 'MySQL'
+    Group       = 'MySQL'
+    Enabled     = 'True'
+    Direction   = 'Inbound'
+    Protocol    = 'TCP'
+    LocalPort   = '3306'
+}
+$null = New-NetFirewallRule @firewallConfig
+
 ```
 
 ## Client
