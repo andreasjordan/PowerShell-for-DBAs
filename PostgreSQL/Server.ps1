@@ -88,7 +88,6 @@ $null = New-NetFirewallRule -CimSession $cimSession @firewallConfig
 $cimSession | Remove-CimSession
 
 
-$softwarePostgreSQL.Parameters.prefix
 <# Remove PostgreSQL:
 
 $programParams = @{
