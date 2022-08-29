@@ -2,7 +2,7 @@ How to use PowerShell as a PostgreSQL database administrator.
 
 ## Server
 
-See [Server.ps1](Server.ps1).
+See [Server.ps1](Server.ps1) which uses [Invoke-Program.ps1](../PowerShell/Invoke-Program.ps1).
 
 
 ## Client
