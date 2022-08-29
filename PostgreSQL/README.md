@@ -22,7 +22,7 @@ https://www.devart.com/dotconnect/postgresql/download.html
 
 https://www.devart.com/dotconnect/postgresql/docs/
 
-Installation works, Add-Type as well.
+First sample code (using [Connect-PgInstance.ps1](Connect-PgInstance.ps1) and [Invoke-PgQuery.ps1](Invoke-PgQuery.ps1)):
 
 ```powershell
 try {
@@ -33,13 +33,18 @@ try {
     $ex.Exception.LoaderExceptions
 }
 
-$connection = [Devart.Data.PostgreSql.PgSqlConnection]::new()
-$connection.Host = 'SQLLAB08'
-$connection.Port = 5432
-$connection.UserId = 'postgresql'
-$connection.Password = 'start123'
+$instance = 'SQLLAB08:5432'
+$instance = 'SQLLAB08'
+$credential = Get-Credential -Message $instance -UserName postgres  # start123
 
-$connection.Open()
+$connection = Connect-PgInstance -Instance $instance -Credential $credential -Verbose
+
+$query = 'SELECT * FROM pg_file_settings'
+$data = Invoke-PgQuery -Connection $connection -Query $query
+$data | Out-GridView -Title $query
+
+$query = 'SELECT setting FROM pg_file_settings WHERE name = :name'
+$parameterValues = @{ name = 'port' }
+$port = Invoke-PgQuery -Connection $connection -Query $query -ParameterValues $parameterValues -As SingleValue
+"PostgreSQL is listening on port $port"
 ```
-
-Now my PostgreSQL server has to be configured...
