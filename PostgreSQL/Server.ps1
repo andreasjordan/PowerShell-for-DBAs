@@ -53,7 +53,7 @@ foreach ($key in $softwarePostgreSQL.Parameters.Keys) {
     $argumentList += $softwarePostgreSQL.Parameters.$key
 }
 
-$result = Invoke-Program -Session $session -FilePath $softwarePostgreSQL.ExeFile -ArgumentList $argumentList -Verbose
+$result = Invoke-Program -Session $session -FilePath $softwarePostgreSQL.ExeFile -ArgumentList $argumentList
 
 $session | Remove-PSSession
 
@@ -88,6 +88,13 @@ $null = New-NetFirewallRule -CimSession $cimSession @firewallConfig
 $cimSession | Remove-CimSession
 
 
+# Enable remote access
+
+Invoke-Command -ComputerName $softwarePostgreSQL.ComputerName -ScriptBlock {
+    Add-Content -Path "$($using:softwarePostgreSQL.Parameters.datadir)\pg_hba.conf" -Value 'host    all             all             samenet                 scram-sha-256'
+}
+
+
 <# Remove PostgreSQL:
 
 $programParams = @{
@@ -97,10 +104,17 @@ $programParams = @{
 }
 
 $result = Invoke-Program @programParams
-$result
 
-Invoke-Command -ComputerName $softwarePostgreSQL.ComputerName -ScriptBlock { $null = Remove-Item -Path $using:softwarePostgreSQL.Parameters.prefix -Recurse -Force}
+if ($result.Successful) {
+    Invoke-Command -ComputerName $softwarePostgreSQL.ComputerName -ScriptBlock {
+        $null = Remove-Item -Path $using:softwarePostgreSQL.Parameters.prefix -Recurse -Force
+        Restart-Computer -Force
+    }
+} else {
+    $result
+}
 
-Restart-Computer -ComputerName $softwarePostgreSQL.ComputerName
+# TODO: Remove firewall
+# TODO: Remove user
 
 #>
