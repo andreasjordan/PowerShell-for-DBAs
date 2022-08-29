@@ -4,6 +4,7 @@ function Connect-PgInstance {
     param (
         [Parameter(Mandatory)][string]$Instance,
         [Parameter(Mandatory)][PSCredential]$Credential,
+        [string]$Database,
         [switch]$EnableException
     )
 
@@ -21,6 +22,10 @@ function Connect-PgInstance {
     $connection.Port = $pgPort
     $connection.UserId = $Credential.UserName
     $connection.Password = $Credential.GetNetworkCredential().Password
+
+    if ($Database) {
+        $connection.Database = $Database
+    }
 
     try {
         Write-Verbose -Message "Opening connection"
