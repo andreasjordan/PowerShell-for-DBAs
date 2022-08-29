@@ -45,6 +45,7 @@ if ((Get-FileHash -Path $softwarePostgreSQL.ExeFile -Algorithm SHA256).Hash -ne 
 
 
 # Install software
+$session = New-PSSession -ComputerName $softwarePostgreSQL.ComputerName -Credential $softwarePostgreSQL.Credential -Authentication Credssp
 
 $argumentList = @( )
 foreach ($key in $softwarePostgreSQL.Parameters.Keys) {
@@ -52,64 +53,15 @@ foreach ($key in $softwarePostgreSQL.Parameters.Keys) {
     $argumentList += $softwarePostgreSQL.Parameters.$key
 }
 
-$scriptBlock = {
-    Param  (
-        $Path,
-        $ArgumentList
-    )
-    $output = [PSCustomObject]@{
-        Successful       = $false
-        StdOut           = $null
-        StdErr           = $null
-        ExitCode         = $null
-    }
-    $processStartInfo = New-Object System.Diagnostics.ProcessStartInfo
-    $processStartInfo.FileName = $Path
-    if ($ArgumentList) {
-        $processStartInfo.Arguments = $ArgumentList
-    }
-    $processStartInfo.UseShellExecute = $false # This is critical for installs to function on core servers
-    $processStartInfo.CreateNoWindow = $true
-    $processStartInfo.RedirectStandardError = $true
-    $processStartInfo.RedirectStandardOutput = $true
-    $ps = New-Object System.Diagnostics.Process
-    $ps.StartInfo = $processStartInfo
-    $started = $ps.Start()
-    if ($started) {
-        $stdOut = $ps.StandardOutput.ReadToEnd()
-        $stdErr = $ps.StandardError.ReadToEnd()
-        $ps.WaitForExit()
-        # assign output object values
-        $output.StdOut = $stdOut
-        $output.StdErr = $stdErr
-        $output.ExitCode = $ps.ExitCode
-        # Check the exit code of the process to see if it succeeded.
-        if ($ps.ExitCode -eq 0) {
-            $output.Successful = $true
-        }
-        $output
-    }
-}
+$result = Invoke-Program -Session $session -FilePath $softwarePostgreSQL.ExeFile -ArgumentList $argumentList -Verbose
 
-$params = @{
-    ScriptBlock    = $scriptBlock
-    ArgumentList   = @(
-        $softwarePostgreSQL.ExeFile,
-        $argumentList
-    )
-    ComputerName   = $softwarePostgreSQL.ComputerName
-    Credential     = $softwarePostgreSQL.Credential
-    Authentication = 'Credssp'
-    ErrorAction    = 'Stop'
-}
-
-$output = Invoke-Command @params
+$session | Remove-PSSession
 
 
 # Test installation
 
-if (-not $output.Successful) {
-    $output
+if (-not $result.Successful) {
+    $result
     throw "Installation failed"
 }
 
@@ -136,28 +88,19 @@ $null = New-NetFirewallRule -CimSession $cimSession @firewallConfig
 $cimSession | Remove-CimSession
 
 
-
+$softwarePostgreSQL.Parameters.prefix
 <# Remove PostgreSQL:
 
-$params = @{
-    ScriptBlock    = $scriptBlock
-    ArgumentList   = @(
-        'D:\PostgreSQL\14\uninstall-postgresql.exe',
-        @(
-            '--mode'
-            'unattended'
-            '--unattendedmodeui'
-            'none'
-        )
-    )
-    ComputerName   = $softwarePostgreSQL.ComputerName
-    Credential     = $softwarePostgreSQL.Credential
-    Authentication = 'Credssp'
-    ErrorAction    = 'Stop'
+$programParams = @{
+    ComputerName = $softwarePostgreSQL.ComputerName
+    FilePath     = "$($softwarePostgreSQL.Parameters.prefix)\uninstall-postgresql.exe"
+    ArgumentList = '--mode', 'unattended', '--unattendedmodeui', 'none'
 }
 
-$output = Invoke-Command @params
-$output
+$result = Invoke-Program @programParams
+$result
+
+Invoke-Command -ComputerName $softwarePostgreSQL.ComputerName -ScriptBlock { $null = Remove-Item -Path $using:softwarePostgreSQL.Parameters.prefix -Recurse -Force}
 
 Restart-Computer -ComputerName $softwarePostgreSQL.ComputerName
 
