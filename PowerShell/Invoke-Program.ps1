@@ -14,7 +14,7 @@ function Invoke-Program {
 		[System.Management.Automation.Runspaces.PSSession]$Session,
 
 		[Parameter()]
-		[string]$ComputerName = 'localhost',
+		[string]$ComputerName,
 
 		[Parameter()]
 		[pscredential]$Credential,
@@ -28,7 +28,7 @@ function Invoke-Program {
 		[string[]]$ArgumentList,
 
 		[Parameter()]
-		[switch]$ExpandStrings,
+		[bool]$ExpandStrings = $false,
 
 		[Parameter()]
 		[ValidateNotNullOrEmpty()]
@@ -40,38 +40,50 @@ function Invoke-Program {
 	)
 	process	{
 		try {
+			$icmParams = @{ }
+
             if ($PSBoundParameters.ContainsKey('Session')) {
     			Write-Verbose -Message "Using session to [$($Session.ComputerName)]"
 
-			    $icmParams = @{
-				    Session = $Session
-			    }
+			    $icmParams.Session = $Session
                 $ComputerName = $Session.ComputerName
-            } else {
+            } elseif ($PSBoundParameters.ContainsKey('ComputerName')) {
     			Write-Verbose -Message "Using ComputerName [$ComputerName]"
 
-			    $icmParams = @{
-				    ComputerName = $ComputerName
-			    }
-
+			    $icmParams.ComputerName = $ComputerName
 			    if ($PSBoundParameters.ContainsKey('Credential')) {
         			Write-Verbose -Message "Using Credential for [$($Credential.UserName)] and CredSSP as Authentication"
 
 				    $icmParams.Credential = $Credential	
 			        $icmParams.Authentication = 'CredSSP'
 			    }
+            } else {
+    			Write-Verbose -Message "Running program on localhost"
             }
 
 			Write-Verbose -Message "Acceptable success return codes are [$($SuccessReturnCodes -join ',')]"
 			
+			$icmParams.ArgumentList = @(
+		        $FilePath,
+		        $ArgumentList,
+            	$ExpandStrings,
+		        $WorkingDirectory,
+                $SuccessReturnCodes
+            )
 			$icmParams.ScriptBlock = {
-				$VerbosePreference = $using:VerbosePreference
+				param (
+		            [string]$FilePath,
+		            [string[]]$ArgumentList,
+            		[bool]$ExpandStrings,
+		            [string]$WorkingDirectory,
+                    [uint32[]]$SuccessReturnCodes
+                )
 
                 $output = [PSCustomObject]@{
                     ComputerName     = $env:COMPUTERNAME
-                    FilePath         = $using:FilePath
-                    ArgumentList     = $using:ArgumentList
-                    WorkingDirectory = $using:WorkingDirectory
+                    FilePath         = $FilePath
+                    ArgumentList     = $ArgumentList
+                    WorkingDirectory = $WorkingDirectory
                     Successful       = $false
                     StdOut           = $null
                     StdErr           = $null
@@ -81,18 +93,18 @@ function Invoke-Program {
 
 				try {
 					$processStartInfo = [System.Diagnostics.ProcessStartInfo]::new()
-					$processStartInfo.FileName = $using:FilePath
-					if ($using:ArgumentList) {
-						$processStartInfo.Arguments = $using:ArgumentList
-						if ($using:ExpandStrings) {
-							$processStartInfo.Arguments = $ExecutionContext.InvokeCommand.ExpandString($using:ArgumentList)
+					$processStartInfo.FileName = $FilePath
+					if ($ArgumentList) {
+						$processStartInfo.Arguments = $ArgumentList
+						if ($ExpandStrings) {
+							$processStartInfo.Arguments = $ExecutionContext.InvokeCommand.ExpandString($ArgumentList)
                             $output.ArgumentList = $processStartInfo.Arguments
 						}
 					}
-					if ($using:WorkingDirectory) {
-						$processStartInfo.WorkingDirectory = $using:WorkingDirectory
-						if ($Using:ExpandStrings) {
-							$processStartInfo.WorkingDirectory = $ExecutionContext.InvokeCommand.ExpandString($using:WorkingDirectory)
+					if ($WorkingDirectory) {
+						$processStartInfo.WorkingDirectory = $WorkingDirectory
+						if ($ExpandStrings) {
+							$processStartInfo.WorkingDirectory = $ExecutionContext.InvokeCommand.ExpandString($WorkingDirectory)
                             $output.WorkingDirectory = $processStartInfo.WorkingDirectory
 						}
 					}
@@ -115,7 +127,7 @@ function Invoke-Program {
                         $output.StdErr = $stdErr
                         $output.ExitCode = $process.ExitCode
 
-                        if ($process.ExitCode -in $using:SuccessReturnCodes) {
+                        if ($process.ExitCode -in $SuccessReturnCodes) {
                             $output.Successful = $true
                         }
                     }
