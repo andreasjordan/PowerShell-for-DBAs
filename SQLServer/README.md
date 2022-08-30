@@ -1,9 +1,38 @@
 How to use PowerShell as a Microsoft SQL Server database administrator.
 
-If you are looking for a complete solution for managing Microsoft SQL Servers with PowerShell, then you should take a look at [dbatools](https://dbatools.io/) ([GitHub](https://github.com/dataplat/dbatools)). 
+## Install the server
+
+I use the free express edition of SQL Server 2019 for my labs. See my install script [Server.ps1](Server.ps1) in this folder for details.
+
+
+## Install the client
+
+### dbatools
+
+https://dbatools.io/
+
+https://github.com/dataplat/dbatools
+
+This open source PowerShell module is a complete solution for managing Microsoft SQL Servers with PowerShell. And to be honest: The functionality of dbatools inspired me to create this repository.
+
+For details on installing dbatools see my blog posts ["How to install the PowerShell module dbatools?"](https://blog.ordix.de/how-do-i-install-the-powershell-module-dbatools) and ["Installation and use of dbatools on a computer without internet connection"](https://blog.ordix.de/installation-and-use-of-dbatools-on-a-computer-without-internet-connection).
 
 In general, Microsoft goes one step further than the other vendors. They publish a collection of objects (DLLs) that are designed for programming all aspects of managing Microsoft SQL Server: [Server Managed Objects (SMO)](https://docs.microsoft.com/en-us/sql/relational-databases/server-management-objects-smo).
 They give you a .NET interface to all layers within SQL Servers, such as the instances themselves, all logins, databases, tables, indexes, etc.
 Best of all, it's now open source, you can take a look at the code here on [GitHub](https://github.com/microsoft/sqlmanagementobjects).
 
-And to be honest: The functionality of dbatools inspired me to create this repository.
+
+### SMO NuGet Package
+
+https://docs.microsoft.com/en-us/sql/relational-databases/server-management-objects-smo/installing-smo
+
+https://www.nuget.org/packages/Microsoft.SqlServer.SqlManagementObjects
+
+I definitly want to try that - but there are dependencies like [Microsoft.Data.SqlClient](https://www.nuget.org/packages/Microsoft.Data.SqlClient/) which also has dependencies. And I still have not enough knowledge about installing NuGet packages with PowerShell.
+
+
+## Install the application
+
+I use a sample "application" (just a bunch of tables) that is based on the schema and data from the StackOverflow database.
+
+See my script [Application.ps1](Application.ps1) in this folder for details.
