@@ -11,12 +11,15 @@ https://sbp.enterprisedb.com/getfile.jsp?fileid=1258170
 
 #>
 
+# This script uses the variables $serverComputerName and $windowsAdminCredential that were set in Environment.ps1.
+# This script uses Invoke-Program.ps1.
+
 $softwarePostgreSQL = [PSCustomObject]@{
     DownloadUrl  = 'https://sbp.enterprisedb.com/getfile.jsp?fileid=1258170'
     ExeFile      = '\\fs\Software\PostgreSQL\postgresql-14.5-1-windows-x64.exe'
     Sha256       = 'E91B3AA882A0AF54FDA36043F492252E472C878904E2C3D92E6C799C33E75DEA'
-    ComputerName = 'SQLLAB08'
-    Credential   = Get-Credential -Message "Account to connect to target server with CredSSP" -UserName "$env:USERDOMAIN\$env:USERNAME"
+    ComputerName = $serverComputerName
+    Credential   = $windowsAdminCredential
     Parameters   = @{
         prefix           = 'D:\PostgreSQL\14'
         datadir          = 'D:\PostgreSQL\14\data'
@@ -91,7 +94,9 @@ $cimSession | Remove-CimSession
 # Enable remote access
 
 Invoke-Command -ComputerName $softwarePostgreSQL.ComputerName -ScriptBlock {
-    Add-Content -Path "$($using:softwarePostgreSQL.Parameters.datadir)\pg_hba.conf" -Value 'host    all             all             samenet                 scram-sha-256'
+    $configFile = "$($using:softwarePostgreSQL.Parameters.datadir)\pg_hba.conf"
+    $configContent = 'host    all             all             samenet                 scram-sha-256'
+    Add-Content -Path $configFile -Value $configContent
 }
 
 
