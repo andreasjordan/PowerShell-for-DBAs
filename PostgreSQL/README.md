@@ -2,7 +2,7 @@ How to use PowerShell as a PostgreSQL database administrator.
 
 ## Server
 
-See [Server.ps1](Server.ps1) which uses [Invoke-Program.ps1](../PowerShell/Invoke-Program.ps1).
+See [Server.ps1](Server.ps1) which uses [Invoke-Program.ps1](../PowerShell/Invoke-Program.ps1) for details on installation.
 
 
 ## Client
@@ -13,7 +13,7 @@ https://github.com/npgsql/npgsql
 
 https://www.nuget.org/packages/Npgsql
 
-Looks good, but no DLL for Framework 4.5
+Looks good, but no DLL for Framework 4.5 - so will try that later...
 
 
 ### dotConnect for PostgreSQL 8.0 Express
@@ -21,6 +21,8 @@ Looks good, but no DLL for Framework 4.5
 https://www.devart.com/dotconnect/postgresql/download.html
 
 https://www.devart.com/dotconnect/postgresql/docs/
+
+See [Client.ps1](Client.ps1) which uses [Invoke-Program.ps1](../PowerShell/Invoke-Program.ps1) for details on installation.
 
 First sample code (using [Connect-PgInstance.ps1](Connect-PgInstance.ps1) and [Invoke-PgQuery.ps1](Invoke-PgQuery.ps1)):
 
