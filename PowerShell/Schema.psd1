@@ -9,7 +9,7 @@
             Informix   = ''
         }
         VARCHAR = @{
-            SQLServer  = 'VARCHAR'
+            SQLServer  = 'NVARCHAR'
             Oracle     = 'VARCHAR2'
             PostgreSQL = 'VARCHAR'
             MySQL      = 'VARCHAR'
