@@ -17,18 +17,19 @@ function Connect-PgInstance {
     }
 
     Write-Verbose -Message "Creating connection to host [$pgHost] on port [$pgPort]"
-    $connection = [Devart.Data.PostgreSql.PgSqlConnection]::new()
-    $connection.Host = $pgHost
-    $connection.Port = $pgPort
-    $connection.UserId = $Credential.UserName
-    $connection.Password = $Credential.GetNetworkCredential().Password
 
+    $csb = [Devart.Data.PostgreSql.PgSqlConnectionStringBuilder]::new()
+    $csb.Pooling = $false
+    $csb.Unicode = $true   # To be able to use UTF8 data
+    $csb.Host = $pgHost
+    $csb.Port = $pgPort
+    $csb.UserId = $Credential.UserName
+    $csb.Password = $Credential.GetNetworkCredential().Password
     if ($Database) {
-        $connection.Database = $Database
+        $csb.Database = $Database
     }
 
-    # To be able to use UTF8 data
-    $connection.Unicode = $true
+    $connection = [Devart.Data.PostgreSql.PgSqlConnection]::new($csb.ConnectionString)
 
     try {
         Write-Verbose -Message "Opening connection"
