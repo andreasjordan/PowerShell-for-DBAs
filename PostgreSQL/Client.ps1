@@ -1,5 +1,8 @@
 $ErrorActionPreference = 'Stop'
 
+. ..\PowerShell\Environment.ps1
+. ..\PowerShell\Invoke-Program.ps1
+
 <#
 
 Documentation:
