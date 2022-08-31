@@ -1,15 +1,18 @@
 function Import-Schema {
     [CmdletBinding()]
-    [OutputType([string[]])]
+    [OutputType([System.Void])]
     param (
         [Parameter(Mandatory)][string]$Path,
         [Parameter(Mandatory)][ValidateSet("SQLServer", "Oracle", "PostgreSQL", "MySQL", "Db2", "Informix")][string]$DBMS,
+        [Parameter(Mandatory)][object]$Connection,
         [switch]$EnableException
     )
 
     try {
         Write-Verbose -Message "Importing PowerShellDataFile from $Path"
         $schema = Import-PowerShellDataFile -Path $Path
+
+        $queries = @( )
 
         foreach ($table in $schema.Tables) {
             # $table = $schema.Tables[0]
@@ -32,23 +35,45 @@ function Import-Schema {
             }
             $query += "CONSTRAINT $($table.TableName)_PK PRIMARY KEY ($($table.PrimaryKey)))"
 
-            Write-Debug -Message "Adding to output: $query"
-            $query
+            $queries += $query
         }
+
         foreach ($index in $schema.Indexes) {
             # $index = $schema.Indexes[0]
             Write-Verbose -Message "Processing index [$($index.IndexName)] on [$($index.TableName)]"
 
-            $query = "CREATE INDEX $($index.IndexName) ON $($index.TableName) ($($index.Columns -join ','))"
+            $queries += "CREATE INDEX $($index.IndexName) ON $($index.TableName) ($($index.Columns -join ','))"
+        }
 
-            Write-Debug -Message "Adding to output: $query"
-            $query
+        Write-Verbose -Message "Sending all queries to database"
+        foreach ($query in $queries) {
+            Write-Debug -Message "Running query: $query"
+            switch ($DBMS) {
+                SQLServer {
+                    $null = Invoke-DbaQuery -SqlInstance $Connection -Query $query -EnableException
+                }
+                Oracle {
+                    $null = Invoke-OraQuery -Connection $Connection -Query $query -EnableException
+                }
+                PostgreSQL {
+                    $null = Invoke-PgQuery -Connection $Connection -Query $query -EnableException
+                }
+                MySQL {
+                    $null = Invoke-MyQuery -Connection $Connection -Query $query -EnableException
+                }
+                Db2 {
+                    $null = Invoke-Db2Query -Connection $Connection -Query $query -EnableException
+                }
+                Informix {
+                    $null = Invoke-IfxQuery -Connection $Connection -Query $query -EnableException
+                }
+            }
         }
     } catch {
-            if ($EnableException) {
-                throw
-            } else {
-                Write-Warning -Message "Schema could not be initialized: $_"
-            }
+        if ($EnableException) {
+            throw
+        } else {
+            Write-Warning -Message "Schema could not be imported: $_"
+        }
     }
 }
