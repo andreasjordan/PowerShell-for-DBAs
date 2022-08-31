@@ -27,6 +27,9 @@ function Connect-PgInstance {
         $connection.Database = $Database
     }
 
+    # To be able to use UTF8 data
+    $connection.Unicode = $true
+
     try {
         Write-Verbose -Message "Opening connection"
         $connection.Open()
