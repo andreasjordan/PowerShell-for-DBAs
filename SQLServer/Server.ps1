@@ -7,7 +7,6 @@ $softwareSQLServer = [PSCustomObject]@{
     ExeFile      = "$EnvironmentSoftwareBase\SQLServer\SQLEXPR_x64_ENU.exe"
     Sha256       = '702D304852293F76D563C8DB09680856D85E537B08EB1401B3E283BA7847607B'
     TempPath     = 'C:\temp_SQLServer_Express'
-
     ComputerName = $EnvironmentServerComputerName
     Credential   = $EnvironmentWindowsAdminCredential
     Parameters   = @{
