@@ -1,11 +1,20 @@
 How to use PowerShell as a PostgreSQL database administrator.
 
-## Server
+## Install the server
 
 See [Server.ps1](Server.ps1) for details on installation.
 
 
-## Client
+## Install the client
+
+### dotConnect for PostgreSQL 8.0 Express
+
+https://www.devart.com/dotconnect/postgresql/download.html
+
+https://www.devart.com/dotconnect/postgresql/docs/
+
+See [Client.ps1](Client.ps1) for details on installation.
+
 
 ### Npgsql
 
@@ -16,13 +25,14 @@ https://www.nuget.org/packages/Npgsql
 Looks good, but no DLL for Framework 4.5 - so will try that later...
 
 
-### dotConnect for PostgreSQL 8.0 Express
+## Install the application
 
-https://www.devart.com/dotconnect/postgresql/download.html
+I use a sample "application" (just a bunch of tables) that is based on the schema and data from the StackOverflow database.
 
-https://www.devart.com/dotconnect/postgresql/docs/
+See my script [Application.ps1](Application.ps1) in this folder for details.
 
-See [Client.ps1](Client.ps1) for details on installation.
+
+## Run some code
 
 First sample code (using [Connect-PgInstance.ps1](Connect-PgInstance.ps1) and [Invoke-PgQuery.ps1](Invoke-PgQuery.ps1)):
 
@@ -39,7 +49,7 @@ $instance = 'SQLLAB08:5432'
 $instance = 'SQLLAB08'
 $credential = Get-Credential -Message $instance -UserName postgres  # start123
 
-$connection = Connect-PgInstance -Instance $instance -Credential $credential -Verbose
+$connection = Connect-PgInstance -Instance $instance -Credential $credential
 
 $query = 'SELECT * FROM pg_file_settings'
 $data = Invoke-PgQuery -Connection $connection -Query $query
