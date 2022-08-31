@@ -1,6 +1,6 @@
 How to use PowerShell as a MySQL database administrator.
 
-## Server
+## Install the server
 
 First attempt:
 
@@ -30,7 +30,19 @@ $null = New-NetFirewallRule @firewallConfig
 "ALTER USER 'root'@'%' IDENTIFIED BY 'start123'; GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION; flush privileges;" | D:\MySQL\mysql\current\bin\mysql.exe -uroot -p
 ```
 
-## Client
+
+## Install the client
+
+### dotConnect for MySQL 9.0 Express
+
+https://www.devart.com/dotconnect/mysql/download.html
+
+https://www.devart.com/dotconnect/mysql/docs/
+
+See [Client.ps1](Client.ps1) for details on installation.
+
+
+### "Official client"
 
 https://dev.mysql.com/downloads/connector/net/ is only 32bit and I think I had problems - still have to retry.
 
@@ -57,30 +69,9 @@ I don't know where to get the requested version of "System.Memory". Using https:
 
 Just asked here: https://forums.mysql.com/list.php?38
 
-### dotConnect
 
-https://www.devart.com/dotconnect/mysql/editions.html
+## Install the application
 
-This works:
-```
-try {
-    Add-Type -Path 'C:\Program Files (x86)\Devart\dotConnect\MySQL\Devart.Data.dll'
-    Add-Type -Path 'C:\Program Files (x86)\Devart\dotConnect\MySQL\Devart.Data.MySql.dll'
-} catch {
-    $ex = $_
-    $ex.Exception.Message
-    $ex.Exception.LoaderExceptions
-}
+I use a sample "application" (just a bunch of tables) that is based on the schema and data from the StackOverflow database.
 
-$connection = [Devart.Data.MySql.MySqlConnection]::new()
-$connection.Host = 'SQLLAB08'
-$connection.Port = 3306
-$connection.UserId = 'root'
-$connection.Password = 'start123'
-
-try {
-    $connection.Open()
-} catch {
-    Write-Warning -Message "Failed to open the connection: $_"
-}
-```
+See my script [Application.ps1](Application.ps1) in this folder for details.
