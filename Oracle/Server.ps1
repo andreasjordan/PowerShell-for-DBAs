@@ -1,5 +1,8 @@
 $ErrorActionPreference = 'Stop'
 
+. ..\PowerShell\Environment.ps1
+. ..\PowerShell\Invoke-Program.ps1
+
 <#
 
 Documentation for silent installation:
@@ -12,14 +15,15 @@ https://www.oracle.com/database/technologies/xe-downloads.html
 
 $softwareOracleXe = [PSCustomObject]@{
     DownloadUrl  = 'https://download.oracle.com/otn-pub/otn_software/db-express/OracleXE213_Win64.zip'
-    ZipFile      = '\\fs\Software\Oracle\OracleXE213_Win64.zip'
+    ZipFile      = "$EnvironmentSoftwareBase\Oracle\OracleXE213_Win64.zip"
     Sha256       = '939742c3305c466566a55f607638621b6aa7033a183175f6bcd6cffb48e6bc3f'
     TempPath     = 'C:\temp_OracleXE213_Win64'
-    ComputerName = 'SQLLAB08'
-    Credential   = Get-Credential -Message "Account to connect to target server with CredSSP" -UserName "$env:USERDOMAIN\$env:USERNAME"
-    OracleBase   = 'D:\oracle'
-    Password     = 'start123'  # TODO: Which special characters would work?`"P@ssw0rd" does not work.
-    SampleSchema = '\\fs\SampleDatabases\STACKOVERFLOW.DMP.zip'
+    ComputerName = $EnvironmentServerComputerName
+    Credential   = $EnvironmentWindowsAdminCredential
+    Parameters   = @{
+        OracleBase = 'D:\oracle'
+        Password   = $EnvironmentDatabaseAdminPassword  # TODO: Which special characters would work?`"P@ssw0rd" does not work.
+    }
 }
 
 
@@ -39,24 +43,42 @@ if ((Get-FileHash -Path $softwareOracleXe.ZipFile -Algorithm SHA256).Hash -ne $s
 
 # Install software
 
-Invoke-Command -ComputerName $softwareOracleXe.ComputerName -Authentication Credssp -Credential $softwareOracleXe.Credential -ArgumentList $softwareOracleXe -ScriptBlock { 
-    param($Software)
-    if (-not (Test-Path -Path $Software.TempPath)) {
-        Expand-Archive -Path $Software.ZipFile -DestinationPath $Software.TempPath
-    }
+$session = New-PSSession -ComputerName $softwareOracleXe.ComputerName -Credential $softwareOracleXe.Credential -Authentication Credssp
+
+if (-not (Invoke-Command -Session $session -ScriptBlock { Test-Path -Path $using:softwareOracleXe.TempPath })) {
+    Invoke-Command -Session $session -ScriptBlock { Expand-Archive -Path $using:softwareOracleXe.ZipFile -DestinationPath $using:softwareOracleXe.TempPath }
+}
+
+
+# The silent installation only works from time to time - so I recommended installing via setup.exe gui.
+# Use the following settings:
+"* Install Oracle Database 21c Express Edition to: $($softwareOracleXe.Parameters.OracleBase)\product\21c\"
+"* Enter database password: $($softwareOracleXe.Parameters.Password)"
+
+<# 
+
+Invoke-Command -Session $session -ScriptBlock {
     $rspContent = @{
-        INSTALLDIR     = "$($Software.OracleBase)\product\21c\"
-        PASSWORD       = $Software.Password
+        INSTALLDIR     = "$($using:softwareOracleXe.Parameters.OracleBase)\product\21c\"
+        PASSWORD       = $using:softwareOracleXe.Parameters.Password
         LISTENER_PORT  = '1521'
         EMEXPRESS_PORT = '5550'
         CHAR_SET       = 'AL32UTF8'
         DB_DOMAIN      = ''
     }
-    Set-Content -Path "$($Software.TempPath)\myInstall.rsp" -Value $rspContent.GetEnumerator().ForEach({ "$($_.Name)=$($_.Value)" })
-    $argumentList = "/s /v`"RSP_FILE=$($Software.TempPath)\myInstall.rsp`" /v`"/L*v $($Software.TempPath)\setup.log`" /v`"/qn`""
-    Start-Process -FilePath "$($Software.TempPath)\setup.exe" -ArgumentList $argumentList -Wait
+    Set-Content -Path "$($using:softwareOracleXe.TempPath)\myInstall.rsp" -Value $rspContent.GetEnumerator().ForEach({ "$($_.Name)=$($_.Value)" })
 }
 
+$argumentList = @(
+    '/s'
+    '/v"RSP_FILE={0}\myInstall.rsp"' -f $softwareOracleXe.TempPath
+    '/v"/L*v {0}\setup.log"' -f $softwareOracleXe.TempPath
+)
+$result = Invoke-Program -Session $session -FilePath "$($softwareOracleXe.TempPath)\setup.exe" -ArgumentList $argumentList
+
+$session | Remove-PSSession
+
+#>
 
 # Test installation
 
@@ -102,8 +124,9 @@ Invoke-Command -ComputerName $softwareOracleXe.ComputerName -Authentication Cred
 }
 
 
-# Install sample schema
+<# Install sample schema:
 
+$softwareOracleXe.SampleSchema = '\\fs\SampleDatabases\STACKOVERFLOW.DMP.zip'
 Invoke-Command -ComputerName $softwareOracleXe.ComputerName -Authentication Credssp -Credential $softwareOracleXe.Credential -ArgumentList $softwareOracleXe -ScriptBlock { 
     param($Software)
 
@@ -117,8 +140,34 @@ Invoke-Command -ComputerName $softwareOracleXe.ComputerName -Authentication Cred
     Start-Process -FilePath "$($Software.OracleBase)\product\21c\dbhomeXE\bin\impdp.exe" -ArgumentList $argumentList -Wait
 }
 
+#>
+
 
 <# Remove XE:
+
+$cimSession = New-CimSession -ComputerName $softwareOracleXe.ComputerName
+Get-NetFirewallRule -CimSession $cimSession -Group 'Oracle' | Remove-NetFirewallRule
+$cimSession | Remove-CimSession
+
+$session = New-PSSession -ComputerName $softwareOracleXe.ComputerName -Credential $softwareOracleXe.Credential -Authentication Credssp
+
+if (-not (Invoke-Command -Session $session -ScriptBlock { Test-Path -Path $using:softwareOracleXe.TempPath })) {
+    Invoke-Command -Session $session -ScriptBlock { Expand-Archive -Path $using:softwareOracleXe.ZipFile -DestinationPath $using:softwareOracleXe.TempPath }
+}
+
+$argumentList = @(
+    '/s'
+    '/x'
+    '/v"/qn"'  # Not needed at install, but needed here to suppress questions
+    '/v"/L*v {0}\setup.log"' -f $softwareOracleXe.TempPath
+)
+$result = Invoke-Program -Session $session -FilePath "$($softwareOracleXe.TempPath)\setup.exe" -ArgumentList $argumentList
+# TODO: Why does this fail? 
+
+$session | Remove-PSSession
+
+
+# Old version:
 
 Invoke-Command -ComputerName $softwareOracleXe.ComputerName -Authentication Credssp -Credential $softwareOracleXe.Credential -ArgumentList $softwareOracleXe -ScriptBlock { 
     param($Software)
@@ -135,4 +184,3 @@ Invoke-Command -ComputerName $softwareOracleXe.ComputerName -Authentication Cred
 Restart-Computer -ComputerName $softwareOracleXe.ComputerName
 
 #>
-
