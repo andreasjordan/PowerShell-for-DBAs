@@ -1,5 +1,8 @@
 $ErrorActionPreference = 'Stop'
 
+. ..\PowerShell\Environment.ps1
+. ..\PowerShell\Invoke-Program.ps1
+
 <#
 
 Documentation for silent installation:
@@ -11,15 +14,12 @@ https://sbp.enterprisedb.com/getfile.jsp?fileid=1258170
 
 #>
 
-# This script uses the variables $serverComputerName and $windowsAdminCredential that were set in Environment.ps1.
-# This script uses Invoke-Program.ps1.
-
 $softwarePostgreSQL = [PSCustomObject]@{
     DownloadUrl  = 'https://sbp.enterprisedb.com/getfile.jsp?fileid=1258170'
-    ExeFile      = '\\fs\Software\PostgreSQL\postgresql-14.5-1-windows-x64.exe'
+    ExeFile      = "$EnvironmentSoftwareBase\PostgreSQL\postgresql-14.5-1-windows-x64.exe"
     Sha256       = 'E91B3AA882A0AF54FDA36043F492252E472C878904E2C3D92E6C799C33E75DEA'
-    ComputerName = $serverComputerName
-    Credential   = $windowsAdminCredential
+    ComputerName = $EnvironmentServerComputerName
+    Credential   = $EnvironmentWindowsAdminCredential
     Parameters   = @{
         prefix           = 'D:\PostgreSQL\14'
         datadir          = 'D:\PostgreSQL\14\data'
@@ -27,8 +27,8 @@ $softwarePostgreSQL = [PSCustomObject]@{
         unattendedmodeui = 'none'
         servicename      = 'postgresql'
         serviceaccount   = 'postgresql'
-        servicepassword  = 'start123'
-        superpassword    = 'start123'
+        servicepassword  = $EnvironmentDatabaseAdminPassword
+        superpassword    = $EnvironmentDatabaseAdminPassword
     }
 }
 
@@ -102,8 +102,14 @@ Invoke-Command -ComputerName $softwarePostgreSQL.ComputerName -ScriptBlock {
 
 <# Remove PostgreSQL:
 
+$cimSession = New-CimSession -ComputerName $softwarePostgreSQL.ComputerName
+Get-NetFirewallRule -CimSession $cimSession -Group 'PostgreSQL' | Remove-NetFirewallRule
+$cimSession | Remove-CimSession
+
+$session = New-PSSession -ComputerName $softwarePostgreSQL.ComputerName -Credential $softwarePostgreSQL.Credential -Authentication Credssp
+
 $programParams = @{
-    ComputerName = $softwarePostgreSQL.ComputerName
+    Session      = $session
     FilePath     = "$($softwarePostgreSQL.Parameters.prefix)\uninstall-postgresql.exe"
     ArgumentList = '--mode', 'unattended', '--unattendedmodeui', 'none'
 }
@@ -117,9 +123,11 @@ if ($result.Successful) {
     }
 } else {
     $result
+    throw "Uninstallation failed"
 }
 
-# TODO: Remove firewall
+$session | Remove-PSSession
+
 # TODO: Remove user
 
 #>
