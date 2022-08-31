@@ -2,33 +2,15 @@ How to use PowerShell as a MySQL database administrator.
 
 ## Install the server
 
-First attempt:
+See [Server.p1](Server.ps1) for details.
 
-```powershell
-[System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy('http://192.168.128.2:3128')
-$null = Invoke-Expression -Command ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-$null = choco config set proxy http://192.168.128.2:3128
-choco install mysql --confirm --limitoutput --no-progress --params "/installLocation:D:\MySQL"
-@"
-ALTER USER 'root'@'localhost' IDENTIFIED BY 'start123';
-flush privileges;
-"@ | D:\MySQL\mysql\current\bin\mysql.exe -uroot
-
-
-$firewallConfig = @{
-    DisplayName = 'MySQL'
-    Name        = 'MySQL'
-    Group       = 'MySQL'
-    Enabled     = 'True'
-    Direction   = 'Inbound'
-    Protocol    = 'TCP'
-    LocalPort   = '3306'
-}
-$null = New-NetFirewallRule @firewallConfig
-
-
-"ALTER USER 'root'@'%' IDENTIFIED BY 'start123'; GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION; flush privileges;" | D:\MySQL\mysql\current\bin\mysql.exe -uroot -p
+To enable external root access run:
 ```
+"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -uroot -p
+CREATE USER 'root'@'%' IDENTIFIED BY 'start123';
+```
+
+TODO: Do this in Server.ps1 via PowerShell
 
 
 ## Install the client
