@@ -13,7 +13,7 @@ https://www.devart.com/dotconnect/postgresql/docs/
 # Install client
 
 $programParams = @{
-    FilePath     = '\\fs\Software\PostgreSQL\dcpostgresqlfree.exe'
+    FilePath     = "$EnvironmentSoftwareBase\PostgreSQL\dcpostgresqlfree.exe"
     ArgumentList = @( '/TYPE=COMPACT', '/VERYSILENT', '/NOICONS')
 }
 $result = Invoke-Program @programParams
