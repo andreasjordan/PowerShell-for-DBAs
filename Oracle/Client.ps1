@@ -1,5 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
+. ..\PowerShell\Environment.ps1
+
 <#
 
 Documentation for silent installation:
@@ -16,7 +18,7 @@ Sorry, there is no direct download link, you have to sign in and download the fi
 #>
 
 $softwareOracleClient19c = [PSCustomObject]@{
-    ZipFile     = '\\fs\Software\Oracle\WINDOWS.X64_193000_client.zip'
+    ZipFile     = "$EnvironmentSoftwareBase\Oracle\WINDOWS.X64_193000_client.zip"
     Sha256      = '3fa278fe33e0cd3bbed6c84f34b5698962c1feeb74cced1c9713435ebdb2a24f'
     TempPath    = 'C:\temp_X64_193000_client'
     OracleBase  = 'D:\oracle'
