@@ -1,24 +1,19 @@
 $ErrorActionPreference = 'Stop'
 
+. ..\PowerShell\Environment.ps1
+. ..\PowerShell\Invoke-Program.ps1
+
 $softwareSQLServer = [PSCustomObject]@{
-    ExeFile      = '\\fs\Software\SQLServer\SQLEXPR_x64_ENU.exe'
+    ExeFile      = "$EnvironmentSoftwareBase\SQLServer\SQLEXPR_x64_ENU.exe"
     Sha256       = '702D304852293F76D563C8DB09680856D85E537B08EB1401B3E283BA7847607B'
     TempPath     = 'C:\temp_SQLServer_Express'
 
-    ComputerName = $serverComputerName
-    Credential   = $windowsAdminCredential
-    Parameters   = @(
-        '/IACCEPTSQLSERVERLICENSETERMS'
-        '/QUIET'
-        '/ACTION=INSTALL'
-        '/UpdateEnabled=False'
-        '/FEATURES=SQLENGINE'
-        '/INSTANCENAME=SQLEXPRESS'
-        '/INSTANCEDIR="D:\SQLServer"'
-        '/SECURITYMODE=SQL'
-        '/SAPWD=start123'
-        '/TCPENABLED=1'
-    )
+    ComputerName = $EnvironmentServerComputerName
+    Credential   = $EnvironmentWindowsAdminCredential
+    Parameters   = @{
+        INSTANCEDIR = 'D:\SQLServer'
+        SAPWD       = $EnvironmentDatabaseAdminPassword
+    }
 }
 
 
@@ -48,7 +43,20 @@ if (-not (Invoke-Command -Session $session -ScriptBlock { Test-Path -Path $using
     }
 }
 
-$result = Invoke-Program -Session $session -FilePath "$($softwareSQLServer.TempPath)\setup.exe" -ArgumentList $softwareSQLServer.Parameters
+$argumentList = @(
+    '/IACCEPTSQLSERVERLICENSETERMS'
+    '/QUIET'
+    '/ACTION=INSTALL'
+    '/UpdateEnabled=False'
+    '/FEATURES=SQLENGINE'
+    '/INSTANCENAME=SQLEXPRESS'
+    '/INSTANCEDIR="{0}"' -f $softwareSQLServer.Parameters.INSTANCEDIR
+    '/SECURITYMODE=SQL'
+    '/SAPWD={0}' -f $softwareSQLServer.Parameters.SAPWD
+    '/TCPENABLED=1'
+)
+
+$result = Invoke-Program -Session $session -FilePath "$($softwareSQLServer.TempPath)\setup.exe" -ArgumentList $argumentList
 if (-not $result.Successful) {
     $result
     throw "Installation failed"
@@ -71,13 +79,13 @@ if ((Get-Service -ComputerName $softwareSQLServer.ComputerName -Name 'MSSQL$SQLE
 $cimSession = New-CimSession -ComputerName $softwareSQLServer.ComputerName
 
 $firewallConfig = @{
-    DisplayName = 'SQL Server'
-    Name        = 'SQL Server'
+    DisplayName = 'SQL Server SQLEXPRESS Instance'
+    Name        = 'SQL Server SQLEXPRESS Instance'
     Group       = 'SQL Server'
     Enabled     = 'True'
     Direction   = 'Inbound'
     Protocol    = 'TCP'
-    Program     = "D:\SQLServer\MSSQL15.SQLEXPRESS\MSSQL\Binn\sqlservr.exe"
+    Program     = "$($softwareSQLServer.Parameters.INSTANCEDIR)\MSSQL15.SQLEXPRESS\MSSQL\Binn\sqlservr.exe"
 }
 $null = New-NetFirewallRule -CimSession $cimSession @firewallConfig
 
@@ -107,6 +115,10 @@ Invoke-Command -ComputerName $softwareSQLServer.ComputerName -Authentication Cre
 
 <# Remove SQLServer:
 
+$cimSession = New-CimSession -ComputerName $softwareSQLServer.ComputerName
+Get-NetFirewallRule -CimSession $cimSession -Group 'SQL Server' | Remove-NetFirewallRule
+$cimSession | Remove-CimSession
+
 $session = New-PSSession -ComputerName $softwareSQLServer.ComputerName -Credential $softwareSQLServer.Credential -Authentication Credssp
 
 if (-not (Invoke-Command -Session $session -ScriptBlock { Test-Path -Path $using:softwareSQLServer.TempPath })) {
@@ -128,14 +140,15 @@ $argumentList = @(
 $result = Invoke-Program -Session $session -FilePath "$($softwareSQLServer.TempPath)\setup.exe" -ArgumentList $argumentList
 if ($result.Successful) {
     Invoke-Command -ComputerName $softwareSQLServer.ComputerName -ScriptBlock {
-        Remove-Item -Path 'D:\SQLServer' -Recurse -Force
+        Remove-Item -Path $using:softwareSQLServer.Parameters.INSTANCEDIR -Recurse -Force
         Remove-Item -Path $using:softwareSQLServer.TempPath -Recurse -Force
         Restart-Computer -Force
     }
 } else {
     $result
+    throw "Uninstallation failed"
 }
 
-# TODO: Remove firewall
+$session | Remove-PSSession
 
 #>
