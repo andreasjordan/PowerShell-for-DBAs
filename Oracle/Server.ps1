@@ -98,7 +98,7 @@ $firewallConfig = @{
     Enabled     = 'True'
     Direction   = 'Inbound'
     Protocol    = 'TCP'
-    Program     = "$($softwareOracleXe.OracleBase)\product\21c\dbhomeXE\bin\oracle.exe"
+    Program     = "$($softwareOracleXe.Parameters.OracleBase)\product\21c\dbhomeXE\bin\oracle.exe"
 }
 $null = New-NetFirewallRule -CimSession $cimSession @firewallConfig
 
@@ -109,7 +109,7 @@ $firewallConfig = @{
     Enabled     = 'True'
     Direction   = 'Inbound'
     Protocol    = 'TCP'
-    Program     = "$($softwareOracleXe.OracleBase)\product\21c\dbhomeXE\bin\tnslsnr.exe"
+    Program     = "$($softwareOracleXe.Parameters.OracleBase)\product\21c\dbhomeXE\bin\tnslsnr.exe"
 }
 $null = New-NetFirewallRule -CimSession $cimSession @firewallConfig
 
