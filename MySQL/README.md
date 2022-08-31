@@ -8,6 +8,7 @@ To enable external root access run:
 ```
 "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -uroot -p
 CREATE USER 'root'@'%' IDENTIFIED BY 'start123';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
 ```
 
 TODO: Do this in Server.ps1 via PowerShell
