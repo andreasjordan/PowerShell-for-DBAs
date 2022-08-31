@@ -11,7 +11,7 @@ $instance = "$EnvironmentServerComputerName\SQLEXPRESS"
 # $credentialAdmin = Get-Credential -Message $instance -UserName sa
 $credentialAdmin = [PSCredential]::new('sa', (ConvertTo-SecureString -String $EnvironmentDatabaseAdminPassword -AsPlainText -Force))
 
-# $credentialUser  = Get-Credential -Message $instance -UserName stackoverflow
+# $credentialUser  = Get-Credential -Message $instance -UserName StackOverflow
 $credentialUser = [PSCredential]::new('StackOverflow', (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
 
 
