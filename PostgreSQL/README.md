@@ -2,7 +2,9 @@ How to use PowerShell as a PostgreSQL database administrator.
 
 ## Install the server
 
-See [Server.ps1](Server.ps1) for details on installation.
+I use the windows installer by [EDB](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads) of PostgreSQL 14.5 for my labs. See my install script [Server.ps1](Server.ps1) in this folder for details on how to run an unattended installation from a remote computer.
+
+But you can use any existing server in your environment. Just be sure to be able to connect from your client. In my lab, I add "host all all samenet scram-sha-256" to the file "pg_hba.conf".
 
 
 ## Install the client
