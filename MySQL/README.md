@@ -2,27 +2,25 @@ How to use PowerShell as a MySQL database administrator.
 
 ## Install the server
 
-See [Server.p1](Server.ps1) for details.
+I use the windows version of the [MySQL Installer 8.0.30](https://dev.mysql.com/downloads/installer/) (mysql-installer-community-8.0.30.0.msi) for my labs.
 
-To enable external root access run:
-```
-"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -uroot -p
-CREATE USER 'root'@'%' IDENTIFIED BY 'start123';
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
-```
+I have not yet found an easy way to run an unattended installation from a remote computer. So I ran an interactive installation on the target server and used the following options:
+* Choosing a Setup Type: Server only
+* Config Type: Server Computer (or Dedicated Computer if this is the only DBMS installed)
+* MySQL Root Password: start123
 
-TODO: Do this in Server.ps1 via PowerShell
+But you can use any existing server in your environment. Just be sure to be able to connect from your client as root. In my lab, I ran `CREATE USER 'root'@'%' IDENTIFIED BY 'start123'; GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;` as the localhost root user.
 
 
 ## Install the client
 
 ### dotConnect for MySQL 9.0 Express
 
+I use the free Express edition of dotConnect by DevArt in my lab, as this is an easy to install client. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation.
+
 https://www.devart.com/dotconnect/mysql/download.html
 
 https://www.devart.com/dotconnect/mysql/docs/
-
-See [Client.ps1](Client.ps1) for details on installation.
 
 
 ### "Official client"
