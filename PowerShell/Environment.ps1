@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
-# The following variables will be used in other scripts like all the Server.ps1 to run the installation from the client computer.
+# The following variables will be used in all the Client.ps1 and Application.ps1 to install the local clients and the sample application and data.
+# The may also be used in other files using the sample application.
 
 # The path to base directory for the database management software installation files.
 # Under that path, there has to be a seperate directory for every dbms used: SQLServer, Oracle, PostgreSQL, MySQL, Db2, Informix
@@ -13,23 +14,11 @@ if (-not $EnvironmentServerComputerName) {
     $EnvironmentServerComputerName = 'SQLLAB08'
 }
 
-# The credential of a domain user that has administrative rights on the target server ($serverComputerName).
-if (-not $EnvironmentWindowsAdminCredential) {
-    $EnvironmentWindowsAdminCredential = Get-Credential -Message "Account to connect to target server with CredSSP" -UserName "$env:USERDOMAIN\$env:USERNAME"
-}
-
-# Test CredSSP
-# Setting up CredSSP is currently out of scope of this script...
-try {
-    $null = Invoke-Command -ComputerName $EnvironmentServerComputerName -Credential $EnvironmentWindowsAdminCredential -Authentication Credssp -ScriptBlock { $true }
-} catch {
-    Write-Warning -Message "Failed to connect to [$EnvironmentServerComputerName] as [$($EnvironmentWindowsAdminCredential.UserName)] with CredSSP: $_"
-}
-
 # As this is just a lab, set some simple passwords for the used database accounts
 if (-not $EnvironmentDatabaseAdminPassword) {
     $EnvironmentDatabaseAdminPassword = 'start123'
 }
+
 if (-not $EnvironmentDatabaseUserPassword) {
     $EnvironmentDatabaseUserPassword = 'start456'
 }
