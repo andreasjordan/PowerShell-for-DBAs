@@ -11,20 +11,20 @@ But you can use any existing server in your environment. Just be sure to be able
 
 ### dotConnect for PostgreSQL 8.0 Express
 
+I use the free Express edition of dotConnect by DevArt in my lab, as this is an easy to install client. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation.
+
 https://www.devart.com/dotconnect/postgresql/download.html
 
 https://www.devart.com/dotconnect/postgresql/docs/
 
-See [Client.ps1](Client.ps1) for details on installation.
-
 
 ### Npgsql
+
+Looks good, but no DLL for Framework 4.5 - so will try that later...
 
 https://github.com/npgsql/npgsql
 
 https://www.nuget.org/packages/Npgsql
-
-Looks good, but no DLL for Framework 4.5 - so will try that later...
 
 
 ## Install the application
