@@ -9,11 +9,21 @@ But you can use any existing server in your environment.
 
 ## Install the client
 
+### Oracle Database 19c Client
+
 I use the Oracle Database 19c Client, as this is the last client with a working DLL. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation of only the needed components.
 
 But you can also use other ways to install the client. If you are unsure what components to install, just install all of them. If the oracle client is automatically installed by a software distribution tool, test if the file "Oracle.ManagedDataAccess.dll" is present in the path "odp.net\managed\common" in your oracle home.
 
+### Oracle Database 21c Client and NuGet packages
+
 The newer versions have a non-solvable dependency, see [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details.
+
+### dotConnect for Oracle 10.0 Express
+
+https://www.devart.com/dotconnect/oracle/
+
+This free version might also be an option, but I have not tested it.
 
 
 ## Install the application
