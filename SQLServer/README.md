@@ -2,7 +2,7 @@ How to use PowerShell as a Microsoft SQL Server database administrator.
 
 ## Install the server
 
-I use the free express edition of SQL Server 2019 for my labs. See my install script [Server.ps1](Server.ps1) in this folder for details.
+I use the free express edition of SQL Server 2019 for my labs. See my install script [Server.ps1](Server.ps1) in this folder for details on how to run an unattended installation from a remote cmputer. The PowerShell module dbatools also has a command to run the installation.
 
 
 ## Install the client
@@ -29,6 +29,13 @@ https://docs.microsoft.com/en-us/sql/relational-databases/server-management-obje
 https://www.nuget.org/packages/Microsoft.SqlServer.SqlManagementObjects
 
 I definitly want to try that - but there are dependencies like [Microsoft.Data.SqlClient](https://www.nuget.org/packages/Microsoft.Data.SqlClient/) which also has dependencies. And I still have not enough knowledge about installing NuGet packages with PowerShell.
+
+
+### dotConnect for SQL Server 4.0 Standard
+
+https://www.devart.com/dotconnect/sqlserver/
+
+This free version might also be an option, but I have not tested it.
 
 
 ## Install the application
