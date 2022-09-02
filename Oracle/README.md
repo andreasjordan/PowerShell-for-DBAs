@@ -15,6 +15,8 @@ I use the Oracle Database 19c Client in my lab, as this is the last client with 
 
 But you can also use other ways to install the client. If you are unsure what components to install, just install all of them. If the oracle client is automatically installed by a software distribution tool, test if the file "Oracle.ManagedDataAccess.dll" is present in the path "odp.net\managed\common" in your oracle home.
 
+Works only with PowerShell 5.1, not with PowerShell 7.2.
+
 ### Oracle Database 21c Client and NuGet packages
 
 The newer versions have a non-solvable dependency, see [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details.
@@ -23,7 +25,9 @@ The newer versions have a non-solvable dependency, see [this discussion](https:/
 
 https://www.devart.com/dotconnect/oracle/
 
-This free version might also be an option, but I have not tested it.
+This free version might also be an option. 
+
+A quick test shows: Works only with PowerShell 5.1, not with PowerShell 7.2.
 
 
 ## Install the application
