@@ -13,7 +13,7 @@ But you can use any existing server in your environment. Just be sure to be able
 
 I use the free Express edition of dotConnect by DevArt in my lab, as this is an easy to install client. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation.
 
-Works with PowerShell 5.1 and PowerSehll 7.2.
+Works with PowerShell 5.1 and PowerShell 7.2.
 
 https://www.devart.com/dotconnect/postgresql/download.html
 
