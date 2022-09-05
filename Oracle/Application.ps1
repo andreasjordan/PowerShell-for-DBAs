@@ -3,16 +3,24 @@ $ErrorActionPreference = 'Stop'
 . ..\PowerShell\Environment.ps1
 . ..\PowerShell\Import-Schema.ps1
 . ..\PowerShell\Import-Data.ps1
-. .\Connect-OraInstance.ps1
-. .\Invoke-OraQuery.ps1
 
+if (-not $Env:ORACLE_DLL) {
+    throw 'Environment variable ORACLE_DLL not set'
+}
 try {
     Add-Type -Path $Env:ORACLE_DLL
 } catch {
     $ex = $_
     $ex.Exception.Message
     $ex.Exception.LoaderExceptions
-    throw "Adding type failed"
+    throw 'Adding type failed'
+}
+if ($Env:ORACLE_DLL -match 'Devart') {
+    . .\Connect-OraInstance_Devart.ps1
+    . .\Invoke-OraQuery_Devart.ps1
+} else {
+    . .\Connect-OraInstance.ps1
+    . .\Invoke-OraQuery.ps1
 }
 
 $instance = "$EnvironmentServerComputerName/XEPDB1"
