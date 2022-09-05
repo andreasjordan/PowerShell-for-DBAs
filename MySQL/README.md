@@ -56,7 +56,8 @@ I don't know where to get the requested version of "System.Memory". Just asked h
 
 https://www.devart.com/dotconnect/mysql/
 
-This free version might also be an option. See [Connect-MyInstance_Devart.ps1](Connect-MyInstance_Devart.ps1) and [Invoke-MyQuery_Devart.ps1](Invoke-MyQuery_Devart.ps1) on how to use this client.
+This free version might also be an option. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation.
+See [Connect-MyInstance_Devart.ps1](Connect-MyInstance_Devart.ps1) and [Invoke-MyQuery_Devart.ps1](Invoke-MyQuery_Devart.ps1) on how to use this client.
 
 
 ## Install the client for PowerShell 7.2 on Windows
@@ -95,7 +96,7 @@ Remove-Item -Path mysql.data.6.10.9.nupkg.zip
 
 https://www.devart.com/dotconnect/mysql/
 
-This free version might also be an option. See [Connect-MyInstance_Devart.ps1](Connect-MyInstance_Devart.ps1) and [Invoke-MyQuery_Devart.ps1](Invoke-MyQuery_Devart.ps1) on how to use this client.
+This free version might also be an option. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation. See [Connect-MyInstance_Devart.ps1](Connect-MyInstance_Devart.ps1) and [Invoke-MyQuery_Devart.ps1](Invoke-MyQuery_Devart.ps1) on how to use this client.
 
 
 ## Install the application
