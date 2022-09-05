@@ -72,6 +72,28 @@ Remove-Item -Path oracle.manageddataaccess.core.2.19.160.nupkg.zip
 ```
 
 
+## Create an environment variable with the location of the dll
+
+To be able to use the same scripts on all platforms and versions, I use an environment variable named "ORACLE_DLL" with the complete path zu the needed dll file.
+
+I use local PowerShell profiles, but you can use other ways as well.
+
+I use this code to create the profile if there is no profile:
+```
+if (!(Test-Path -Path $PROFILE)) { $null = New-Item -ItemType File -Path $PROFILE -Force }
+```
+
+I use this code for the NuGet package Oracle.ManagedDataAccess:
+```
+"`$Env:ORACLE_DLL = '$((Get-Location).Path)/Oracle/lib/net40/Oracle.ManagedDataAccess.dll'" | Add-Content -Path $PROFILE
+```
+
+I use this code for the NuGet package Oracle.ManagedDataAccess.Core:
+```
+"`$Env:ORACLE_DLL = '$((Get-Location).Path)/Oracle/lib/netstandard2.0/Oracle.ManagedDataAccess.dll'" | Add-Content -Path $PROFILE
+```
+
+
 ## Install the application
 
 I use a sample "application" (just a bunch of tables) that is based on the schema and data from the StackOverflow database.
