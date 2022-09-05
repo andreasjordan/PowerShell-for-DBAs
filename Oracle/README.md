@@ -35,7 +35,7 @@ Remove-Item -Path oracle.manageddataaccess.19.16.0.nupkg.zip
 
 https://www.devart.com/dotconnect/oracle/
 
-This free version might also be an option. 
+This free version might also be an option. See [Connect-OraInstance_Devart.ps1](Connect-OraInstance_Devart.ps1) and [Invoke-OraQuery_Devart.ps1](Invoke-OraQuery_Devart.ps1) on how to use this client.
 
 
 ## Install the client for PowerShell 7.2 on Windows
@@ -91,6 +91,11 @@ I use this code for the NuGet package Oracle.ManagedDataAccess:
 I use this code for the NuGet package Oracle.ManagedDataAccess.Core:
 ```
 "`$Env:ORACLE_DLL = '$((Get-Location).Path)/Oracle/lib/netstandard2.0/Oracle.ManagedDataAccess.dll'" | Add-Content -Path $PROFILE
+```
+
+I use this code for the Devart client:
+```
+"`$Env:ORACLE_DLL = 'C:\Program Files (x86)\Devart\dotConnect\Oracle\Devart.Data.Oracle.dll'" | Add-Content -Path $PROFILE
 ```
 
 
