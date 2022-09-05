@@ -12,45 +12,90 @@ I have not yet found an easy way to run an unattended installation from a remote
 But you can use any existing server in your environment. Just be sure to be able to connect from your client as root. In my lab, I ran `CREATE USER 'root'@'%' IDENTIFIED BY 'start123'; GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;` as the localhost root user.
 
 
-## Install the client
+## Install the client for PowerShell 5.1 on Windows
+ 
+### NuGet package MySql.Data 6.10.9
 
-### dotConnect for MySQL 9.0 Express
+The newer versions have problems with the dependencies, will have a deepler look later.
 
-I use the free Express edition of dotConnect by DevArt in my lab, as this is an easy to install client. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation.
+I only download and extract the package, no need to use nuget.exe or any other tool.
 
-Works with PowerShell 5.1 and PowerShell 7.2.
+I run this code in a suitable location where a subfolder MySQL with the content of the Nuget package will be created:
 
-https://www.devart.com/dotconnect/mysql/download.html
-
-https://www.devart.com/dotconnect/mysql/docs/
-
-
-### "Official client"
-
-https://dev.mysql.com/downloads/connector/net/ is only 32bit and I think I had problems - still have to retry.
-
-https://dev.mysql.com/downloads/windows/installer/8.0.html is the full install where I only installed the client.
-
-Problem: 
-
-```powershell
-try {
-    Add-Type -Path 'C:\Program Files (x86)\MySQL\Connector NET 8.0\Assemblies\v4.5.2\MySql.Data.dll'
-} catch {
-    $ex = $_
-    $ex.Exception.Message
-    $ex.Exception.LoaderExceptions
-}
+```
+Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/MySql.Data/6.10.9 -OutFile mysql.data.6.10.9.nupkg.zip -UseBasicParsing
+Expand-Archive -Path mysql.data.6.10.9.nupkg.zip -DestinationPath .\MySQL
+Remove-Item -Path mysql.data.6.10.9.nupkg.zip
 ```
 
+
+### MySQL Connector/NET 8.0.30
+
+I have problems with the dependencies, will have a deepler look later.
+ 
+https://dev.mysql.com/downloads/connector/net/
+
+I run this code in a suitable location where a subfolder MySQL with the content of the connector will be created:
+
+```
+Invoke-WebRequest -Uri https://dev.mysql.com/get/Downloads/Connector-Net/mysql-connector-net-8.0.30-noinstall.zip -OutFile mysql-connector-net-8.0.30-noinstall.zip -UseBasicParsing
+Expand-Archive -Path mysql-connector-net-8.0.30-noinstall.zip -DestinationPath .\MySQL
+Remove-Item -Path mysql-connector-net-8.0.30-noinstall.zip
+```
+
+When I try to load the dll, I get:
 ```
 Unable to load one or more of the requested types. Retrieve the LoaderExceptions property for more information.
 Could not load file or assembly 'System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51' or one of its dependencies. The system cannot find the file specified.
 ```
 
-I don't know where to get the requested version of "System.Memory". Using https://www.nuget.org/packages/System.Memory does not work.
+I don't know where to get the requested version of "System.Memory". Just asked here: https://forums.mysql.com/list.php?38 - but the question is still not published...
 
-Just asked here: https://forums.mysql.com/list.php?38
+
+### dotConnect for MySQL 9.0 Express
+
+https://www.devart.com/dotconnect/mysql/
+
+This free version might also be an option. See [Connect-MyInstance_Devart.ps1](Connect-MyInstance_Devart.ps1) and [Invoke-MyQuery_Devart.ps1](Invoke-MyQuery_Devart.ps1) on how to use this client.
+
+
+## Install the client for PowerShell 7.2 on Windows
+ 
+### MySQL Connector/NET 8.0.30
+
+This is the current version and works very well on PowerShell 7.2.
+
+https://dev.mysql.com/downloads/connector/net/
+
+I run this code in a suitable location where a subfolder MySQL with the content of the connector will be created:
+
+```
+Invoke-WebRequest -Uri https://dev.mysql.com/get/Downloads/Connector-Net/mysql-connector-net-8.0.30-noinstall.zip -OutFile mysql-connector-net-8.0.30-noinstall.zip -UseBasicParsing
+Expand-Archive -Path mysql-connector-net-8.0.30-noinstall.zip -DestinationPath ./MySQL
+Remove-Item -Path mysql-connector-net-8.0.30-noinstall.zip
+```
+
+
+### NuGet package MySql.Data 6.10.9
+
+The newer versions have problems with the dependencies, will have a deepler look later.
+
+I only download and extract the package, no need to use nuget.exe or any other tool.
+
+I run this code in a suitable location where a subfolder MySQL with the content of the Nuget package will be created:
+
+```
+Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/MySql.Data/6.10.9 -OutFile mysql.data.6.10.9.nupkg.zip -UseBasicParsing
+Expand-Archive -Path mysql.data.6.10.9.nupkg.zip -DestinationPath ./MySQL
+Remove-Item -Path mysql.data.6.10.9.nupkg.zip
+```
+
+
+### dotConnect for MySQL 9.0 Express
+
+https://www.devart.com/dotconnect/mysql/
+
+This free version might also be an option. See [Connect-MyInstance_Devart.ps1](Connect-MyInstance_Devart.ps1) and [Invoke-MyQuery_Devart.ps1](Invoke-MyQuery_Devart.ps1) on how to use this client.
 
 
 ## Install the application
