@@ -7,7 +7,7 @@ I use the free express edition of Oracle 21c for my labs. See my install script 
 But you can use any existing server in your environment.
 
 
-## Install the client
+## Install the client for PowerShell 5.1 on Windows
 
 ### Oracle Database 19c Client
 
@@ -15,11 +15,21 @@ I use the Oracle Database 19c Client in my lab, as this is the last client with 
 
 But you can also use other ways to install the client. If you are unsure what components to install, just install all of them. If the oracle client is automatically installed by a software distribution tool, test if the file "Oracle.ManagedDataAccess.dll" is present in the path "odp.net\managed\common" in your oracle home.
 
-Works only with PowerShell 5.1, not with PowerShell 7.2.
 
-### Oracle Database 21c Client and NuGet packages
+### NuGet package Oracle.ManagedDataAccess 19.16.0
 
 The newer versions have a non-solvable dependency, see [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details.
+
+I only download and extract the package, no need to use nuget.exe or any other tool.
+
+I run this code in a suitable location where a subfolder Oracle with the content of the Nuget package will be created:
+
+```
+Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Oracle.ManagedDataAccess/19.16.0 -OutFile oracle.manageddataaccess.19.16.0.nupkg.zip -UseBasicParsing
+Expand-Archive -Path oracle.manageddataaccess.19.16.0.nupkg.zip -DestinationPath .\Oracle
+Remove-Item -Path oracle.manageddataaccess.19.16.0.nupkg.zip
+```
+
 
 ### dotConnect for Oracle 10.0 Express
 
@@ -27,7 +37,39 @@ https://www.devart.com/dotconnect/oracle/
 
 This free version might also be an option. 
 
-A quick test shows: Works only with PowerShell 5.1, not with PowerShell 7.2.
+
+## Install the client for PowerShell 7.2 on Windows
+
+### NuGet package Oracle.ManagedDataAccess 19.16.0
+
+The newer versions have a non-solvable dependency, see [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details.
+
+I only download and extract the package, no need to use nuget.exe or any other tool.
+
+I run this code in a suitable location where a subfolder Oracle with the content of the Nuget package will be created:
+
+```
+Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Oracle.ManagedDataAccess.Core/2.19.160 -OutFile oracle.manageddataaccess.core.2.19.160.nupkg.zip -UseBasicParsing
+Expand-Archive -Path oracle.manageddataaccess.core.2.19.160.nupkg.zip -DestinationPath .\Oracle 
+Remove-Item -Path oracle.manageddataaccess.core.2.19.160.nupkg.zip
+```
+
+
+## Install the client for PowerShell 7.2 on Linux
+
+### NuGet package Oracle.ManagedDataAccess 19.16.0
+
+The newer versions have a non-solvable dependency, see [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details.
+
+I only download and extract the package, no need to use nuget or any other tool.
+
+I run this code in a suitable location where a subfolder Oracle with the content of the Nuget package will be created:
+
+```
+Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Oracle.ManagedDataAccess.Core/2.19.160 -OutFile oracle.manageddataaccess.core.2.19.160.nupkg.zip -UseBasicParsing
+Expand-Archive -Path oracle.manageddataaccess.core.2.19.160.nupkg.zip -DestinationPath ./Oracle 
+Remove-Item -Path oracle.manageddataaccess.core.2.19.160.nupkg.zip
+```
 
 
 ## Install the application
