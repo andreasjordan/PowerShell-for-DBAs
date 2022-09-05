@@ -1,10 +1,11 @@
 function Connect-MyInstance {
     [CmdletBinding()]
-    [OutputType([Devart.Data.MySql.MySqlConnection])]
+    [OutputType([MySql.Data.MySqlClient.MySqlConnection])]
     param (
         [Parameter(Mandatory)][string]$Instance,
         [Parameter(Mandatory)][PSCredential]$Credential,
         [string]$Database,
+        [switch]$PooledConnection,
         [switch]$EnableException
     )
 
@@ -18,18 +19,24 @@ function Connect-MyInstance {
 
     Write-Verbose -Message "Creating connection to host [$myHost] on port [$myPort]"
 
-    $csb = [Devart.Data.MySql.MySqlConnectionStringBuilder]::new()
-    $csb.Pooling = $false
-    $csb.Unicode = $true   # To be able to use UTF8 data
-    $csb.Host = $myHost
+    $csb = [MySql.Data.MySqlClient.MySqlConnectionStringBuilder]::new()
+    $csb.Server = $myHost
     $csb.Port = $myPort
-    $csb.UserId = $Credential.UserName
+    $csb.UserID = $Credential.UserName
     $csb.Password = $Credential.GetNetworkCredential().Password
     if ($Database) {
         $csb.Database = $Database
     }
+    if ($PooledConnection) {
+        Write-Verbose -Message "Using connection pooling"
+        $csb.Pooling = $true
+    } else {
+        Write-Verbose -Message "Disabling connection pooling"
+        $csb.Pooling = $false
+    }
+    # $csb.CharacterSet = 'UTF8'   # To be able to use UTF8 data
 
-    $connection = [Devart.Data.MySql.MySqlConnection]::new($csb.ConnectionString)
+    $connection = [MySql.Data.MySqlClient.MySqlConnection]::new($csb.ConnectionString)
 
     try {
         Write-Verbose -Message "Opening connection"
