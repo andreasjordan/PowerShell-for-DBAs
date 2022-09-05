@@ -18,6 +18,9 @@ function Import-Data {
         if ($DBMS -eq 'SQLServer') {
             $bindParameterSymbol = '@'
         }
+        if ($DBMS -eq 'MySQL' -and $Connection.GetType().FullName -notmatch 'Devart') {
+            $bindParameterSymbol = '?'
+        }
 
         $progressTableParameter = @{ Id = 1 ; Activity = 'Importing tables' }
         $progressTableTotal = $tableNames.Count
