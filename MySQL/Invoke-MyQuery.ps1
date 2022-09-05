@@ -1,7 +1,7 @@
 function Invoke-MyQuery {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][Devart.Data.MySql.MySqlConnection]$Connection,
+        [Parameter(Mandatory)][MySql.Data.MySqlClient.MySqlConnection]$Connection,
         [Parameter(Mandatory)][string]$Query,
         [Int32]$QueryTimeout = 600,
         [ValidateSet("DataSet", "DataTable", "DataRow", "PSObject", "SingleValue")]
@@ -72,7 +72,7 @@ function Invoke-MyQuery {
                 $parameter = $command.CreateParameter()
                 $parameter.ParameterName = $parameterName
                 if (($null -ne $ParameterTypes) -and ($null -ne $ParameterTypes[$parameterName])) {
-                    $parameter.MySqlType = $ParameterTypes[$parameterName]
+                    $parameter.MySqlDbType = $ParameterTypes[$parameterName]
                 }
                 $parameter.Value = $ParameterValues[$parameterName]
                 $null = $command.Parameters.Add($parameter)
@@ -80,7 +80,7 @@ function Invoke-MyQuery {
         }
 
         Write-Verbose -Message "Creating data adapter and setting command"
-        $dataAdapter = [Devart.Data.MySql.MySqlDataAdapter]::new()
+        $dataAdapter = [MySql.Data.MySqlClient.MySqlDataAdapter]::new()
         $dataAdapter.SelectCommand = $command
 
         Write-Verbose -Message "Creating data set"
