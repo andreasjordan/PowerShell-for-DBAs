@@ -9,15 +9,24 @@ function Connect-OraInstance {
         [switch]$EnableException
     )
 
-    Write-Verbose -Message "Creating basic connection string"
-    $connectionString = "Data Source=$Instance;User Id=$($Credential.UserName);Password=$($Credential.GetNetworkCredential().Password);Pooling=$PooledConnection"
+    Write-Verbose -Message "Creating connection to instance [$Instance]"
+
+    $csb = [Oracle.ManagedDataAccess.Client.OracleConnectionStringBuilder]::new()
+    $csb['Data Source'] = $Instance
+    $csb['User ID'] = $Credential.UserName
+    $csb.Password = $Credential.GetNetworkCredential().Password
+    if ($PooledConnection) {
+        Write-Verbose -Message "Using connection pooling"
+        $csb.Pooling = $true
+    } else {
+        Write-Verbose -Message "Disabling connection pooling"
+        $csb.Pooling = $false
+    }
     if ($AsSysdba) {
         Write-Verbose -Message "Adding SYSDBA to connection string"
-        $connectionString += ';DBA Privilege=SYSDBA'
+        $csb['DBA Privilege'] = 'SYSDBA'
     }
-    
-    Write-Verbose -Message "Creating connection"
-    $connection = [Oracle.ManagedDataAccess.Client.OracleConnection]::new($connectionString)
+    $connection = [Oracle.ManagedDataAccess.Client.OracleConnection]::new($csb.ConnectionString)
     
     try {
         Write-Verbose -Message "Opening connection"
