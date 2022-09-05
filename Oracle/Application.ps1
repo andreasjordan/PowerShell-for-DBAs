@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 . .\Invoke-OraQuery.ps1
 
 try {
-    Add-Type -Path 'D:\oracle\product\19.0.0\client_1\odp.net\managed\common\Oracle.ManagedDataAccess.dll'
+    Add-Type -Path $Env:ORACLE_DLL
 } catch {
     $ex = $_
     $ex.Exception.Message
