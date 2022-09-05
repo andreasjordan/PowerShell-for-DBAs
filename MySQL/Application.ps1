@@ -3,16 +3,24 @@ $ErrorActionPreference = 'Stop'
 . ..\PowerShell\Environment.ps1
 . ..\PowerShell\Import-Schema.ps1
 . ..\PowerShell\Import-Data.ps1
-. .\Connect-MyInstance.ps1
-. .\Invoke-MyQuery.ps1
 
+if (-not $Env:MYSQL_DLL) {
+    throw 'Environment variable MYSQL_DLL not set'
+}
 try {
-    Add-Type -Path 'C:\Program Files (x86)\Devart\dotConnect\MySQL\Devart.Data.MySql.dll'
+    Add-Type -Path $Env:MYSQL_DLL
 } catch {
     $ex = $_
     $ex.Exception.Message
     $ex.Exception.LoaderExceptions
-    throw "Adding type failed"
+    throw 'Adding type failed'
+}
+if ($Env:MYSQL_DLL -match 'Devart') {
+    . .\Connect-MyInstance_Devart.ps1
+    . .\Invoke-MyQuery_Devart.ps1
+} else {
+    . .\Connect-MyInstance.ps1
+    . .\Invoke-MyQuery.ps1
 }
 
 $instance = $EnvironmentServerComputerName
