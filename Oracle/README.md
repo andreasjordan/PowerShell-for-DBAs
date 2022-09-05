@@ -40,7 +40,7 @@ This free version might also be an option.
 
 ## Install the client for PowerShell 7.2 on Windows
 
-### NuGet package Oracle.ManagedDataAccess 19.16.0
+### NuGet package Oracle.ManagedDataAccess 2.19.160
 
 The newer versions have a non-solvable dependency, see [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details.
 
@@ -57,7 +57,7 @@ Remove-Item -Path oracle.manageddataaccess.core.2.19.160.nupkg.zip
 
 ## Install the client for PowerShell 7.2 on Linux
 
-### NuGet package Oracle.ManagedDataAccess 19.16.0
+### NuGet package Oracle.ManagedDataAccess 2.19.160
 
 The newer versions have a non-solvable dependency, see [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details.
 
