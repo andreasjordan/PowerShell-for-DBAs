@@ -74,7 +74,7 @@ Remove-Item -Path oracle.manageddataaccess.core.2.19.160.nupkg.zip
 
 ## Create an environment variable with the location of the dll
 
-To be able to use the same scripts on all platforms and versions, I use an environment variable named "ORACLE_DLL" with the complete path zu the needed dll file.
+To be able to use the same scripts on all platforms and versions, I use an environment variable named "ORACLE_DLL" with the complete path to the needed dll file.
 
 I use local PowerShell profiles, but you can use other ways as well.
 
