@@ -11,23 +11,23 @@ But you can use any existing server in your environment.
 
 ### Oracle Database 19c Client
 
-I use the Oracle Database 19c Client in my lab, as this is the last client with a working DLL. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation of only the needed components.
+I use the Oracle Database 19c Client in my lab, as this is the last client with a ready-to-use DLL. In the later versions, there are only NuGet packaged included. If you want to use the NuGet packages, I think it is much easier to install them directly without the client. But if your not allowed to download things from the internet, using the 21c client might be a good option. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation of only the needed components.
 
 But you can also use other ways to install the client. If you are unsure what components to install, just install all of them. If the oracle client is automatically installed by a software distribution tool, test if the file "Oracle.ManagedDataAccess.dll" is present in the path "odp.net\managed\common" in your oracle home.
 
 
-### NuGet package Oracle.ManagedDataAccess 19.16.0
+### NuGet package Oracle.ManagedDataAccess
 
-The newer versions have a non-solvable dependency, see [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details.
+Versions after 19.16.0 have a non-solvable dependency to [System.Text.Json, Version=4.0.1.1], but this can be ignored on Add-Type as the needed dll is loaded anyway. See [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details and [Application.ps1](Application.ps1) for the code to ignore the error.
 
 I only download and extract the package, no need to use nuget.exe or any other tool.
 
 I run this code in a suitable location where a subfolder Oracle with the content of the Nuget package will be created:
 
 ```
-Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Oracle.ManagedDataAccess/19.16.0 -OutFile oracle.manageddataaccess.19.16.0.nupkg.zip -UseBasicParsing
-Expand-Archive -Path oracle.manageddataaccess.19.16.0.nupkg.zip -DestinationPath .\Oracle
-Remove-Item -Path oracle.manageddataaccess.19.16.0.nupkg.zip
+Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Oracle.ManagedDataAccess -OutFile oracle.manageddataaccess.nupkg.zip -UseBasicParsing
+Expand-Archive -Path oracle.manageddataaccess.nupkg.zip -DestinationPath .\Oracle
+Remove-Item -Path oracle.manageddataaccess.nupkg.zip
 ```
 
 
@@ -40,35 +40,31 @@ This free version might also be an option. See [Connect-OraInstance_Devart.ps1](
 
 ## Install the client for PowerShell 7.2 on Windows
 
-### NuGet package Oracle.ManagedDataAccess 2.19.160
-
-The newer versions have a non-solvable dependency, see [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details.
+### NuGet package Oracle.ManagedDataAccess.Core
 
 I only download and extract the package, no need to use nuget.exe or any other tool.
 
 I run this code in a suitable location where a subfolder Oracle with the content of the Nuget package will be created:
 
 ```
-Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Oracle.ManagedDataAccess.Core/2.19.160 -OutFile oracle.manageddataaccess.core.2.19.160.nupkg.zip -UseBasicParsing
-Expand-Archive -Path oracle.manageddataaccess.core.2.19.160.nupkg.zip -DestinationPath .\Oracle 
-Remove-Item -Path oracle.manageddataaccess.core.2.19.160.nupkg.zip
+Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Oracle.ManagedDataAccess.Core -OutFile oracle.manageddataaccess.core.nupkg.zip -UseBasicParsing
+Expand-Archive -Path oracle.manageddataaccess.core.nupkg.zip -DestinationPath .\Oracle 
+Remove-Item -Path oracle.manageddataaccess.core.nupkg.zip
 ```
 
 
 ## Install the client for PowerShell 7.2 on Linux
 
-### NuGet package Oracle.ManagedDataAccess 2.19.160
-
-The newer versions have a non-solvable dependency, see [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details.
+### NuGet package Oracle.ManagedDataAccess.Core
 
 I only download and extract the package, no need to use nuget or any other tool.
 
 I run this code in a suitable location where a subfolder Oracle with the content of the Nuget package will be created:
 
 ```
-Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Oracle.ManagedDataAccess.Core/2.19.160 -OutFile oracle.manageddataaccess.core.2.19.160.nupkg.zip -UseBasicParsing
-Expand-Archive -Path oracle.manageddataaccess.core.2.19.160.nupkg.zip -DestinationPath ./Oracle 
-Remove-Item -Path oracle.manageddataaccess.core.2.19.160.nupkg.zip
+Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Oracle.ManagedDataAccess.Core -OutFile oracle.manageddataaccess.core.nupkg.zip -UseBasicParsing
+Expand-Archive -Path oracle.manageddataaccess.core.nupkg.zip -DestinationPath ./Oracle 
+Remove-Item -Path oracle.manageddataaccess.core.nupkg.zip
 ```
 
 
@@ -83,14 +79,19 @@ I use this code to create the profile if there is no profile:
 if (!(Test-Path -Path $PROFILE)) { $null = New-Item -ItemType File -Path $PROFILE -Force }
 ```
 
+I use this code for the 19c client if the current location is the ORACLE_HOME:
+```
+"`$Env:ORACLE_DLL = '$((Get-Location).Path)\odp.net\managed\common\Oracle.ManagedDataAccess.dll'" | Add-Content -Path $PROFILE
+```
+
 I use this code for the NuGet package Oracle.ManagedDataAccess:
 ```
-"`$Env:ORACLE_DLL = '$((Get-Location).Path)/Oracle/lib/net40/Oracle.ManagedDataAccess.dll'" | Add-Content -Path $PROFILE
+"`$Env:ORACLE_DLL = '$((Get-Location).Path)\Oracle\lib\net462\Oracle.ManagedDataAccess.dll'" | Add-Content -Path $PROFILE
 ```
 
 I use this code for the NuGet package Oracle.ManagedDataAccess.Core:
 ```
-"`$Env:ORACLE_DLL = '$((Get-Location).Path)/Oracle/lib/netstandard2.0/Oracle.ManagedDataAccess.dll'" | Add-Content -Path $PROFILE
+"`$Env:ORACLE_DLL = '$((Get-Location).Path)/Oracle/lib/netstandard2.1/Oracle.ManagedDataAccess.dll'" | Add-Content -Path $PROFILE
 ```
 
 I use this code for the Devart client:
