@@ -20,9 +20,11 @@ https://www.devart.com/dotconnect/postgresql/download.html
 https://www.devart.com/dotconnect/postgresql/docs/
 
 
-### Npgsql
+### NuGet package Npgsql
 
-Looks good, but no DLL for Framework 4.5 - so will try that later...
+The [documentation](https://www.npgsql.org/doc/compatibility.html#net-frameworknet-coremono) says that the 4.x version is compatible with .NET Framework 4.6.1 and should work with PowerShell 5.1 - I could not get this working yet.
+
+But for PowerShell 7.2 on Windows or Linux the latest version works.
 
 https://github.com/npgsql/npgsql
 
@@ -34,6 +36,26 @@ Expand-Archive -Path npgsql.nupkg.zip -DestinationPath .\PostgreSQL
 Remove-Item -Path npgsql.nupkg.zip
 ```
 
+## Create an environment variable with the location of the dll
+
+To be able to use the same scripts on all platforms and versions, I use an environment variable named "POSTGRESQL_DLL" with the complete path to the needed dll file.
+
+I use local PowerShell profiles, but you can use other ways as well.
+
+I use this code to create the profile if there is no profile:
+```
+if (!(Test-Path -Path $PROFILE)) { $null = New-Item -ItemType File -Path $PROFILE -Force }
+```
+
+I use this code for Npgsql:
+```
+"`$Env:POSTGRESQL_DLL = '$((Get-Location).Path)/lib/netstandard2.1/Npgsql.dll'" | Add-Content -Path $PROFILE
+```
+
+I use this code for the Devart client:
+```
+"`$Env:POSTGRESQL_DLL = 'C:\Program Files (x86)\Devart\dotConnect\PostgreSQL\Devart.Data.PostgreSql.dll'" | Add-Content -Path $PROFILE
+```
 
 
 ## Install the application
@@ -45,16 +67,10 @@ See my script [Application.ps1](Application.ps1) in this folder for details.
 
 ## Run some code
 
-First sample code (using [Connect-PgInstance.ps1](Connect-PgInstance.ps1) and [Invoke-PgQuery.ps1](Invoke-PgQuery.ps1)):
+First sample code (using [Connect-PgInstance_Devart.ps1](Connect-PgInstance_Devart.ps1) and [Invoke-PgQuery_Devart.ps1](Invoke-PgQuery_Devart.ps1)):
 
 ```powershell
-try {
-    Add-Type -Path 'C:\Program Files (x86)\Devart\dotConnect\PostgreSQL\Devart.Data.PostgreSql.dll'
-} catch {
-    $ex = $_
-    $ex.Exception.Message
-    $ex.Exception.LoaderExceptions
-}
+Add-Type -Path 'C:\Program Files (x86)\Devart\dotConnect\PostgreSQL\Devart.Data.PostgreSql.dll'
 
 $instance = 'SQLLAB08:5432'
 $instance = 'SQLLAB08'
