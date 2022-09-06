@@ -7,14 +7,12 @@ $ErrorActionPreference = 'Stop'
 if (-not $Env:MYSQL_DLL) {
     throw 'Environment variable MYSQL_DLL not set'
 }
-try {
-    Add-Type -Path $Env:MYSQL_DLL
-} catch {
-    $ex = $_
-    $ex.Exception.Message
-    $ex.Exception.LoaderExceptions
-    throw 'Adding type failed'
+if (-not (Test-Path -Path $Env:MYSQL_DLL)) {
+    throw "Environment variable MYSQL_DLL not set correctly, file [$Env:MYSQL_DLL] not found"
 }
+# Ignore the following errors: Could not load file or assembly
+# For details see: https://community.oracle.com/tech/developers/discussion/4502297
+try { Add-Type -Path $Env:MYSQL_DLL } catch { }
 if ($Env:MYSQL_DLL -match 'Devart') {
     . .\Connect-MyInstance_Devart.ps1
     . .\Invoke-MyQuery_Devart.ps1
@@ -48,7 +46,10 @@ $connectionAdmin.Dispose()
 $connectionUser = Connect-MyInstance -Instance $instance -Credential $credentialUser -Database stackoverflow
 
 Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS MySQL -Connection $connectionUser
+$start = Get-Date
 Import-Data -Path ..\PowerShell\SampleData.json -DBMS MySQL -Connection $connectionUser
+$duration = (Get-Date) - $start
+Write-Host "Data import finished in $($duration.TotalSeconds) seconds"
 
 $connectionUser.Close()
 $connectionUser.Dispose()
