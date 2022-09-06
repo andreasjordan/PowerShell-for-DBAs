@@ -29,6 +29,9 @@ $null = $connectionAdmin | Disconnect-DbaInstance
 $connectionUser = Connect-DbaInstance -SqlInstance $instance -SqlCredential $credentialUser -Database StackOverflow -NonPooledConnection
 
 Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS SQLServer -Connection $connectionUser
+$start = Get-Date
 Import-Data -Path ..\PowerShell\SampleData.json -DBMS SQLServer -Connection $connectionUser
+$duration = (Get-Date) - $start
+Write-Host "Data import finished in $($duration.TotalSeconds) seconds"
 
 $null = $connectionUser | Disconnect-DbaInstance
