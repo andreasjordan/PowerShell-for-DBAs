@@ -11,7 +11,7 @@ But you can use any existing server in your environment.
 
 ### Oracle Database 19c Client
 
-I use the Oracle Database 19c Client in my lab, as this is the last client with a ready-to-use DLL. In the later versions, there are only NuGet packaged included. If you want to use the NuGet packages, I think it is much easier to install them directly without the client. But if your not allowed to download things from the internet, using the 21c client might be a good option. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation of only the needed components.
+I use the Oracle Database 19c Client in my lab, as this is the last client with a ready-to-use DLL. In the later versions, there are only NuGet packaged included. If you want to use the NuGet packages, I think it is much easier to install them directly without the client. But if you are not allowed to download things from the internet, using the 21c client might be a good option. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation of only the needed components.
 
 But you can also use other ways to install the client. If you are unsure what components to install, just install all of them. If the oracle client is automatically installed by a software distribution tool, test if the file "Oracle.ManagedDataAccess.dll" is present in the path "odp.net\managed\common" in your oracle home.
 
