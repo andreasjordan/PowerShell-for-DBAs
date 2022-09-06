@@ -9,7 +9,7 @@ But you can use any existing server in your environment.
 
 ## Install the client
 
-### dbatools
+### PowerShell module dbatools
 
 https://dbatools.io/
 
@@ -24,7 +24,7 @@ They give you a .NET interface to all layers within SQL Servers, such as the ins
 Best of all, it's now open source, you can take a look at the code here on [GitHub](https://github.com/microsoft/sqlmanagementobjects).
 
 
-### SMO NuGet Package
+### NuGet package Microsoft.SqlServer.SqlManagementObjects
 
 https://docs.microsoft.com/en-us/sql/relational-databases/server-management-objects-smo/installing-smo
 
