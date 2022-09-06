@@ -9,6 +9,11 @@ But you can use any existing server in your environment.
 
 ## Install the client
 
+We can use (nearly) the same sources and installation code on all the target environments:
+* PowerShell 5.1 on Windows
+* PowerShell 7.2 on Windows
+* PowerShell 7.2 on Linux
+
 ### PowerShell module dbatools
 
 https://dbatools.io/
@@ -24,6 +29,15 @@ They give you a .NET interface to all layers within SQL Servers, such as the ins
 Best of all, it's now open source, you can take a look at the code here on [GitHub](https://github.com/microsoft/sqlmanagementobjects).
 
 
+### PowerShell module SqlServer
+
+https://www.powershellgallery.com/packages/SqlServer
+
+https://docs.microsoft.com/en-us/powershell/module/sqlserver
+
+This is the official PowerShell module by Microsoft and has a command [Invoke-Sqlcmd](https://docs.microsoft.com/en-us/powershell/module/sqlserver/invoke-sqlcmd) that can be used to execute a query.
+
+
 ### NuGet package Microsoft.SqlServer.SqlManagementObjects
 
 https://docs.microsoft.com/en-us/sql/relational-databases/server-management-objects-smo/installing-smo
@@ -37,7 +51,7 @@ I definitly want to try that - but there are dependencies like [Microsoft.Data.S
 
 https://www.devart.com/dotconnect/sqlserver/
 
-This free version might also be an option, but I have not tested it.
+This free version might also be an option, but is for Windows only.
 
 
 ## Install the application
