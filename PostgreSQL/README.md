@@ -28,6 +28,13 @@ https://github.com/npgsql/npgsql
 
 https://www.nuget.org/packages/Npgsql
 
+```
+Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Npgsql -OutFile npgsql.nupkg.zip -UseBasicParsing
+Expand-Archive -Path npgsql.nupkg.zip -DestinationPath .\PostgreSQL
+Remove-Item -Path npgsql.nupkg.zip
+```
+
+
 
 ## Install the application
 
