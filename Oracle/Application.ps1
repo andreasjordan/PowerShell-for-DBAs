@@ -7,14 +7,12 @@ $ErrorActionPreference = 'Stop'
 if (-not $Env:ORACLE_DLL) {
     throw 'Environment variable ORACLE_DLL not set'
 }
-try {
-    Add-Type -Path $Env:ORACLE_DLL
-} catch {
-    $ex = $_
-    $ex.Exception.Message
-    $ex.Exception.LoaderExceptions
-    throw 'Adding type failed'
+if (-not (Test-Path -Path $Env:ORACLE_DLL)) {
+    throw "Environment variable ORACLE_DLL not set correctly, file [$Env:ORACLE_DLL] not found"
 }
+# Ignore the following error: Could not load file or assembly 'System.Text.Json, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51' or one of its dependencies
+# For details see: https://community.oracle.com/tech/developers/discussion/4502297
+try { Add-Type -Path $Env:ORACLE_DLL } catch { }
 if ($Env:ORACLE_DLL -match 'Devart') {
     . .\Connect-OraInstance_Devart.ps1
     . .\Invoke-OraQuery_Devart.ps1
@@ -47,7 +45,10 @@ $connectionAdmin.Dispose()
 $connectionUser = Connect-OraInstance -Instance $instance -Credential $credentialUser
 
 Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS Oracle -Connection $connectionUser
+$start = Get-Date
 Import-Data -Path ..\PowerShell\SampleData.json -DBMS Oracle -Connection $connectionUser
+$duration = (Get-Date) - $start
+Write-Host "Data import finished in $($duration.TotalSeconds) seconds"
 
 $connectionUser.Close()
 $connectionUser.Dispose()
