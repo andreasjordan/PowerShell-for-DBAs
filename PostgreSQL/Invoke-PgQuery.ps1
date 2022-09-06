@@ -1,7 +1,7 @@
 function Invoke-PgQuery {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][Devart.Data.PostgreSql.PgSqlConnection]$Connection,
+        [Parameter(Mandatory)][Npgsql.NpgsqlConnection]$Connection,
         [Parameter(Mandatory)][string]$Query,
         [Int32]$QueryTimeout = 600,
         [ValidateSet("DataSet", "DataTable", "DataRow", "PSObject", "SingleValue")]
@@ -72,15 +72,18 @@ function Invoke-PgQuery {
                 $parameter = $command.CreateParameter()
                 $parameter.ParameterName = $parameterName
                 if (($null -ne $ParameterTypes) -and ($null -ne $ParameterTypes[$parameterName])) {
-                    $parameter.PgSqlType = $ParameterTypes[$parameterName]
+                    $parameter.NpgsqlDbType = $ParameterTypes[$parameterName]
                 }
                 $parameter.Value = $ParameterValues[$parameterName]
+                if ($null -eq $parameter.Value) {
+                    $parameter.Value = [DBNull]::Value
+                }
                 $null = $command.Parameters.Add($parameter)
             }
         }
 
         Write-Verbose -Message "Creating data adapter and setting command"
-        $dataAdapter = [Devart.Data.PostgreSql.PgSqlDataAdapter]::new()
+        $dataAdapter = [Npgsql.NpgsqlDataAdapter]::new()
         $dataAdapter.SelectCommand = $command
 
         Write-Verbose -Message "Creating data set"
