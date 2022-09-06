@@ -1,10 +1,11 @@
 function Connect-PgInstance {
     [CmdletBinding()]
-    [OutputType([Devart.Data.PostgreSql.PgSqlConnection])]
+    [OutputType([Npgsql.NpgsqlConnection])]
     param (
         [Parameter(Mandatory)][string]$Instance,
         [Parameter(Mandatory)][PSCredential]$Credential,
         [string]$Database,
+        [switch]$PooledConnection,
         [switch]$EnableException
     )
 
@@ -18,18 +19,25 @@ function Connect-PgInstance {
 
     Write-Verbose -Message "Creating connection to host [$pgHost] on port [$pgPort]"
 
-    $csb = [Devart.Data.PostgreSql.PgSqlConnectionStringBuilder]::new()
-    $csb.Pooling = $false
-    $csb.Unicode = $true   # To be able to use UTF8 data
+    $csb = [Npgsql.NpgsqlConnectionStringBuilder]::new()
     $csb.Host = $pgHost
     $csb.Port = $pgPort
-    $csb.UserId = $Credential.UserName
+    $csb.Username = $Credential.UserName
     $csb.Password = $Credential.GetNetworkCredential().Password
     if ($Database) {
         $csb.Database = $Database
     }
+    if ($PooledConnection) {
+        Write-Verbose -Message "Using connection pooling"
+        $csb.Pooling = $true
+    } else {
+        Write-Verbose -Message "Disabling connection pooling"
+        $csb.Pooling = $false
+    }
+    # Is this maybe needed in some cases?
+    # $csb.Encoding = 'UTF8'   # To be able to use UTF8 data
 
-    $connection = [Devart.Data.PostgreSql.PgSqlConnection]::new($csb.ConnectionString)
+    $connection = [Npgsql.NpgsqlConnection]::new($csb.ConnectionString)
 
     try {
         Write-Verbose -Message "Opening connection"
