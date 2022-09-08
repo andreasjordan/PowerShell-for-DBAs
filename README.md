@@ -40,3 +40,11 @@ I then selected some of the most popular questions and all related data (like an
 
 So I have stored the table structure in a structured format as well ([SampleSchema.psd1](./PowerShell/SampleSchema.psd1)) and automatically generate the correct DDL statements for each database system. See [Import-Schema.ps1](./PowerShell/Import-Schema.ps1) and [Import-Data.ps1](./PowerShell/Import-Data.ps1) on how I load the data.
 
+
+## How can I use this for my job as a DBA? Do you have demos?
+
+I use this technology for some time now in different projects with both SQL Server and Oracle.
+
+On 2022-09-22 I will present some demos at the [DOAG in Nuremberg](https://shop.doag.org/events/anwenderkonferenz/2022/agenda/#eventDay.all#textSearch.PowerShell) and afterwords share the demos here in this repo.
+
+On 2022-12-12 I will hold a workshop day at the [IT-Tage](https://www.ittage.informatik-aktuell.de/programm/2022/sql-server-powershell-fuer-datenbank-admins-dba.html) and afterwords share the demos here in this repo.
