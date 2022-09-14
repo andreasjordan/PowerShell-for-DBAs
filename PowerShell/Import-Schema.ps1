@@ -25,8 +25,10 @@ function Import-Schema {
                 Write-Verbose -Message "Processing column [$($column.ColumnName)]"
                 if ($column.Datatype -match '^VARCHAR_(\d+)$') {
                     $datatype = 'VARCHAR'
-                    if ($DBMS -eq 'Oracle') { 
-                        $length = "($($Matches[1]) CHAR)" 
+                    if ($DBMS -eq 'Oracle') {
+                        $length = "($($Matches[1]) CHAR)"
+                    elseif ($DBMS -eq 'Db2') {
+                        $length = "($($Matches[1]) CODEUNITS32)"
                     } else {
                         $length = "($($Matches[1]))"
                     }
