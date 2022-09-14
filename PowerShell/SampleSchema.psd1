@@ -5,7 +5,7 @@
             Oracle     = 'NUMBER(10, 0)'
             PostgreSQL = 'INT'
             MySQL      = 'INT'
-            Db2        = ''
+            Db2        = 'INT'
             Informix   = ''
         }
         VARCHAR = @{
@@ -13,7 +13,7 @@
             Oracle     = 'VARCHAR2'
             PostgreSQL = 'VARCHAR'
             MySQL      = 'VARCHAR'
-            Db2        = ''
+            Db2        = 'VARCHAR'
             Informix   = ''
         }
         VARCHAR_MAX = @{
@@ -21,7 +21,7 @@
             Oracle     = 'CLOB'
             PostgreSQL = 'TEXT'
             MySQL      = 'TEXT'  # or CLOB?
-            Db2        = ''
+            Db2        = 'CLOB(2G)'
             Informix   = ''
         }
         TIMESTAMP = @{
@@ -29,7 +29,7 @@
             Oracle     = 'TIMESTAMP(3)'
             PostgreSQL = 'TIMESTAMP(3)'
             MySQL      = 'TIMESTAMP(3)'
-            Db2        = ''
+            Db2        = 'TIMESTAMP'
             Informix   = ''
         }
     }
