@@ -1,7 +1,7 @@
 function Invoke-Db2Query {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][IBM.Data.Db2.DB2Connection]$Connection,
+        [Parameter(Mandatory)][IBM.Data.DB2.Core.DB2Connection]$Connection,
         [Parameter(Mandatory)][string]$Query,
         [Int32]$QueryTimeout = 600,
         [ValidateSet("DataSet", "DataTable", "DataRow", "PSObject", "SingleValue")]
@@ -76,7 +76,7 @@ function Invoke-Db2Query {
         }
 
         Write-Verbose -Message "Creating data adapter and setting command"
-        $dataAdapter = [IBM.Data.DB2.DB2DataAdapter]::new()
+        $dataAdapter = [IBM.Data.DB2.Core.DB2DataAdapter]::new()
         $dataAdapter.SelectCommand = $command
 
         Write-Verbose -Message "Creating data set"
