@@ -5,10 +5,10 @@ $ErrorActionPreference = 'Stop'
 . ..\PowerShell\Import-Data.ps1
 
 if (-not $Env:POSTGRESQL_DLL) {
-    throw 'Environment variable MYSQL_DLL not set'
+    throw 'Environment variable POSTGRESQL_DLL not set'
 }
 if (-not (Test-Path -Path $Env:POSTGRESQL_DLL)) {
-    throw "Environment variable MYSQL_DLL not set correctly, file [$Env:POSTGRESQL_DLL] not found"
+    throw "Environment variable POSTGRESQL_DLL not set correctly, file [$Env:POSTGRESQL_DLL] not found"
 }
 Add-Type -Path $Env:POSTGRESQL_DLL
 if ($Env:POSTGRESQL_DLL -match 'Devart') {
