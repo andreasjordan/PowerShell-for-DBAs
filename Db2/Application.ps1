@@ -17,8 +17,13 @@ if ($Env:MSREP_DLL) {
     Add-Type -Path $Env:MSREP_DLL
 }
 Add-Type -Path $Env:DB2_DLL
-. .\Connect-Db2Instance.ps1
-. .\Invoke-Db2Query.ps1
+if ($Env:DB2_DLL -match 'Core') {
+    . .\Connect-Db2Instance_Core.ps1
+    . .\Invoke-Db2Query_Core.ps1
+} else {
+    . .\Connect-Db2Instance.ps1
+    . .\Invoke-Db2Query.ps1
+}
 
 $instance = "$($EnvironmentServerComputerName):50000"
 $database = 'stack'
