@@ -27,7 +27,7 @@ function Import-Schema {
                     $datatype = 'VARCHAR'
                     if ($DBMS -eq 'Oracle') {
                         $length = "($($Matches[1]) CHAR)"
-                    elseif ($DBMS -eq 'Db2') {
+                    } elseif ($DBMS -eq 'Db2') {
                         $length = "($($Matches[1]) CODEUNITS32)"
                     } else {
                         $length = "($($Matches[1]))"
