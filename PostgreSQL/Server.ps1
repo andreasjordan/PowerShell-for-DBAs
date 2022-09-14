@@ -100,6 +100,16 @@ Invoke-Command -ComputerName $softwarePostgreSQL.ComputerName -ScriptBlock {
     Add-Content -Path $configFile -Value $configContent
 }
 
+<# In case more access is needed:
+
+Invoke-Command -ComputerName $softwarePostgreSQL.ComputerName -ScriptBlock {
+    $configFile = "$($using:softwarePostgreSQL.Parameters.datadir)\pg_hba.conf"
+    $configContent = 'host    all             all             192.168.0.1/16          scram-sha-256'
+    Add-Content -Path $configFile -Value $configContent
+}
+
+#>
+
 
 <# Remove PostgreSQL:
 
