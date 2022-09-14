@@ -15,7 +15,7 @@ function Import-Data {
         $tableNames = $data.PSObject.Properties.Name | Sort-Object
 
         $bindParameterSymbol = ':'
-        if ($DBMS -eq 'SQLServer') {
+        if ($DBMS -in 'SQLServer', 'Db2') {
             $bindParameterSymbol = '@'
         }
         if ($DBMS -eq 'MySQL' -and $Connection.GetType().FullName -notmatch 'Devart') {
