@@ -29,10 +29,12 @@ $database = 'stack'
 # $credentialUser  = Get-Credential -Message $instance -UserName stackoverflow
 $credentialUser = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
 
-
-Invoke-Command -ComputerName $EnvironmentServerComputerName -ScriptBlock { Remove-LocalUser -Name $using:credentialUser.UserName -Confirm:$false -ErrorAction Ignore }
-Invoke-Command -ComputerName $EnvironmentServerComputerName -ScriptBlock { $null = New-LocalUser -Name $using:credentialUser.UserName -Password $using:credentialUser.Password }
-
+try {
+    Invoke-Command -ComputerName $EnvironmentServerComputerName -ScriptBlock { Remove-LocalUser -Name $using:credentialUser.UserName -Confirm:$false -ErrorAction Ignore }
+    Invoke-Command -ComputerName $EnvironmentServerComputerName -ScriptBlock { $null = New-LocalUser -Name $using:credentialUser.UserName -Password $using:credentialUser.Password }
+} catch {
+    Write-Warning -Message "Could not recreate the user, maybe we are on Linux."
+}
 
 $connectionUser = Connect-Db2Instance -Instance $instance -Credential $credentialUser -Database $database
 
