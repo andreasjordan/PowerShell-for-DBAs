@@ -73,35 +73,35 @@ As there is no free version available, I have not tested it.
 
 ## Install the client for PowerShell 7.2 on Linux
 
-### NuGet package Net.IBM.Data.Db2
+### NuGet package Net.IBM.Data.Db2-lnx
 
 This package is compatible with .NET 6.0 and was recently updated, so this would be my first choice.
 
 I only download and extract the package, no need to use nuget or any other tool.
 
-I run this code in a suitable location where a subfolder "Net.IBM.Data.Db2" with the content of the Nuget package will be created:
+I run this code in a suitable location where a subfolder "Net.IBM.Data.Db2-lnx" with the content of the Nuget package will be created:
 
 ```
-Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Net.IBM.Data.Db2 -OutFile Net.IBM.Data.Db2.nupkg.zip -UseBasicParsing
-Expand-Archive -Path Net.IBM.Data.Db2.nupkg.zip -DestinationPath ./Net.IBM.Data.Db2
-Remove-Item -Path Net.IBM.Data.Db2.nupkg.zip
+Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Net.IBM.Data.Db2-lnx -OutFile Net.IBM.Data.Db2-lnx.nupkg.zip -UseBasicParsing
+Expand-Archive -Path Net.IBM.Data.Db2-lnx.nupkg.zip -DestinationPath ./Net.IBM.Data.Db2-lnx
+Remove-Item -Path Net.IBM.Data.Db2-lnx.nupkg.zip
 ```
 
 Add the "buildTransitive/clidriver/lib" path of the NuGet package to the LD_LIBRARY_PATH environment variable of the system.
 
 
-### NuGet package IBM.Data.DB2.Core
+### NuGet package IBM.Data.DB2.Core-lnx
 
-This package is compatible with .NET Standard 2.1. Downside of this package is the namespace: The official client and the package Net.IBM.Data.Db2 use "IBM.Data.Db2", this package uses "IBM.Data.DB2.Core", so you would need a different implementation of the wrapper commands. The needed files have "Core" in their filename.
+This package is compatible with .NET Standard 2.1. Downside of this package is the namespace: The official client and the package Net.IBM.Data.Db2-lnx use "IBM.Data.Db2", this package uses "IBM.Data.DB2.Core", so you would need a different implementation of the wrapper commands. The needed files have "Core" in their filename.
 
 I only download and extract the package, no need to use nuget or any other tool.
 
-I run this code in a suitable location where a subfolder "IBM.Data.DB2.Core" with the content of the Nuget package will be created:
+I run this code in a suitable location where a subfolder "IBM.Data.DB2.Core-lnx" with the content of the Nuget package will be created:
 
 ```
-Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/IBM.Data.DB2.Core -OutFile IBM.Data.DB2.Core.nupkg.zip -UseBasicParsing
-Expand-Archive -Path IBM.Data.DB2.Core.nupkg.zip -DestinationPath ./IBM.Data.DB2.Core
-Remove-Item -Path IBM.Data.DB2.Core.nupkg.zip
+Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/IBM.Data.DB2.Core-lnx -OutFile IBM.Data.DB2.Core-lnx.nupkg.zip -UseBasicParsing
+Expand-Archive -Path IBM.Data.DB2.Core-lnx.nupkg.zip -DestinationPath ./IBM.Data.DB2.Core-lnx
+Remove-Item -Path IBM.Data.DB2.Core-lnx.nupkg.zip
 ```
 
 Add the "buildTransitive/clidriver/lib" path of the NuGet package to the LD_LIBRARY_PATH environment variable of the system.
