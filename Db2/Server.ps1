@@ -51,6 +51,9 @@ if (-not (Invoke-Command -Session $session -ScriptBlock { Test-Path -Path $using
     Invoke-Command -Session $session -ScriptBlock { Expand-Archive -Path $using:softwareDb2.ZipFile -DestinationPath $using:softwareDb2.TempPath }
 }
 
+$session | Remove-PSSession
+
+
 # Set up accounts and groups:
 # Create the group DB2ADMNS in the domain and add the domain account that runs the installation on the target server
 # Create the group DB2USERS in the domain
@@ -63,13 +66,6 @@ if (-not (Invoke-Command -Session $session -ScriptBlock { Test-Path -Path $using
 # * Set user information for the DB2 Administrator Server: Use global user
 # * Set up notifications: Uncheck box
 # * Enable operating system security for DB2 objects: Use global groups
-
-# You can connect to the DB2 instance "DB2" using the port number "25000". Record it for future reference.
-
-
-$session | Remove-PSSession
-
-
 
 
 # Test installation
