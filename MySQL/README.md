@@ -46,7 +46,7 @@ I run this code in a suitable location where a subfolder MySQL with the content 
 ```
 Invoke-WebRequest -Uri https://dev.mysql.com/get/Downloads/Connector-Net/mysql-connector-net-8.0.30-noinstall.zip -OutFile mysql-connector-net-noinstall.zip -UseBasicParsing
 Expand-Archive -Path mysql-connector-net-noinstall.zip -DestinationPath .\MySQL
-Remove-Item -Path mysql-connector-noinstall.zip
+Remove-Item -Path mysql-connector-net-noinstall.zip
 ```
 
 
