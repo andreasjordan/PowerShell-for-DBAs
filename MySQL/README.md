@@ -50,7 +50,7 @@ Remove-Item -Path mysql-connector-net-noinstall.zip
 ```
 
 
-### dotConnect for MySQL 9.0 Express
+### Devart dotConnect for MySQL 9.0 Express
 
 https://www.devart.com/dotconnect/mysql/
 
