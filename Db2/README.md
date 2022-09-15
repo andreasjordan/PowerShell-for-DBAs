@@ -1,10 +1,13 @@
 How to use PowerShell as an IBM Db2 database administrator.
 
-## Server
+## Install the server
 
-Details follow...
+I use the free community edition of IBM Db2 11.5.7.0 for my labs. See my install script Server.ps1 in this folder for details.
 
-## Client
+But you can use any existing server in your environment.
+
+
+## Install the client
 
 Details follow...
 
