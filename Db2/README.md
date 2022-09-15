@@ -34,3 +34,12 @@ I use this code for the IBM Db2 client if the current location is the SQLLIB fol
 "`$Env:DB2_DLL = '$((Get-Location).Path)\BIN\netf40\IBM.Data.DB2.dll'" | Add-Content -Path $PROFILE
 "`$Env:MSREP_DLL = '<Add path here>\Microsoft.ReportingServices.Interfaces.dll'" | Add-Content -Path $PROFILE
 ```
+
+
+## Install the application
+
+I use a sample "application" (just a bunch of tables) that is based on the schema and data from the StackOverflow database.
+
+You have to create the windows user "stackoverflow" first. I created it as a domain user, a local user might also work. In my setup, the user does not need to be member of any group.
+
+See my script [Application.ps1](Application.ps1) in this folder for details.
