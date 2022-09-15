@@ -69,9 +69,9 @@ I use this code to create the profile if there is no profile:
 if (!(Test-Path -Path $PROFILE)) { $null = New-Item -ItemType File -Path $PROFILE -Force }
 ```
 
-I use this code for the MySQL Connector/NET 8.0.30:
+I use this code for the MySQL Connector/NET 8.0.30 for PowerShell 5.1:
 ```
-"`$Env:MYSQL_DLL = '$((Get-Location).Path)/MySQL/net6.0/MySql.Data.dll'" | Add-Content -Path $PROFILE
+"`$Env:MYSQL_DLL = '$((Get-Location).Path)/v4.5.2/MySql.Data.dll'" | Add-Content -Path $PROFILE
 ```
 
 I use this code for the NuGet package MySql.Data:
