@@ -47,7 +47,7 @@ https://www.nuget.org/packages/Microsoft.SqlServer.SqlManagementObjects
 I definitly want to try that - but there are dependencies like [Microsoft.Data.SqlClient](https://www.nuget.org/packages/Microsoft.Data.SqlClient/) which also has dependencies. And I still have not enough knowledge about installing NuGet packages with PowerShell.
 
 
-### dotConnect for SQL Server 4.0 Standard
+### Devart dotConnect for SQL Server 4.0 Standard
 
 https://www.devart.com/dotconnect/sqlserver/
 
