@@ -13,14 +13,14 @@ The basic idea is to install the .NET driver for the specific database managemen
 ## What database management systems do I cover?
 
 Already covered database management systems:
-* Microsoft SQL Server
-* Oracle
-* MySQL
-* PostgreSQL
-* IBM Db2
+* [Microsoft SQL Server](./SQLServer/README.md)
+* [Oracle](./Oracle/README.md)
+* [MySQL](./MySQL/README.md)
+* [PostgreSQL](./PostgreSQL/README.md)
+* [IBM Db2](./Db2/README.md)
 
 Planned in the near future:
-* IBM Informix
+* [IBM Informix](./Informix/README.md)
 
 
 ## What client operating systems do I use?
