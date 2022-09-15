@@ -17,9 +17,9 @@ Already covered database management systems:
 * Oracle
 * MySQL
 * PostgreSQL
+* IBM Db2
 
 Planned in the near future:
-* IMB Db2
 * IBM Informix
 
 
