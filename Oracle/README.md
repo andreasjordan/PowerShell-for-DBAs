@@ -31,7 +31,7 @@ Remove-Item -Path oracle.manageddataaccess.nupkg.zip
 ```
 
 
-### dotConnect for Oracle 10.0 Express
+### Devart dotConnect for Oracle 10.0 Express
 
 https://www.devart.com/dotconnect/oracle/
 
