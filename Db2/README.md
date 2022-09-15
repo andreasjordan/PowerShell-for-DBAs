@@ -7,13 +7,18 @@ I use the free community edition of IBM Db2 11.5.7.0 for my labs. See my install
 But you can use any existing server in your environment.
 
 
-## Install the client
+## Install the client for PowerShell 5.1 on Windows
 
 ### IBM Db2 11.5.7.0 Client
 
 I use the IBM Db2 11.5.7.0 Client in my lab, as it is included in the software package. See my install script [Client.ps1](Client.ps1) in this folder for details.
 
 The included DLL has a non-solvable dependency to [Microsoft.ReportingServices.Interfaces, Version=10.0.0.0], but this can be ignored on Add-Type as the needed dll is loaded anyway. See [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details and [Application.ps1](Application.ps1) for the code to ignore the error. But you can also get the needed DLL from Reporting Services of SQL Server 2008 R2.
+
+
+## Install the client for PowerShell 7.2 on Windows
+
+...
 
 
 ## Create an environment variable with the location of the dll
