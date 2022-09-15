@@ -9,7 +9,7 @@ But you can use any existing server in your environment. Just be sure to be able
 
 ## Install the client
 
-### dotConnect for PostgreSQL 8.0 Express
+### Devart dotConnect for PostgreSQL 8.0 Express
 
 I use the free Express edition of dotConnect by DevArt in my lab, as this is an easy to install client. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation.
 
