@@ -10,13 +10,9 @@ if (-not $Env:DB2_DLL) {
 if (-not (Test-Path -Path $Env:DB2_DLL)) {
     throw "Environment variable DB2_DLL not set correctly, file [$Env:DB2_DLL] not found"
 }
-if ($Env:MSREP_DLL) {
-    if (-not (Test-Path -Path $Env:MSREP_DLL)) {
-        throw "Environment variable MSREP_DLL not set correctly, file [$Env:MSREP_DLL] not found"
-    }
-    Add-Type -Path $Env:MSREP_DLL
-}
-Add-Type -Path $Env:DB2_DLL
+# Ignore the following error: Could not load file or assembly 'Microsoft.ReportingServices.Interfaces, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91' or one of its dependencies
+# For details see: https://community.oracle.com/tech/developers/discussion/4502297
+try { Add-Type -Path $Env:DB2_DLL } catch { }
 if ($Env:DB2_DLL -match 'Core') {
     . .\Connect-Db2Instance_Core.ps1
     . .\Invoke-Db2Query_Core.ps1
@@ -25,21 +21,11 @@ if ($Env:DB2_DLL -match 'Core') {
     . .\Invoke-Db2Query.ps1
 }
 
-$instance = "$($EnvironmentServerComputerName):50000"
-$database = 'stack'
-
-# $credentialAdmin = Get-Credential -Message $instance -UserName db2admin
-# $credentialAdmin = [PSCredential]::new('db2admin', (ConvertTo-SecureString -String $EnvironmentDatabaseAdminPassword -AsPlainText -Force))
+$instance = "$($EnvironmentServerComputerName):25000"
+$database = 'SAMPLE'
 
 # $credentialUser  = Get-Credential -Message $instance -UserName stackoverflow
 $credentialUser = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
-
-try {
-    Invoke-Command -ComputerName $EnvironmentServerComputerName -ScriptBlock { Remove-LocalUser -Name $using:credentialUser.UserName -Confirm:$false -ErrorAction Ignore }
-    Invoke-Command -ComputerName $EnvironmentServerComputerName -ScriptBlock { $null = New-LocalUser -Name $using:credentialUser.UserName -Password $using:credentialUser.Password }
-} catch {
-    Write-Warning -Message "Could not recreate the user, maybe we are on Linux."
-}
 
 $connectionUser = Connect-Db2Instance -Instance $instance -Credential $credentialUser -Database $database
 
