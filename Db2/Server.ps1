@@ -26,10 +26,6 @@ $softwareDb2 = [PSCustomObject]@{
     TempPath    = 'C:\temp_Db2'
     ComputerName = $EnvironmentServerComputerName
     Credential   = $EnvironmentWindowsAdminCredential
-    Parameters   = @{
-        OracleBase = 'D:\Db2'
-        Password   = $EnvironmentDatabaseAdminPassword
-    }
 }
 
 
