@@ -39,6 +39,8 @@ Expand-Archive -Path Net.IBM.Data.Db2.nupkg.zip -DestinationPath .\Net.IBM.Data.
 Remove-Item -Path Net.IBM.Data.Db2.nupkg.zip
 ```
 
+Add the "buildTransitive\clidriver\bin" path of the NuGet package to the PATH environment variable of the system.
+
 
 ### IBM Db2 11.5.7.0 Client
 
@@ -58,6 +60,8 @@ Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/IBM.Data.DB2.Core -O
 Expand-Archive -Path IBM.Data.DB2.Core.nupkg.zip -DestinationPath .\IBM.Data.DB2.Core
 Remove-Item -Path IBM.Data.DB2.Core.nupkg.zip
 ```
+
+Add the "buildTransitive\clidriver\bin" path of the NuGet package to the PATH environment variable of the system.
 
 
 ### Devart dotConnect for DB2 3.0 Professional
