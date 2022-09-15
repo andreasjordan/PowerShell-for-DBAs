@@ -13,14 +13,12 @@ But you can use any existing server in your environment.
 
 I use the IBM Db2 11.5.7.0 Client Client in my lab, as it is included in the software package. See my install script [Client.ps1](Client.ps1) in this folder for details.
 
-One problem: You also need the DLL "Microsoft.ReportingServices.Interfaces.dll" with the version "10.0.0.0" as this is required by the DLL "IBM.Data.DB2.dll". The needed DLL is included in an installation of Reporting Services of SQL Server 2008 R2.
+The included DLL has a non-solvable dependency to [Microsoft.ReportingServices.Interfaces, Version=10.0.0.0], but this can be ignored on Add-Type as the needed dll is loaded anyway. See [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details and [Application.ps1](Application.ps1) for the code to ignore the error. But you can also get the needed DLL from Reporting Services of SQL Server 2008 R2.
 
 
 ## Create an environment variable with the location of the dll
 
 To be able to use the same scripts on all platforms and versions, I use an environment variable named "DB2_DLL" with the complete path to the needed dll file.
-
-As we also need the DLL from the ReportingServices, I use a second environment variable named "MSREP_DLL".
 
 I use local PowerShell profiles, but you can use other ways as well.
 
@@ -32,7 +30,6 @@ if (!(Test-Path -Path $PROFILE)) { $null = New-Item -ItemType File -Path $PROFIL
 I use this code for the IBM Db2 client if the current location is the SQLLIB folder:
 ```
 "`$Env:DB2_DLL = '$((Get-Location).Path)\BIN\netf40\IBM.Data.DB2.dll'" | Add-Content -Path $PROFILE
-"`$Env:MSREP_DLL = '<Add path here>\Microsoft.ReportingServices.Interfaces.dll'" | Add-Content -Path $PROFILE
 ```
 
 
