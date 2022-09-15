@@ -13,12 +13,51 @@ But you can use any existing server in your environment.
 
 I use the IBM Db2 11.5.7.0 Client in my lab, as it is included in the software package. See my install script [Client.ps1](Client.ps1) in this folder for details.
 
-The included DLL has a non-solvable dependency to [Microsoft.ReportingServices.Interfaces, Version=10.0.0.0], but this can be ignored on Add-Type as the needed dll is loaded anyway. See [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details and [Application.ps1](Application.ps1) for the code to ignore the error. But you can also get the needed DLL from Reporting Services of SQL Server 2008 R2.
+Only with PowerShell 5.1 the included DLL has a non-solvable dependency to [Microsoft.ReportingServices.Interfaces, Version=10.0.0.0], but this can be ignored on Add-Type as the needed dll is loaded anyway. See [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details and [Application.ps1](Application.ps1) for the code to ignore the error. But you can also get the needed DLL from Reporting Services of SQL Server 2008 R2.
 
 
 ## Install the client for PowerShell 7.2 on Windows
 
-...
+### NuGet package Net.IBM.Data.Db2
+
+This package is compatible with .NET 6.0 and was recently updated, so this would be my first choice.
+
+I only download and extract the package, no need to use nuget.exe or any other tool.
+
+I run this code in a suitable location where a subfolder "Net.IBM.Data.Db2" with the content of the Nuget package will be created:
+
+```
+Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Net.IBM.Data.Db2 -OutFile Net.IBM.Data.Db2.nupkg.zip -UseBasicParsing
+Expand-Archive -Path Net.IBM.Data.Db2.nupkg.zip -DestinationPath .\Net.IBM.Data.Db2
+Remove-Item -Path Net.IBM.Data.Db2.nupkg.zip
+```
+
+
+### IBM Db2 11.5.7.0 Client
+
+You can also use the IBM Db2 11.5.7.0 Client, as it is included in the software package. See my install script [Client.ps1](Client.ps1) in this folder for details.
+
+
+### NuGet package IBM.Data.DB2.Core
+
+This package is compatible with .NET Standard 2.1. Downside of this package is the namespace: The official client and the package Net.IBM.Data.Db2 use "IBM.Data.Db2", this package uses "IBM.Data.DB2.Core", so you would need a different implementation of the wrapper commands. The needed files have "Core" in their filename.
+
+I only download and extract the package, no need to use nuget.exe or any other tool.
+
+I run this code in a suitable location where a subfolder "IBM.Data.DB2.Core" with the content of the Nuget package will be created:
+
+```
+Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/IBM.Data.DB2.Core -OutFile IBM.Data.DB2.Core.nupkg.zip -UseBasicParsing
+Expand-Archive -Path IBM.Data.DB2.Core.nupkg.zip -DestinationPath .\IBM.Data.DB2.Core
+Remove-Item -Path IBM.Data.DB2.Core.nupkg.zip
+```
+
+
+### dotConnect for Oracle 10.0 Express
+
+https://www.devart.com/dotconnect/oracle/
+
+This free version might also be an option. See [Connect-OraInstance_Devart.ps1](Connect-OraInstance_Devart.ps1) and [Invoke-OraQuery_Devart.ps1](Invoke-OraQuery_Devart.ps1) on how to use this client.
 
 
 ## Create an environment variable with the location of the dll
@@ -35,6 +74,11 @@ if (!(Test-Path -Path $PROFILE)) { $null = New-Item -ItemType File -Path $PROFIL
 I use this code for the IBM Db2 client if the current location is the SQLLIB folder:
 ```
 "`$Env:DB2_DLL = '$((Get-Location).Path)\BIN\netf40\IBM.Data.DB2.dll'" | Add-Content -Path $PROFILE
+```
+
+I use this code for the NuGet package Net.IBM.Data.Db2 if the current location is the folder I started the extraction:
+```
+"`$Env:DB2_DLL = '$((Get-Location).Path)\Net.IBM.Data.Db2\lib\net6.0\IBM.Data.Db2.dll'" | Add-Content -Path $PROFILE
 ```
 
 
