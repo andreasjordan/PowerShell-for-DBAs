@@ -16,6 +16,13 @@ I use the IBM Db2 11.5.7.0 Client in my lab, as it is included in the software p
 Only with PowerShell 5.1 the included DLL has a non-solvable dependency to [Microsoft.ReportingServices.Interfaces, Version=10.0.0.0], but this can be ignored on Add-Type as the needed dll is loaded anyway. See [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details and [Application.ps1](Application.ps1) for the code to ignore the error. But you can also get the needed DLL from Reporting Services of SQL Server 2008 R2.
 
 
+### dotConnect for DB2 3.0 Professional
+
+https://www.devart.com/dotconnect/db2/
+
+As there is no free version available, I have not tested it.
+
+
 ## Install the client for PowerShell 7.2 on Windows
 
 ### NuGet package Net.IBM.Data.Db2
@@ -53,11 +60,11 @@ Remove-Item -Path IBM.Data.DB2.Core.nupkg.zip
 ```
 
 
-### dotConnect for Oracle 10.0 Express
+### dotConnect for DB2 3.0 Professional
 
-https://www.devart.com/dotconnect/oracle/
+https://www.devart.com/dotconnect/db2/
 
-This free version might also be an option. See [Connect-OraInstance_Devart.ps1](Connect-OraInstance_Devart.ps1) and [Invoke-OraQuery_Devart.ps1](Invoke-OraQuery_Devart.ps1) on how to use this client.
+As there is no free version available, I have not tested it.
 
 
 ## Create an environment variable with the location of the dll
