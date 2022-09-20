@@ -69,7 +69,7 @@ function Invoke-IfxQuery {
                 [PSCustomObject]@{
                     Name     = $parameterName
                     Value    = $ParameterValues[$parameterName]
-                    Position = $Query.IndexOf($parameterName)
+                    Position = $Query.IndexOf(":$parameterName")
                 }
             }
             # Add parameters in order of appearance
@@ -82,6 +82,9 @@ function Invoke-IfxQuery {
                     $parameter.IfxType = $ParameterTypes[$parameterObject.Name]
                 }
                 $parameter.Value = $parameterObject.Value
+                if ($null -eq $parameter.Value) {
+                    $parameter.Value = [DBNull]::Value
+                }
                 $null = $command.Parameters.Add($parameter)
             }
             $command.CommandText = $Query
@@ -126,6 +129,7 @@ function Invoke-IfxQuery {
             }
         } catch {
             if ($EnableException) {
+                $command
                 throw
             } else {
                 Write-Warning -Message "Query could not be executed: $($_.Exception.InnerException.Message)"
