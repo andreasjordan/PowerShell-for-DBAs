@@ -16,13 +16,7 @@ I use the Client-SDK 4.50.FC8 in my lab. See my install script [Client.ps1](Clie
 
 ### IBM.Data.DB2.dll
 
-https://www.ibm.com/docs/en/informix-servers/14.10?topic=options-differences-between-net-providers
-
-"Although the name of the provider indicates IBM DB2, this is in fact the single .NET provider for IBM data servers including Informix and IBM DB2. This is the recommended assembly for new application development for Informix Version 11.10 or later, and this is the preferred .NET provider."
-
-I just can't get it to work - help very much appreciated!
-
-How to get a connection to Informix using [IBM.Data.DB2.DB2ConnectionStringBuilder] and [IBM.Data.DB2.DB2Connection]? What am I missing?
+Works well, see Db2. Will update the text here later.
 
 
 ## Create an environment variable with the location of the dll
