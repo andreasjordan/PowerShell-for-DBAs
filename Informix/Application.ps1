@@ -10,17 +10,23 @@ if (-not $Env:INFORMIX_DLL) {
 if (-not (Test-Path -Path $Env:INFORMIX_DLL)) {
     throw "Environment variable INFORMIX_DLL not set correctly, file [$Env:INFORMIX_DLL] not found"
 }
-if ($Env:INFORMIX_DLL -match 'IBM.Data.DB2.dll') {
+if ($Env:INFORMIX_DLL -match 'IBM\.Data\.Db2\.dll') {
+    # For NuGet package on Windows: Change $Env:PATH
+    if ($Env:INFORMIX_DLL -match 'lib\\net6\.0\\IBM\.Data\.Db2\.dll') {
+        $path = $Env:INFORMIX_DLL -replace 'lib\\net6\.0\\IBM\.Data\.Db2\.dll', 'buildTransitive\clidriver\bin'
+        $Env:PATH = "$Env:PATH;$path"
+    }
+
     try { Add-Type -Path $Env:INFORMIX_DLL } catch { }
 
     . .\Connect-IfxInstance_Db2.ps1
     . .\Invoke-IfxQuery_Db2.ps1
     
     $instance = "$($EnvironmentServerComputerName):9089"
-} elseif ($Env:INFORMIX_DLL -match 'IBM.Data.DB2.Core.dll') {
-    # Test for NuGet package and change $Env:PATH
-    if ($Env:INFORMIX_DLL -match 'lib\\[^\\]+\\IBM\.Data\.Db2(\.Core)?\.dll') {
-        $path = $Env:INFORMIX_DLL -replace 'lib\\[^\\]+\\IBM\.Data\.Db2(\.Core)?\.dll', 'buildTransitive\clidriver\bin'
+} elseif ($Env:INFORMIX_DLL -match 'IBM\.Data\.DB2\.Core\.dll') {
+    # For NuGet package on Windows: Change $Env:PATH
+    if ($Env:INFORMIX_DLL -match 'lib\\netstandard2\.1\\IBM\.Data\.DB2\.Core\.dll') {
+        $path = $Env:INFORMIX_DLL -replace 'lib\\netstandard2\.1\\IBM\.Data\.DB2\.Core\.dll', 'buildTransitive\clidriver\bin'
         $Env:PATH = "$Env:PATH;$path"
     }
 
