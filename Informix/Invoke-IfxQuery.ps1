@@ -129,7 +129,6 @@ function Invoke-IfxQuery {
             }
         } catch {
             if ($EnableException) {
-                $command
                 throw
             } else {
                 Write-Warning -Message "Query could not be executed: $($_.Exception.InnerException.Message)"
