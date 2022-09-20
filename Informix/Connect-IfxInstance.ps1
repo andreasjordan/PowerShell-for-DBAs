@@ -7,6 +7,8 @@ function Connect-IfxInstance {
         [Parameter(Mandatory)][string]$Database,
         [switch]$PooledConnection,
         [string]$Protocol = 'olsoctcp',
+        [string]$ClientLocale = 'en_US.utf8',
+        [string]$DbLocale = 'en_US.utf8',
         [switch]$EnableException
     )
 
@@ -25,12 +27,13 @@ function Connect-IfxInstance {
     Write-Verbose -Message "Creating connection to server [$Instance] and database [$Database]"
 
     $csb = [IBM.Data.Informix.IfxConnectionStringBuilder]::new()
-
     $csb.Host = $ifxHost
     $csb.Service = $ifxService
     $csb.Server = $ifxServer
     $csb.Protocol = $Protocol
     $csb.Database = $Database
+    $csb['Client Locale'] = $ClientLocale
+    $csb['Database Locale'] = $DbLocale
     $csb['User ID'] = $Credential.UserName
     $csb['Password'] = $Credential.GetNetworkCredential().Password
     if ($PooledConnection) {
