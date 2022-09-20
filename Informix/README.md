@@ -22,6 +22,8 @@ https://www.ibm.com/docs/en/informix-servers/14.10?topic=options-differences-bet
 
 I just can't get it to work - help very much appreciated!
 
+How to get a connection to Informix using [IBM.Data.DB2.DB2ConnectionStringBuilder] and [IBM.Data.DB2.DB2Connection]? What am I missing?
+
 
 ## Create an environment variable with the location of the dll
 
