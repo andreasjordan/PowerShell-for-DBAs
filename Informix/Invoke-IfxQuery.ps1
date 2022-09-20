@@ -69,13 +69,13 @@ function Invoke-IfxQuery {
                 [PSCustomObject]@{
                     Name     = $parameterName
                     Value    = $ParameterValues[$parameterName]
-                    Position = $Query.IndexOf(":$parameterName")
+                    Position = $Query.IndexOf("@$parameterName")
                 }
             }
             # Add parameters in order of appearance
             $parameterObjects = $parameterObjects | Sort-Object -Property Position
             foreach ($parameterObject in $parameterObjects) {
-                $Query = $Query.Replace(":$($parameterObject.Name)", '?')
+                $Query = $Query.Replace("@$($parameterObject.Name)", '?')
                 $parameter = $command.CreateParameter()
                 $parameter.ParameterName = $parameterObject.Name
                 if (($null -ne $ParameterTypes) -and ($null -ne $ParameterTypes[$parameterObject.Name])) {
