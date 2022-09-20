@@ -10,11 +10,22 @@ if (-not $Env:INFORMIX_DLL) {
 if (-not (Test-Path -Path $Env:INFORMIX_DLL)) {
     throw "Environment variable INFORMIX_DLL not set correctly, file [$Env:INFORMIX_DLL] not found"
 }
-Add-Type -Path $Env:INFORMIX_DLL
-. .\Connect-IfxInstance.ps1
-. .\Invoke-IfxQuery.ps1
+if ($Env:INFORMIX_DLL -match 'IBM.Data.DB2') {
+    try { Add-Type -Path $Env:INFORMIX_DLL } catch { }
 
-$instance = "$($EnvironmentServerComputerName):9088:ol_informix1410"
+    . .\Connect-IfxInstance_Db2.ps1
+    . .\Invoke-IfxQuery_Db2.ps1
+    
+    $instance = "$($EnvironmentServerComputerName):9089"
+} else {
+    Add-Type -Path $Env:INFORMIX_DLL
+
+    . .\Connect-IfxInstance.ps1
+    . .\Invoke-IfxQuery.ps1
+
+    $instance = "$($EnvironmentServerComputerName):9088:ol_informix1410"
+}
+
 $database = 'stackoverflow'
 
 # $credentialUser  = Get-Credential -Message $instance -UserName ORDIX\stackoverflow
