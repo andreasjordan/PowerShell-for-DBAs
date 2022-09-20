@@ -39,7 +39,11 @@ function Import-Schema {
                 $datatype = $schema.DataTypes.$datatype.$DBMS
                 $query += "$($column.ColumnName) $datatype$length $($column.Constraint), "
             }
-            $query += "CONSTRAINT $($table.TableName)_PK PRIMARY KEY ($($table.PrimaryKey)))"
+            if ($DBMS -eq 'Informix') {
+                $query += "PRIMARY KEY ($($table.PrimaryKey)) CONSTRAINT $($table.TableName)_PK)"
+            } else {
+                $query += "CONSTRAINT $($table.TableName)_PK PRIMARY KEY ($($table.PrimaryKey)))"
+            }
 
             $queries += $query
         }
