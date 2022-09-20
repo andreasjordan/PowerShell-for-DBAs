@@ -6,7 +6,7 @@
             PostgreSQL = 'INT'
             MySQL      = 'INT'
             Db2        = 'INT'
-            Informix   = ''
+            Informix   = 'INT'
         }
         VARCHAR = @{
             SQLServer  = 'NVARCHAR'
@@ -14,7 +14,7 @@
             PostgreSQL = 'VARCHAR'
             MySQL      = 'VARCHAR'
             Db2        = 'VARCHAR'
-            Informix   = ''
+            Informix   = 'LVARCHAR'
         }
         VARCHAR_MAX = @{
             SQLServer  = 'VARCHAR(MAX)'
@@ -22,7 +22,7 @@
             PostgreSQL = 'TEXT'
             MySQL      = 'TEXT'  # or CLOB?
             Db2        = 'CLOB(2G)'
-            Informix   = ''
+            Informix   = 'CLOB'
         }
         TIMESTAMP = @{
             SQLServer  = 'DATETIME'
@@ -30,7 +30,7 @@
             PostgreSQL = 'TIMESTAMP(3)'
             MySQL      = 'TIMESTAMP(3)'
             Db2        = 'TIMESTAMP'
-            Informix   = ''
+            Informix   = 'DATETIME YEAR TO FRACTION'
         }
     }
     Tables = @(
