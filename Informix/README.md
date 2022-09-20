@@ -52,7 +52,9 @@ set DB_LOCALE=en_US.utf8
 dbaccess - -
 CREATE DATABASE stackoverflow WITH BUFFERED LOG;
 GRANT CONNECT TO stackoverflow;
+GRANT RESOURCE TO stackoverflow;
 ```
-![image](https://user-images.githubusercontent.com/66946165/191231797-baf8a0d5-8858-4287-91aa-c8678a090a7f.png)
+![image](https://user-images.githubusercontent.com/66946165/191233196-3f86d778-801d-43f2-920f-c3ac67da21f1.png)
+
 
 See my script [Application.ps1](Application.ps1) in this folder for details.
