@@ -10,9 +10,9 @@ if (-not $Env:DB2_DLL) {
 if (-not (Test-Path -Path $Env:DB2_DLL)) {
     throw "Environment variable DB2_DLL not set correctly, file [$Env:DB2_DLL] not found"
 }
-# Test for NuGet package and change $Env:PATH
+# For NuGet package on Windows: Change $Env:PATH
 if ($Env:DB2_DLL -match 'lib\\[^\\]+\\IBM\.Data\.Db2(\.Core)?\.dll') {
-    $path = $Env:DB2_DLL -replace 'lib\\[^\\]+\\IBM\.Data\.Db2(\.Core)?\.dll', 'buildTransitive\clidriver\bin'
+    $path = $Env:INFORMIX_DLL -replace 'lib\\[^\\]+\\IBM\.Data\.Db2(\.Core)?\.dll', 'buildTransitive\clidriver\bin'
     $Env:PATH = "$Env:PATH;$path"
 }
 # Ignore the following error: Could not load file or assembly 'Microsoft.ReportingServices.Interfaces, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91' or one of its dependencies
