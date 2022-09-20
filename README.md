@@ -18,9 +18,9 @@ Already covered database management systems:
 * [MySQL](./MySQL/README.md)
 * [PostgreSQL](./PostgreSQL/README.md)
 * [IBM Db2](./Db2/README.md)
-
-Planned in the near future:
 * [IBM Informix](./Informix/README.md)
+
+Are there other database systems that I should add here?
 
 
 ## What client operating systems do I use?
