@@ -23,8 +23,8 @@ if ($Env:INFORMIX_DLL -match 'IBM.Data.DB2.dll') {
         $path = $Env:INFORMIX_DLL -replace 'lib\\[^\\]+\\IBM\.Data\.Db2(\.Core)?\.dll', 'buildTransitive\clidriver\bin'
         $Env:PATH = "$Env:PATH;$path"
     }
-    if ($Env:INFORMIX_DLL -match 'lib/[^/]+/IBM\.Data\.Db2(\.Core)?\.dll') {
-        $path = $Env:INFORMIX_DLL -replace 'lib/[^/]+/IBM\.Data\.Db2(\.Core)?\.dll', 'buildTransitive/clidriver/lib'
+    if ($Env:INFORMIX_DLL -match 'lib/[^/]+/IBM\.Data\.Db2\.Core-lnx\.dll') {
+        $path = $Env:INFORMIX_DLL -replace 'lib/[^/]+/IBM\.Data\.Db2\.Core-lnx\.dll', 'buildTransitive/clidriver/lib'
         $Env:PATH = "$Env:PATH:$path"
     }
 
