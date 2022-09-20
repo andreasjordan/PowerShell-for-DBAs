@@ -20,11 +20,11 @@ if ($Env:INFORMIX_DLL -match 'IBM.Data.DB2.dll') {
 } elseif ($Env:INFORMIX_DLL -match 'IBM.Data.DB2.Core.dll') {
     # Test for NuGet package and change $Env:PATH
     if ($Env:INFORMIX_DLL -match 'lib\\[^\\]+\\IBM\.Data\.Db2(\.Core)?\.dll') {
-        $path = $Env:DB2_DLL -replace 'lib\\[^\\]+\\IBM\.Data\.Db2(\.Core)?\.dll', 'buildTransitive\clidriver\bin'
+        $path = $Env:INFORMIX_DLL -replace 'lib\\[^\\]+\\IBM\.Data\.Db2(\.Core)?\.dll', 'buildTransitive\clidriver\bin'
         $Env:PATH = "$Env:PATH;$path"
     }
     if ($Env:INFORMIX_DLL -match 'lib/[^/]+/IBM\.Data\.Db2(\.Core)?\.dll') {
-        $path = $Env:DB2_DLL -replace 'lib/[^/]+/IBM\.Data\.Db2(\.Core)?\.dll', 'buildTransitive/clidriver/bin'
+        $path = $Env:INFORMIX_DLL -replace 'lib/[^/]+/IBM\.Data\.Db2(\.Core)?\.dll', 'buildTransitive/clidriver/bin'
         $Env:PATH = "$Env:PATH;$path"
     }
 
