@@ -22,7 +22,7 @@
             PostgreSQL = 'TEXT'
             MySQL      = 'TEXT'  # or CLOB?
             Db2        = 'CLOB(2G)'
-            Informix   = 'CLOB'
+            Informix   = 'LVARCHAR(32000)'
         }
         TIMESTAMP = @{
             SQLServer  = 'DATETIME'
