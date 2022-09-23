@@ -45,6 +45,6 @@ So I have stored the table structure in a structured format as well ([SampleSche
 
 I use this technology for some time now in different projects with both SQL Server and Oracle.
 
-On 2022-09-22 I will present some demos at the [DOAG in Nuremberg](https://shop.doag.org/events/anwenderkonferenz/2022/agenda/#eventDay.all#textSearch.PowerShell) and afterwords share the demos here in this repo.
+On 2022-09-22 I presented some demos at the [DOAG in Nuremberg](https://shop.doag.org/events/anwenderkonferenz/2022/agenda/#eventDay.all#textSearch.PowerShell), you find the presentation and the democode in the folder [DOAG2022](./DOAG2022/README.md).
 
 On 2022-12-12 I will hold a workshop day at the [IT-Tage](https://www.ittage.informatik-aktuell.de/programm/2022/sql-server-powershell-fuer-datenbank-admins-dba.html) and afterwords share the demos here in this repo.
