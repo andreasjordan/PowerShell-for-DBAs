@@ -1,3 +1,6 @@
+param(
+    [int]$MaxRowsPerTable
+)
 $ErrorActionPreference = 'Stop'
 
 . ..\PowerShell\Environment.ps1
@@ -45,23 +48,29 @@ if ($Env:INFORMIX_DLL -match 'IBM\.Data\.Db2\.dll') {
     $instance = "$($EnvironmentServerComputerName):9088:ol_informix1410"
 }
 
+if ($EnvironmentServerComputerName -notin 'localhost', 'Informix-1') {
+    $EnvironmentDatabaseUserName = "ORDIX\$EnvironmentDatabaseUserName"
+}
 $database = 'stackoverflow'
 
-# $credentialUser  = Get-Credential -Message $instance -UserName ORDIX\stackoverflow
-$credentialUser = [PSCredential]::new('ORDIX\stackoverflow', (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
+try {
+    # $credential = Get-Credential -Message $instance -UserName $EnvironmentDatabaseUserName
+    $credential = [PSCredential]::new($EnvironmentDatabaseUserName, (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
+    $connection = Connect-IfxInstance -Instance $instance -Credential $credential -Database $database
 
-$connectionUser = Connect-IfxInstance -Instance $instance -Credential $credentialUser -Database $database
+    $tables = Invoke-IfxQuery -Connection $connectionUser -Query "SELECT tabname FROM systables WHERE owner = '$($credential.UserName.ToLower())'" -As SingleValue
+    foreach ($table in $tables) {
+        Invoke-IfxQuery -Connection $connectionUser -Query "DROP TABLE $table"
+    }
 
-$tables = Invoke-IfxQuery -Connection $connectionUser -Query "SELECT tabname FROM systables WHERE owner = 'stackoverflow'" -As SingleValue
-foreach ($table in $tables) {
-    Invoke-IfxQuery -Connection $connectionUser -Query "DROP TABLE $table"
+    Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS Informix -Connection $connection -EnableException
+    $start = Get-Date
+    Import-Data -Path ..\PowerShell\SampleData.json -DBMS Informix -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
+    $duration = (Get-Date) - $start
+
+    $connection.Dispose()
+    
+    Write-Host "Data import to $EnvironmentServerComputerName finished in $($duration.TotalSeconds) seconds"
+} catch {
+    Write-Host "Data import to $EnvironmentServerComputerName failed: $_"
 }
-
-Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS Informix -Connection $connectionUser
-$start = Get-Date
-Import-Data -Path ..\PowerShell\SampleData.json -DBMS Informix -Connection $connectionUser
-$duration = (Get-Date) - $start
-Write-Host "Data import finished in $($duration.TotalSeconds) seconds"
-
-$connectionUser.Close()
-$connectionUser.Dispose()

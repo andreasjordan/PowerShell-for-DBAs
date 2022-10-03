@@ -1,3 +1,6 @@
+param(
+    [int]$MaxRowsPerTable
+)
 $ErrorActionPreference = 'Stop'
 
 . ..\PowerShell\Environment.ps1
@@ -20,33 +23,26 @@ if ($Env:POSTGRESQL_DLL -match 'Devart') {
 }
 
 $instance = $EnvironmentServerComputerName
+$database = 'stackoverflow'
 
-# $credentialAdmin = Get-Credential -Message $instance -UserName postgres
-$credentialAdmin = [PSCredential]::new('postgres', (ConvertTo-SecureString -String $EnvironmentDatabaseAdminPassword -AsPlainText -Force))
+try {
+    # $credential = Get-Credential -Message $instance -UserName $EnvironmentDatabaseUserName
+    $credential = [PSCredential]::new($EnvironmentDatabaseUserName, (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
+    $connection = Connect-PgInstance -Instance $instance -Credential $credential -Database $database
 
-# $credentialUser  = Get-Credential -Message $instance -UserName stackoverflow
-$credentialUser = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
+    #$tables = Invoke-PgQuery -Connection $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'" -As SingleValue
+    #foreach ($table in $tables) {
+    #    Invoke-PgQuery -Connection $connection -Query ("DROP TABLE $table")
+    #}
 
+    Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS PostgreSQL -Connection $connection -EnableException
+    $start = Get-Date
+    Import-Data -Path ..\PowerShell\SampleData.json -DBMS PostgreSQL -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
+    $duration = (Get-Date) - $start
 
-$connectionAdmin = Connect-PgInstance -Instance $instance -Credential $credentialAdmin
+    $connection.Dispose()
 
-Invoke-PgQuery -Connection $connectionAdmin -Query "DROP DATABASE IF EXISTS stackoverflow WITH (FORCE)"
-Invoke-PgQuery -Connection $connectionAdmin -Query "DROP USER IF EXISTS stackoverflow"
-
-Invoke-PgQuery -Connection $connectionAdmin -Query "CREATE USER stackoverflow WITH PASSWORD '$($credentialUser.GetNetworkCredential().Password)'"
-Invoke-PgQuery -Connection $connectionAdmin -Query "CREATE DATABASE stackoverflow WITH OWNER stackoverflow"
-
-$connectionAdmin.Close()
-$connectionAdmin.Dispose()
-
-
-$connectionUser = Connect-PgInstance -Instance $instance -Credential $credentialUser -Database stackoverflow
-Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS PostgreSQL -Connection $connectionUser
-$start = Get-Date
-Import-Data -Path ..\PowerShell\SampleData.json -DBMS PostgreSQL -Connection $connectionUser
-$duration = (Get-Date) - $start
-Write-Host "Data import finished in $($duration.TotalSeconds) seconds"
-
-$connectionUser.Close()
-$connectionUser.Dispose()
-
+    Write-Host "Data import to $EnvironmentServerComputerName finished in $($duration.TotalSeconds) seconds"
+} catch {
+    Write-Host "Data import to $EnvironmentServerComputerName failed: $_"
+}

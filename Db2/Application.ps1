@@ -1,3 +1,6 @@
+param(
+    [int]$MaxRowsPerTable
+)
 $ErrorActionPreference = 'Stop'
 
 . ..\PowerShell\Environment.ps1
@@ -26,24 +29,32 @@ if ($Env:DB2_DLL -match 'Core') {
     . .\Invoke-Db2Query.ps1
 }
 
-$instance = "$($EnvironmentServerComputerName):25000"
-$database = 'SAMPLE'
-
-# $credentialUser  = Get-Credential -Message $instance -UserName stackoverflow
-$credentialUser = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
-
-$connectionUser = Connect-Db2Instance -Instance $instance -Credential $credentialUser -Database $database
-
-$tables = Invoke-Db2Query -Connection $connectionUser -Query "SELECT name FROM sysibm.systables WHERE creator = '$($credentialUser.UserName.ToUpper())'" -As SingleValue
-foreach ($table in $tables) {
-    Invoke-Db2Query -Connection $connectionUser -Query "DROP TABLE $table"
+if ($EnvironmentServerComputerName -in 'localhost', 'Db2-1') {
+    $instance = "$($EnvironmentServerComputerName):50000"
+    $database = 'DEMO'
+} else {
+    $instance = "$($EnvironmentServerComputerName):25000"
+    $database = 'SAMPLE'
 }
 
-Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS Db2 -Connection $connectionUser
-$start = Get-Date
-Import-Data -Path ..\PowerShell\SampleData.json -DBMS Db2 -Connection $connectionUser
-$duration = (Get-Date) - $start
-Write-Host "Data import finished in $($duration.TotalSeconds) seconds"
+try {
+    # $credential = Get-Credential -Message $instance -UserName $EnvironmentDatabaseUserName
+    $credential = [PSCredential]::new($EnvironmentDatabaseUserName, (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
+    $connection = Connect-Db2Instance -Instance $instance -Credential $credential -Database $database
 
-$connectionUser.Close()
-$connectionUser.Dispose()
+    $tables = Invoke-Db2Query -Connection $connection -Query "SELECT name FROM sysibm.systables WHERE creator = '$($credential.UserName.ToUpper())'" -As SingleValue
+    foreach ($table in $tables) {
+        Invoke-Db2Query -Connection $connection -Query "DROP TABLE $table"
+    }
+
+    Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS Db2 -Connection $connection -EnableException
+    $start = Get-Date
+    Import-Data -Path ..\PowerShell\SampleData.json -DBMS Db2 -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
+    $duration = (Get-Date) - $start
+
+    $connection.Dispose()
+    
+    Write-Host "Data import to $EnvironmentServerComputerName finished in $($duration.TotalSeconds) seconds"
+} catch {
+    Write-Host "Data import to $EnvironmentServerComputerName failed: $_"
+}

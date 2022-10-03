@@ -1,3 +1,6 @@
+param(
+    [int]$MaxRowsPerTable
+)
 $ErrorActionPreference = 'Stop'
 
 . ..\PowerShell\Environment.ps1
@@ -22,34 +25,26 @@ if ($Env:MYSQL_DLL -match 'Devart') {
 }
 
 $instance = $EnvironmentServerComputerName
+$database = 'stackoverflow'
 
-# $credentialAdmin = Get-Credential -Message $instance -UserName root
-$credentialAdmin = [PSCredential]::new('root', (ConvertTo-SecureString -String $EnvironmentDatabaseAdminPassword -AsPlainText -Force))
+try {
+    # $credential = Get-Credential -Message $instance -UserName $EnvironmentDatabaseUserName
+    $credential = [PSCredential]::new($EnvironmentDatabaseUserName, (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
+    $connection = Connect-MyInstance -Instance $instance -Credential $credential -Database $database
 
-# $credentialUser  = Get-Credential -Message $instance -UserName stackoverflow
-$credentialUser = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
+    #$tables = Invoke-MyQuery -Connection $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'" -As SingleValue
+    #foreach ($table in $tables) {
+    #    Invoke-MyQuery -Connection $connection -Query ("DROP TABLE $table")
+    #}
 
+    Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS MySQL -Connection $connection -EnableException
+    $start = Get-Date
+    Import-Data -Path ..\PowerShell\SampleData.json -DBMS MySQL -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
+    $duration = (Get-Date) - $start
 
-$connectionAdmin = Connect-MyInstance -Instance $instance -Credential $credentialAdmin
-
-Invoke-MyQuery -Connection $connectionAdmin -Query "DROP DATABASE IF EXISTS stackoverflow"
-Invoke-MyQuery -Connection $connectionAdmin -Query "DROP USER IF EXISTS 'stackoverflow'@'%'"
-
-Invoke-MyQuery -Connection $connectionAdmin -Query "CREATE USER 'stackoverflow'@'%' IDENTIFIED BY '$($credentialUser.GetNetworkCredential().Password)'"
-Invoke-MyQuery -Connection $connectionAdmin -Query "CREATE DATABASE stackoverflow"
-Invoke-MyQuery -Connection $connectionAdmin -Query "GRANT ALL PRIVILEGES ON stackoverflow.* TO 'stackoverflow'@'%'"
-
-$connectionAdmin.Close()
-$connectionAdmin.Dispose()
-
-
-$connectionUser = Connect-MyInstance -Instance $instance -Credential $credentialUser -Database stackoverflow
-
-Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS MySQL -Connection $connectionUser
-$start = Get-Date
-Import-Data -Path ..\PowerShell\SampleData.json -DBMS MySQL -Connection $connectionUser
-$duration = (Get-Date) - $start
-Write-Host "Data import finished in $($duration.TotalSeconds) seconds"
-
-$connectionUser.Close()
-$connectionUser.Dispose()
+    $connection.Dispose()
+    
+    Write-Host "Data import to $EnvironmentServerComputerName finished in $($duration.TotalSeconds) seconds"
+} catch {
+    Write-Host "Data import to $EnvironmentServerComputerName failed: $_"
+}
