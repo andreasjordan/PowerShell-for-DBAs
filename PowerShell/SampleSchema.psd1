@@ -153,58 +153,58 @@
     Indexes = @(
         @{
             TableName  = 'Badges'
-            IndexName  = 'badges_userid'
+            IndexName  = 'Badges_UserId'
             Columns    = @( 'UserId' )
         }
         @{
             TableName  = 'Badges'
-            IndexName  = 'badges_name'
+            IndexName  = 'Badges_Name'
             Columns    = @( 'Name' )
         }
         @{
-            TableName  = 'comments'
-            IndexName  = 'comments_postid'
-            Columns    = @( 'postid' )
+            TableName  = 'Comments'
+            IndexName  = 'Comments_PostId'
+            Columns    = @( 'PostId' )
         }
         @{
-            TableName  = 'comments'
-            IndexName  = 'comments_score'
-            Columns    = @( 'score' )
+            TableName  = 'Comments'
+            IndexName  = 'Comments_Score'
+            Columns    = @( 'Score' )
         }
         @{
-            TableName  = 'comments'
-            IndexName  = 'comments_userid'
-            Columns    = @( 'userid' )
+            TableName  = 'Comments'
+            IndexName  = 'Comments_UserId'
+            Columns    = @( 'UserId' )
         }
         @{
-            TableName  = 'posts'
-            IndexName  = 'posts_owneruserid'
-            Columns    = @( 'owneruserid' )
+            TableName  = 'Posts'
+            IndexName  = 'Posts_OwnerUserId'
+            Columns    = @( 'OwnerUserId' )
         }
         @{
-            TableName  = 'posts'
-            IndexName  = 'posts_score'
-            Columns    = @( 'score' )
+            TableName  = 'Posts'
+            IndexName  = 'Posts_Score'
+            Columns    = @( 'Score' )
         }
         @{
-            TableName  = 'users'
-            IndexName  = 'users_location'
-            Columns    = @( 'location' )
+            TableName  = 'Users'
+            IndexName  = 'Users_Location'
+            Columns    = @( 'Location' )
         }
         @{
-            TableName  = 'users'
-            IndexName  = 'users_reputation'
-            Columns    = @( 'reputation' )
+            TableName  = 'Users'
+            IndexName  = 'Users_Reputation'
+            Columns    = @( 'Reputation' )
         }
         @{
-            TableName  = 'votes'
-            IndexName  = 'votes_postid'
-            Columns    = @( 'postid' )
+            TableName  = 'Votes'
+            IndexName  = 'Votes_PostId'
+            Columns    = @( 'PostId' )
         }
         @{
-            TableName  = 'votes'
-            IndexName  = 'votes_userid'
-            Columns    = @( 'userid' )
+            TableName  = 'Votes'
+            IndexName  = 'Votes_UserId'
+            Columns    = @( 'UserId' )
         }
     )
 }
