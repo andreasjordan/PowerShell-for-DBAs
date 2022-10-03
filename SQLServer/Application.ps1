@@ -1,3 +1,6 @@
+param(
+    [int]$MaxRowsPerTable
+)
 $ErrorActionPreference = 'Stop'
 
 Import-Module -Name dbatools  # Install-Module -Name dbatools -Scope CurrentUser
@@ -19,7 +22,7 @@ try {
 
     Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS SQLServer -Connection $connection -EnableException
     $start = Get-Date
-    Import-Data -Path ..\PowerShell\SampleData.json -DBMS SQLServer -Connection $connection -EnableException
+    Import-Data -Path ..\PowerShell\SampleData.json -DBMS SQLServer -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
     $duration = (Get-Date) - $start
 
     $null = $connection | Disconnect-DbaInstance

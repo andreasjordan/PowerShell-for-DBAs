@@ -1,3 +1,6 @@
+param(
+    [int]$MaxRowsPerTable
+)
 $ErrorActionPreference = 'Stop'
 
 . ..\PowerShell\Environment.ps1
@@ -35,7 +38,7 @@ try {
 
     Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS Oracle -Connection $connection -EnableException
     $start = Get-Date
-    Import-Data -Path ..\PowerShell\SampleData.json -DBMS Oracle -Connection $connection -EnableException
+    Import-Data -Path ..\PowerShell\SampleData.json -DBMS Oracle -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
     $duration = (Get-Date) - $start
 
     $connection.Dispose()
