@@ -5,6 +5,7 @@ function Import-Data {
         [Parameter(Mandatory)][string]$Path,
         [Parameter(Mandatory)][ValidateSet("SQLServer", "Oracle", "PostgreSQL", "MySQL", "Db2", "Informix")][string]$DBMS,
         [Parameter(Mandatory)][object]$Connection,
+        [int]$MaxRowsPerTable,
         [switch]$EnableException
     )
 
@@ -86,6 +87,11 @@ function Import-Data {
                     Informix {
                         $null = Invoke-IfxQuery -Connection $Connection -Query $insertIntoSql -ParameterValues $parameterValues -EnableException
                     }
+                }
+
+                if ($MaxRowsPerTable -gt 0 -and $progressRowCompleted -ge $MaxRowsPerTable) { 
+                    Write-Verbose -Message "Maximum of $MaxRowsPerTable rows reached"
+                    break
                 }
             }
             Write-Progress @progressRowParameter -Completed
