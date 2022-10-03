@@ -14,6 +14,11 @@ if (-not $EnvironmentServerComputerName) {
     $EnvironmentServerComputerName = 'SQLLAB08'
 }
 
+# The name of the user where all the sample tables will be installed.
+if (-not $EnvironmentDatabaseUserName) {
+    $EnvironmentDatabaseUserName = 'stackoverflow'
+}
+
 # As this is just a lab, set some simple passwords for the used database accounts
 if (-not $EnvironmentDatabaseAdminPassword) {
     $EnvironmentDatabaseAdminPassword = 'start123'

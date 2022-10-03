@@ -21,34 +21,26 @@ if ($Env:ORACLE_DLL -match 'Devart') {
     . .\Invoke-OraQuery.ps1
 }
 
-$instance = "$EnvironmentServerComputerName/XEPDB1"
+try {
+    $instance = "$EnvironmentServerComputerName/XEPDB1"
 
-# $credentialAdmin = Get-Credential -Message $instance -UserName sys
-$credentialAdmin = [PSCredential]::new('sys', (ConvertTo-SecureString -String $EnvironmentDatabaseAdminPassword -AsPlainText -Force))
+    # $credentialUser = Get-Credential -Message $instance -UserName $EnvironmentDatabaseUserName
+    $credential = [PSCredential]::new($EnvironmentDatabaseUserName, (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
+    $connection = Connect-OraInstance -Instance $instance -Credential $credential -EnableException
 
-# $credentialUser  = Get-Credential -Message $instance -UserName stackoverflow
-$credentialUser = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
+    $tables = Invoke-OraQuery -Connection $connection -Query "SELECT table_name FROM user_tables" -As SingleValue
+    foreach ($table in $tables) {
+        Invoke-OraQuery -Connection $connection -Query ("DROP TABLE $table")
+    }
 
+    Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS Oracle -Connection $connection -EnableException
+    $start = Get-Date
+    Import-Data -Path ..\PowerShell\SampleData.json -DBMS Oracle -Connection $connection -EnableException
+    $duration = (Get-Date) - $start
 
-$connectionAdmin = Connect-OraInstance -Instance $instance -Credential $credentialAdmin -AsSysdba
+    $connection.Dispose()
 
-Invoke-OraQuery -Connection $connectionAdmin -Query "DROP USER stackoverflow CASCADE"
-
-Invoke-OraQuery -Connection $connectionAdmin -Query "CREATE USER stackoverflow IDENTIFIED BY $($credentialUser.GetNetworkCredential().Password) DEFAULT TABLESPACE users QUOTA UNLIMITED ON users TEMPORARY TABLESPACE temp"
-Invoke-OraQuery -Connection $connectionAdmin -Query "GRANT CREATE SESSION TO stackoverflow"
-Invoke-OraQuery -Connection $connectionAdmin -Query "GRANT ALL PRIVILEGES TO stackoverflow"
-
-$connectionAdmin.Close()
-$connectionAdmin.Dispose()
-
-
-$connectionUser = Connect-OraInstance -Instance $instance -Credential $credentialUser
-
-Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS Oracle -Connection $connectionUser
-$start = Get-Date
-Import-Data -Path ..\PowerShell\SampleData.json -DBMS Oracle -Connection $connectionUser
-$duration = (Get-Date) - $start
-Write-Host "Data import finished in $($duration.TotalSeconds) seconds"
-
-$connectionUser.Close()
-$connectionUser.Dispose()
+    Write-Host "Data import to $EnvironmentServerComputerName finished in $($duration.TotalSeconds) seconds"
+} catch {
+    Write-Host "Data import to $EnvironmentServerComputerName failed: $_"
+}
