@@ -36,11 +36,11 @@ if (-not $Env:POSTGRESQL_PASSWORD) {
 . ..\PowerShell\Import-Data.ps1
 
 try {
-    $connection = Connect-PgInstance -Instance $Env:POSTGRESQL_INSTANCE -Credential $credential -Database $Env:POSTGRESQL_DATABASE
+    $connection = Connect-PgInstance -Instance $Env:POSTGRESQL_INSTANCE -Credential $credential -Database $Env:POSTGRESQL_DATABASE -EnableException
 
-    $tables = Invoke-PgQuery -Connection $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'public'" -As SingleValue
+    $tables = Invoke-PgQuery -Connection $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'public'" -As SingleValue -EnableException
     foreach ($table in $tables) {
-        Invoke-PgQuery -Connection $connection -Query ("DROP TABLE $table")
+        Invoke-PgQuery -Connection $connection -Query ("DROP TABLE $table") -EnableException
     }
 
     Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS PostgreSQL -Connection $connection -EnableException

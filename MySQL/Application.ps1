@@ -38,11 +38,11 @@ if (-not $Env:MYSQL_PASSWORD) {
 . ..\PowerShell\Import-Data.ps1
 
 try {
-    $connection = Connect-MyInstance -Instance $Env:MYSQL_INSTANCE -Credential $credential -Database $Env:MYSQL_DATABASE
+    $connection = Connect-MyInstance -Instance $Env:MYSQL_INSTANCE -Credential $credential -Database $Env:MYSQL_DATABASE -EnableException
 
-    $tables = Invoke-MyQuery -Connection $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '$($Env:MYSQL_USERNAME.ToLower())'" -As SingleValue
+    $tables = Invoke-MyQuery -Connection $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '$($Env:MYSQL_USERNAME.ToLower())'" -As SingleValue -EnableException
     foreach ($table in $tables) {
-        Invoke-MyQuery -Connection $connection -Query ("DROP TABLE $table")
+        Invoke-MyQuery -Connection $connection -Query ("DROP TABLE $table") -EnableException
     }
 
     Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS MySQL -Connection $connection -EnableException

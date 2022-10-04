@@ -37,9 +37,9 @@ if (-not $Env:ORACLE_PASSWORD) {
 try {
     $connection = Connect-OraInstance -Instance $Env:ORACLE_INSTANCE -Credential $credential -EnableException
 
-    $tables = Invoke-OraQuery -Connection $connection -Query "SELECT table_name FROM user_tables" -As SingleValue
+    $tables = Invoke-OraQuery -Connection $connection -Query "SELECT table_name FROM user_tables" -As SingleValue -EnableException
     foreach ($table in $tables) {
-        Invoke-OraQuery -Connection $connection -Query ("DROP TABLE $table")
+        Invoke-OraQuery -Connection $connection -Query ("DROP TABLE $table") -EnableException
     }
 
     Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS Oracle -Connection $connection -EnableException

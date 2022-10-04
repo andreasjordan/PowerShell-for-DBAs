@@ -25,9 +25,9 @@ if (-not $Env:SQLSERVER_PASSWORD) {
 try {
     $connection = Connect-DbaInstance -SqlInstance $Env:SQLSERVER_INSTANCE -SqlCredential $credential -Database $Env:SQLSERVER_DATABASE -NonPooledConnection
 
-    $tables = Invoke-DbaQuery -SqlInstance $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'" -As SingleValue
+    $tables = Invoke-DbaQuery -SqlInstance $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'" -As SingleValue -EnableException
     foreach ($table in $tables) {
-        Invoke-DbaQuery -SqlInstance $connection -Query ("DROP TABLE $table")
+        Invoke-DbaQuery -SqlInstance $connection -Query ("DROP TABLE $table") -EnableException
     }
 
     Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS SQLServer -Connection $connection -EnableException

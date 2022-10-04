@@ -43,11 +43,11 @@ if (-not $Env:DB2_PASSWORD) {
 . ..\PowerShell\Import-Data.ps1
 
 try {
-    $connection = Connect-Db2Instance -Instance $Env:DB2_INSTANCE -Credential $credential -Database $Env:DB2_DATABASE
+    $connection = Connect-Db2Instance -Instance $Env:DB2_INSTANCE -Credential $credential -Database $Env:DB2_DATABASE -EnableException
 
-    $tables = Invoke-Db2Query -Connection $connection -Query "SELECT name FROM sysibm.systables WHERE creator = '$($credential.UserName.ToUpper())'" -As SingleValue
+    $tables = Invoke-Db2Query -Connection $connection -Query "SELECT name FROM sysibm.systables WHERE creator = '$($credential.UserName.ToUpper())'" -As SingleValue -EnableException
     foreach ($table in $tables) {
-        Invoke-Db2Query -Connection $connection -Query "DROP TABLE $table"
+        Invoke-Db2Query -Connection $connection -Query "DROP TABLE $table" -EnableException
     }
 
     Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS Db2 -Connection $connection -EnableException

@@ -56,11 +56,11 @@ if (-not $Env:INFORMIX_PASSWORD) {
 . ..\PowerShell\Import-Data.ps1
 
 try {
-    $connection = Connect-IfxInstance -Instance $Env:INFORMIX_INSTANCE -Credential $credential -Database $Env:INFORMIX_DATABASE
+    $connection = Connect-IfxInstance -Instance $Env:INFORMIX_INSTANCE -Credential $credential -Database $Env:INFORMIX_DATABASE -EnableException
 
-    $tables = Invoke-IfxQuery -Connection $connection -Query "SELECT tabname FROM systables WHERE owner = USER" -As SingleValue
+    $tables = Invoke-IfxQuery -Connection $connection -Query "SELECT tabname FROM systables WHERE owner = USER" -As SingleValue -EnableException
     foreach ($table in $tables) {
-        Invoke-IfxQuery -Connection $connection -Query "DROP TABLE $table"
+        Invoke-IfxQuery -Connection $connection -Query "DROP TABLE $table" -EnableException
     }
 
     Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS Informix -Connection $connection -EnableException
