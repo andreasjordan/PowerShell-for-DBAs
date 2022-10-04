@@ -58,9 +58,9 @@ if (-not $Env:INFORMIX_PASSWORD) {
 try {
     $connection = Connect-IfxInstance -Instance $Env:INFORMIX_INSTANCE -Credential $credential -Database $Env:INFORMIX_DATABASE
 
-    $tables = Invoke-IfxQuery -Connection $connectionUser -Query "SELECT tabname FROM systables WHERE owner = '$($credential.UserName.ToLower())'" -As SingleValue
+    $tables = Invoke-IfxQuery -Connection $connection -Query "SELECT tabname FROM systables WHERE owner = USER" -As SingleValue
     foreach ($table in $tables) {
-        Invoke-IfxQuery -Connection $connectionUser -Query "DROP TABLE $table"
+        Invoke-IfxQuery -Connection $connection -Query "DROP TABLE $table"
     }
 
     Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS Informix -Connection $connection -EnableException
