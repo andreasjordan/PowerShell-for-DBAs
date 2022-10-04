@@ -3,10 +3,6 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-. ..\PowerShell\Environment.ps1
-. ..\PowerShell\Import-Schema.ps1
-. ..\PowerShell\Import-Data.ps1
-
 if (-not $Env:ORACLE_DLL) {
     throw 'Environment variable ORACLE_DLL not set'
 }
@@ -23,13 +19,23 @@ if ($Env:ORACLE_DLL -match 'Devart') {
     . .\Connect-OraInstance.ps1
     . .\Invoke-OraQuery.ps1
 }
+if (-not $Env:ORACLE_INSTANCE) {
+    throw 'Environment variable ORACLE_INSTANCE not set'
+}
+if (-not $Env:ORACLE_USERNAME) {
+    throw 'Environment variable ORACLE_USERNAME not set'
+}
+if (-not $Env:ORACLE_PASSWORD) {
+    $credential = Get-Credential -Message $Env:ORACLE_INSTANCE -UserName $Env:ORACLE_USERNAME
+} else {
+    $credential = [PSCredential]::new($Env:ORACLE_USERNAME, (ConvertTo-SecureString -String $Env:ORACLE_PASSWORD -AsPlainText -Force))
+}
+
+. ..\PowerShell\Import-Schema.ps1
+. ..\PowerShell\Import-Data.ps1
 
 try {
-    $instance = "$EnvironmentServerComputerName/XEPDB1"
-
-    # $credentialUser = Get-Credential -Message $instance -UserName $EnvironmentDatabaseUserName
-    $credential = [PSCredential]::new($EnvironmentDatabaseUserName, (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
-    $connection = Connect-OraInstance -Instance $instance -Credential $credential -EnableException
+    $connection = Connect-OraInstance -Instance $Env:ORACLE_INSTANCE -Credential $credential -EnableException
 
     $tables = Invoke-OraQuery -Connection $connection -Query "SELECT table_name FROM user_tables" -As SingleValue
     foreach ($table in $tables) {
@@ -43,7 +49,7 @@ try {
 
     $connection.Dispose()
 
-    Write-Host "Data import to $EnvironmentServerComputerName finished in $($duration.TotalSeconds) seconds"
+    Write-Host "Data import to $Env:ORACLE_INSTANCE finished in $($duration.TotalSeconds) seconds"
 } catch {
-    Write-Host "Data import to $EnvironmentServerComputerName failed: $_"
+    Write-Host "Data import to $Env:ORACLE_INSTANCE failed: $_"
 }

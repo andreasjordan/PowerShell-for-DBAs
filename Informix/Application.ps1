@@ -3,10 +3,6 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-. ..\PowerShell\Environment.ps1
-. ..\PowerShell\Import-Schema.ps1
-. ..\PowerShell\Import-Data.ps1
-
 if (-not $Env:INFORMIX_DLL) {
     throw 'Environment variable INFORMIX_DLL not set'
 }
@@ -24,8 +20,6 @@ if ($Env:INFORMIX_DLL -match 'IBM\.Data\.Db2\.dll') {
 
     . .\Connect-IfxInstance_Db2.ps1
     . .\Invoke-IfxQuery_Db2.ps1
-    
-    $instance = "$($EnvironmentServerComputerName):9089"
 } elseif ($Env:INFORMIX_DLL -match 'IBM\.Data\.DB2\.Core\.dll') {
     # For NuGet package on Windows: Change $Env:PATH
     if ($Env:INFORMIX_DLL -match 'lib\\netstandard2\.1\\IBM\.Data\.DB2\.Core\.dll') {
@@ -37,26 +31,32 @@ if ($Env:INFORMIX_DLL -match 'IBM\.Data\.Db2\.dll') {
 
     . .\Connect-IfxInstance_Db2_Core.ps1
     . .\Invoke-IfxQuery_Db2_Core.ps1
-
-    $instance = "$($EnvironmentServerComputerName):9089"
 } else {
     Add-Type -Path $Env:INFORMIX_DLL
 
     . .\Connect-IfxInstance.ps1
     . .\Invoke-IfxQuery.ps1
-
-    $instance = "$($EnvironmentServerComputerName):9088:ol_informix1410"
+}
+if (-not $Env:INFORMIX_INSTANCE) {
+    throw 'Environment variable INFORMIX_INSTANCE not set'
+}
+if (-not $Env:INFORMIX_DATABASE) {
+    throw 'Environment variable INFORMIX_DATABASE not set'
+}
+if (-not $Env:INFORMIX_USERNAME) {
+    throw 'Environment variable INFORMIX_USERNAME not set'
+}
+if (-not $Env:INFORMIX_PASSWORD) {
+    $credential = Get-Credential -Message $Env:INFORMIX_INSTANCE -UserName $Env:INFORMIX_USERNAME
+} else {
+    $credential = [PSCredential]::new($Env:INFORMIX_USERNAME, (ConvertTo-SecureString -String $Env:INFORMIX_PASSWORD -AsPlainText -Force))
 }
 
-if ($EnvironmentServerComputerName -notin 'localhost', 'Informix-1') {
-    $EnvironmentDatabaseUserName = "ORDIX\$EnvironmentDatabaseUserName"
-}
-$database = 'stackoverflow'
+. ..\PowerShell\Import-Schema.ps1
+. ..\PowerShell\Import-Data.ps1
 
 try {
-    # $credential = Get-Credential -Message $instance -UserName $EnvironmentDatabaseUserName
-    $credential = [PSCredential]::new($EnvironmentDatabaseUserName, (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
-    $connection = Connect-IfxInstance -Instance $instance -Credential $credential -Database $database
+    $connection = Connect-IfxInstance -Instance $Env:INFORMIX_INSTANCE -Credential $credential -Database $Env:INFORMIX_DATABASE
 
     $tables = Invoke-IfxQuery -Connection $connectionUser -Query "SELECT tabname FROM systables WHERE owner = '$($credential.UserName.ToLower())'" -As SingleValue
     foreach ($table in $tables) {
@@ -70,7 +70,7 @@ try {
 
     $connection.Dispose()
     
-    Write-Host "Data import to $EnvironmentServerComputerName finished in $($duration.TotalSeconds) seconds"
+    Write-Host "Data import to $Env:INFORMIX_INSTANCE finished in $($duration.TotalSeconds) seconds"
 } catch {
-    Write-Host "Data import to $EnvironmentServerComputerName failed: $_"
+    Write-Host "Data import to $Env:INFORMIX_INSTANCE failed: $_"
 }

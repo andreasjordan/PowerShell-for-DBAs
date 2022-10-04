@@ -4,22 +4,26 @@ param(
 $ErrorActionPreference = 'Stop'
 
 Import-Module -Name dbatools  # Install-Module -Name dbatools -Scope CurrentUser
+if (-not $Env:SQLSERVER_INSTANCE) {
+    throw 'Environment variable SQLSERVER_INSTANCE not set'
+}
+if (-not $Env:SQLSERVER_DATABASE) {
+    throw 'Environment variable SQLSERVER_DATABASE not set'
+}
+if (-not $Env:SQLSERVER_USERNAME) {
+    throw 'Environment variable SQLSERVER_USERNAME not set'
+}
+if (-not $Env:SQLSERVER_PASSWORD) {
+    $credential = Get-Credential -Message $Env:SQLSERVER_INSTANCE -UserName $Env:SQLSERVER_USERNAME
+} else {
+    $credential = [PSCredential]::new($Env:SQLSERVER_USERNAME, (ConvertTo-SecureString -String $Env:SQLSERVER_PASSWORD -AsPlainText -Force))
+}
 
-. ..\PowerShell\Environment.ps1
 . ..\PowerShell\Import-Schema.ps1
 . ..\PowerShell\Import-Data.ps1
 
-if ($EnvironmentServerComputerName -in 'localhost', 'SQLServer-1') {
-    $instance = $EnvironmentServerComputerName
-} else {
-    $instance = "$EnvironmentServerComputerName\SQLEXPRESS"
-}
-$database = 'stackoverflow'
-
 try {
-    # $credentialUser = Get-Credential -Message $instance -UserName $EnvironmentDatabaseUserName
-    $credential = [PSCredential]::new($EnvironmentDatabaseUserName, (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
-    $connection = Connect-DbaInstance -SqlInstance $instance -SqlCredential $credential -Database $database -NonPooledConnection
+    $connection = Connect-DbaInstance -SqlInstance $Env:SQLSERVER_INSTANCE -SqlCredential $credential -Database $Env:SQLSERVER_DATABASE -NonPooledConnection
 
     $tables = Invoke-DbaQuery -SqlInstance $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'" -As SingleValue
     foreach ($table in $tables) {
@@ -33,7 +37,7 @@ try {
 
     $null = $connection | Disconnect-DbaInstance
 
-    Write-Host "Data import to $EnvironmentServerComputerName finished in $($duration.TotalSeconds) seconds"
+    Write-Host "Data import to $Env:SQLSERVER_INSTANCE finished in $($duration.TotalSeconds) seconds"
 } catch {
-    Write-Host "Data import to $EnvironmentServerComputerName failed: $_"
+    Write-Host "Data import to $Env:SQLSERVER_INSTANCE failed: $_"
 }

@@ -3,10 +3,6 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-. ..\PowerShell\Environment.ps1
-. ..\PowerShell\Import-Schema.ps1
-. ..\PowerShell\Import-Data.ps1
-
 if (-not $Env:POSTGRESQL_DLL) {
     throw 'Environment variable POSTGRESQL_DLL not set'
 }
@@ -21,19 +17,31 @@ if ($Env:POSTGRESQL_DLL -match 'Devart') {
     . .\Connect-PgInstance.ps1
     . .\Invoke-PgQuery.ps1
 }
+if (-not $Env:POSTGRESQL_INSTANCE) {
+    throw 'Environment variable POSTGRESQL_INSTANCE not set'
+}
+if (-not $Env:POSTGRESQL_DATABASE) {
+    throw 'Environment variable POSTGRESQL_DATABASE not set'
+}
+if (-not $Env:POSTGRESQL_USERNAME) {
+    throw 'Environment variable POSTGRESQL_USERNAME not set'
+}
+if (-not $Env:POSTGRESQL_PASSWORD) {
+    $credential = Get-Credential -Message $Env:POSTGRESQL_INSTANCE -UserName $Env:POSTGRESQL_USERNAME
+} else {
+    $credential = [PSCredential]::new($Env:POSTGRESQL_USERNAME, (ConvertTo-SecureString -String $Env:POSTGRESQL_PASSWORD -AsPlainText -Force))
+}
 
-$instance = $EnvironmentServerComputerName
-$database = 'stackoverflow'
+. ..\PowerShell\Import-Schema.ps1
+. ..\PowerShell\Import-Data.ps1
 
 try {
-    # $credential = Get-Credential -Message $instance -UserName $EnvironmentDatabaseUserName
-    $credential = [PSCredential]::new($EnvironmentDatabaseUserName, (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
-    $connection = Connect-PgInstance -Instance $instance -Credential $credential -Database $database
+    $connection = Connect-PgInstance -Instance $Env:POSTGRESQL_INSTANCE -Credential $credential -Database $Env:POSTGRESQL_DATABASE
 
-    #$tables = Invoke-PgQuery -Connection $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'" -As SingleValue
-    #foreach ($table in $tables) {
-    #    Invoke-PgQuery -Connection $connection -Query ("DROP TABLE $table")
-    #}
+    $tables = Invoke-PgQuery -Connection $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'public'" -As SingleValue
+    foreach ($table in $tables) {
+        Invoke-PgQuery -Connection $connection -Query ("DROP TABLE $table")
+    }
 
     Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS PostgreSQL -Connection $connection -EnableException
     $start = Get-Date
@@ -42,7 +50,7 @@ try {
 
     $connection.Dispose()
 
-    Write-Host "Data import to $EnvironmentServerComputerName finished in $($duration.TotalSeconds) seconds"
+    Write-Host "Data import to $Env:POSTGRESQL_INSTANCE finished in $($duration.TotalSeconds) seconds"
 } catch {
-    Write-Host "Data import to $EnvironmentServerComputerName failed: $_"
+    Write-Host "Data import to $Env:POSTGRESQL_INSTANCE failed: $_"
 }

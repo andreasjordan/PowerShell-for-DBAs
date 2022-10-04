@@ -3,10 +3,6 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-. ..\PowerShell\Environment.ps1
-. ..\PowerShell\Import-Schema.ps1
-. ..\PowerShell\Import-Data.ps1
-
 if (-not $Env:MYSQL_DLL) {
     throw 'Environment variable MYSQL_DLL not set'
 }
@@ -23,19 +19,31 @@ if ($Env:MYSQL_DLL -match 'Devart') {
     . .\Connect-MyInstance.ps1
     . .\Invoke-MyQuery.ps1
 }
+if (-not $Env:MYSQL_INSTANCE) {
+    throw 'Environment variable MYSQL_INSTANCE not set'
+}
+if (-not $Env:MYSQL_DATABASE) {
+    throw 'Environment variable MYSQL_DATABASE not set'
+}
+if (-not $Env:MYSQL_USERNAME) {
+    throw 'Environment variable MYSQL_USERNAME not set'
+}
+if (-not $Env:MYSQL_PASSWORD) {
+    $credential = Get-Credential -Message $Env:MYSQL_INSTANCE -UserName $Env:MYSQL_USERNAME
+} else {
+    $credential = [PSCredential]::new($Env:MYSQL_USERNAME, (ConvertTo-SecureString -String $Env:MYSQL_PASSWORD -AsPlainText -Force))
+}
 
-$instance = $EnvironmentServerComputerName
-$database = 'stackoverflow'
+. ..\PowerShell\Import-Schema.ps1
+. ..\PowerShell\Import-Data.ps1
 
 try {
-    # $credential = Get-Credential -Message $instance -UserName $EnvironmentDatabaseUserName
-    $credential = [PSCredential]::new($EnvironmentDatabaseUserName, (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
-    $connection = Connect-MyInstance -Instance $instance -Credential $credential -Database $database
+    $connection = Connect-MyInstance -Instance $Env:MYSQL_INSTANCE -Credential $credential -Database $Env:MYSQL_DATABASE
 
-    #$tables = Invoke-MyQuery -Connection $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'" -As SingleValue
-    #foreach ($table in $tables) {
-    #    Invoke-MyQuery -Connection $connection -Query ("DROP TABLE $table")
-    #}
+    $tables = Invoke-MyQuery -Connection $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '$($Env:MYSQL_USERNAME.ToLower())'" -As SingleValue
+    foreach ($table in $tables) {
+        Invoke-MyQuery -Connection $connection -Query ("DROP TABLE $table")
+    }
 
     Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS MySQL -Connection $connection -EnableException
     $start = Get-Date
@@ -44,7 +52,7 @@ try {
 
     $connection.Dispose()
     
-    Write-Host "Data import to $EnvironmentServerComputerName finished in $($duration.TotalSeconds) seconds"
+    Write-Host "Data import to $Env:MYSQL_INSTANCE finished in $($duration.TotalSeconds) seconds"
 } catch {
-    Write-Host "Data import to $EnvironmentServerComputerName failed: $_"
+    Write-Host "Data import to $Env:MYSQL_INSTANCE failed: $_"
 }

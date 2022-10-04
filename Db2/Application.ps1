@@ -3,10 +3,6 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-. ..\PowerShell\Environment.ps1
-. ..\PowerShell\Import-Schema.ps1
-. ..\PowerShell\Import-Data.ps1
-
 if (-not $Env:DB2_DLL) {
     throw 'Environment variable DB2_DLL not set'
 }
@@ -28,19 +24,26 @@ if ($Env:DB2_DLL -match 'Core') {
     . .\Connect-Db2Instance.ps1
     . .\Invoke-Db2Query.ps1
 }
-
-if ($EnvironmentServerComputerName -in 'localhost', 'Db2-1') {
-    $instance = "$($EnvironmentServerComputerName):50000"
-    $database = 'DEMO'
+if (-not $Env:DB2_INSTANCE) {
+    throw 'Environment variable DB2_INSTANCE not set'
+}
+if (-not $Env:DB2_DATABASE) {
+    throw 'Environment variable DB2_DATABASE not set'
+}
+if (-not $Env:DB2_USERNAME) {
+    throw 'Environment variable DB2_USERNAME not set'
+}
+if (-not $Env:DB2_PASSWORD) {
+    $credential = Get-Credential -Message $Env:DB2_INSTANCE -UserName $Env:DB2_USERNAME
 } else {
-    $instance = "$($EnvironmentServerComputerName):25000"
-    $database = 'SAMPLE'
+    $credential = [PSCredential]::new($Env:DB2_USERNAME, (ConvertTo-SecureString -String $Env:DB2_PASSWORD -AsPlainText -Force))
 }
 
+. ..\PowerShell\Import-Schema.ps1
+. ..\PowerShell\Import-Data.ps1
+
 try {
-    # $credential = Get-Credential -Message $instance -UserName $EnvironmentDatabaseUserName
-    $credential = [PSCredential]::new($EnvironmentDatabaseUserName, (ConvertTo-SecureString -String $EnvironmentDatabaseUserPassword -AsPlainText -Force))
-    $connection = Connect-Db2Instance -Instance $instance -Credential $credential -Database $database
+    $connection = Connect-Db2Instance -Instance $Env:DB2_INSTANCE -Credential $credential -Database $Env:DB2_DATABASE
 
     $tables = Invoke-Db2Query -Connection $connection -Query "SELECT name FROM sysibm.systables WHERE creator = '$($credential.UserName.ToUpper())'" -As SingleValue
     foreach ($table in $tables) {
@@ -54,7 +57,7 @@ try {
 
     $connection.Dispose()
     
-    Write-Host "Data import to $EnvironmentServerComputerName finished in $($duration.TotalSeconds) seconds"
+    Write-Host "Data import to $Env:DB2_INSTANCE finished in $($duration.TotalSeconds) seconds"
 } catch {
-    Write-Host "Data import to $EnvironmentServerComputerName failed: $_"
+    Write-Host "Data import to $Env:DB2_INSTANCE failed: $_"
 }
