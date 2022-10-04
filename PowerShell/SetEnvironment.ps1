@@ -68,7 +68,7 @@ switch ($Server) {
         $Env:SQLSERVER_USERNAME = 'StackOverflow'
         $Env:SQLSERVER_PASSWORD = 'start456'
 
-        $Env:ORACLE_INSTANCE = 'Oracle-1'
+        $Env:ORACLE_INSTANCE = 'Oracle-1/XEPDB1'
         $Env:ORACLE_USERNAME = 'stackoverflow'
         $Env:ORACLE_PASSWORD = 'start456'
 
