@@ -24,8 +24,8 @@ switch ($Client) {
         $Env:ORACLE_DLL = '/NuGet/Oracle.ManagedDataAccess.Core/lib/netstandard2.1/Oracle.ManagedDataAccess.dll'
         $Env:MYSQL_DLL = '/NuGet/MySql.Data/lib/net6.0/MySql.Data.dll'
         $Env:POSTGRESQL_DLL = '/NuGet/Npgsql/lib/net6.0/Npgsql.dll'
-        $Env:DB2_DLL = '/NuGet/Net.IBM.Data.Db2/lib/net6.0/IBM.Data.Db2.dll'
-        $Env:INFORMIX_DLL = '/NuGet/Net.IBM.Data.Db2/lib/net6.0/IBM.Data.Db2.dll'
+        $Env:DB2_DLL = '/NuGet/Net.IBM.Data.Db2-lnx/lib/net6.0/IBM.Data.Db2.dll'
+        $Env:INFORMIX_DLL = '/NuGet/Net.IBM.Data.Db2-lnx/lib/net6.0/IBM.Data.Db2.dll'
     }
 }
 
