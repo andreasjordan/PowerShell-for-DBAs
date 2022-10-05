@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory)][ValidateSet("MDBC01", "Docker")][string]$Client,
-    [Parameter(Mandatory)][ValidateSet("MDBW02", "Docker")][string]$Server
+    [Parameter(Mandatory)][ValidateSet("MDBW02", "Docker", "TestA")][string]$Server
 )
 $ErrorActionPreference = 'Stop'
 
@@ -88,6 +88,37 @@ switch ($Server) {
         $Env:DB2_PASSWORD = 'start456'
 
         $Env:INFORMIX_INSTANCE = 'Informix-1:9089'
+        $Env:INFORMIX_DATABASE = 'stackoverflow'
+        $Env:INFORMIX_USERNAME = 'stackoverflow'
+        $Env:INFORMIX_PASSWORD = 'start456'
+    }
+
+    "TestA" {
+        $Env:SQLSERVER_INSTANCE = '172.20.170.137'
+        $Env:SQLSERVER_DATABASE = 'StackOverflow'
+        $Env:SQLSERVER_USERNAME = 'StackOverflow'
+        $Env:SQLSERVER_PASSWORD = 'start456'
+
+        $Env:ORACLE_INSTANCE = '172.20.170.137/XEPDB1'
+        $Env:ORACLE_USERNAME = 'stackoverflow'
+        $Env:ORACLE_PASSWORD = 'start456'
+
+        $Env:MYSQL_INSTANCE = '172.20.170.137'
+        $Env:MYSQL_DATABASE = 'stackoverflow'
+        $Env:MYSQL_USERNAME = 'stackoverflow'
+        $Env:MYSQL_PASSWORD = 'start456'
+
+        $Env:POSTGRESQL_INSTANCE = '172.20.170.137'
+        $Env:POSTGRESQL_DATABASE = 'stackoverflow'
+        $Env:POSTGRESQL_USERNAME = 'stackoverflow'
+        $Env:POSTGRESQL_PASSWORD = 'start456'
+
+        $Env:DB2_INSTANCE = '172.20.170.137:50000'
+        $Env:DB2_DATABASE = 'DEMO'
+        $Env:DB2_USERNAME = 'stackoverflow'
+        $Env:DB2_PASSWORD = 'start456'
+
+        $Env:INFORMIX_INSTANCE = '172.20.170.137:9089'
         $Env:INFORMIX_DATABASE = 'stackoverflow'
         $Env:INFORMIX_USERNAME = 'stackoverflow'
         $Env:INFORMIX_PASSWORD = 'start456'
