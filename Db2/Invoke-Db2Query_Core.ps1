@@ -57,7 +57,7 @@ function Invoke-Db2Query {
     }
 
     process {
-        Write-Verbose -Message "Creating command from connection and setting query"
+        Write-Verbose -Message "Creating command from connection and setting query: $Query"
         $command = $Connection.CreateCommand()
         $command.CommandText = $Query
         $command.CommandTimeout = $QueryTimeout
@@ -72,6 +72,7 @@ function Invoke-Db2Query {
                 }
                 $parameter.Value = $ParameterValues[$parameterName]
                 $null = $command.Parameters.Add($parameter)
+                Write-Verbose -Message "Added parameter $parameterName with value: $($ParameterValues[$parameterName])"
             }
         }
 
