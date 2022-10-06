@@ -86,7 +86,7 @@ function Invoke-IfxQuery {
                     $parameter.Value = [DBNull]::Value
                 }
                 $null = $command.Parameters.Add($parameter)
-                Write-Verbose -Message "Added parameter $parameterName with value: $($ParameterValues[$parameterName])"
+                Write-Verbose -Message "Added parameter $($parameterObject.Name)) with value: $($parameterObject.Value)"
             }
             $command.CommandText = $Query
         }
