@@ -130,6 +130,9 @@ function Invoke-IfxQuery {
             }
         } catch {
             if ($EnableException) {
+                if ($VerbosePreference -eq 'Continue') {
+                    $ErrorCommand = $command
+                }
                 throw
             } else {
                 Write-Warning -Message "Query could not be executed: $($_.Exception.InnerException.Message)"
