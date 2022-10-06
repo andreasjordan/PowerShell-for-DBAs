@@ -46,6 +46,13 @@ function Import-Data {
             $insertIntoSql2 = $insertIntoSql2.TrimEnd(', ') + ')'
             $insertIntoSql = $insertIntoSql1 + $insertIntoSql2
 
+            if ($tableName -eq 'Posts') {
+                $parameterTypes = @{ Body = 'TEXT' }
+            }
+            if ($tableName -eq 'Users') {
+                $parameterTypes = @{ AboutMe = 'TEXT' }
+            }
+
             $progressRowParameter = @{ Id = 2 ; Activity = 'Importing rows' }
             $progressRowTotal = $data.$tableName.Count
             $progressRowCompleted = 0 
@@ -85,7 +92,7 @@ function Import-Data {
                         $null = Invoke-Db2Query -Connection $Connection -Query $insertIntoSql -ParameterValues $parameterValues -EnableException
                     }
                     Informix {
-                        $null = Invoke-IfxQuery -Connection $Connection -Query $insertIntoSql -ParameterValues $parameterValues -EnableException
+                        $null = Invoke-IfxQuery -Connection $Connection -Query $insertIntoSql -ParameterValues $parameterValues -ParameterTypes $parameterTypes -EnableException
                     }
                 }
 
