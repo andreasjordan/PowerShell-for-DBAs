@@ -2,20 +2,18 @@
 
 # Remove those DBMS, that you don't want to install
 $installDBMS = 'SQLServer', 'Oracle', 'MySQL', 'PostgreSQL', 'Db2', 'Informix'
-#$installDBMS = 'SQLServer', 'Oracle'
-#$installDBMS = 'MySQL', 'PostgreSQL'
-#$installDBMS = 'Db2', 'Informix'
 
-# Set to $true to stop all container after usage
+# Set to $true to stop all container after usage, so that only one DBMS is running at a time.
 $stopContainer = $false
 
-# Install-Module -Name PSFramework -Scope CurrentUser
+# If you don't have PSFramework, but want to use it: Install-Module -Name PSFramework -Scope CurrentUser
 Import-Module -Name PSFramework
 function Write-LogMessage {
     param(
         [String]$Message,
         [String]$Level = 'Host'
     )
+    # If you don't want to use PSFramework, change the next line and use whatever you want.
     Write-PSFMessage -Level $Level -Message $Message
 }
 
@@ -66,15 +64,8 @@ Install-Module -Name dbatools
 
 Write-LogMessage -Message "Starting setup of PowerShell-B"
 # Needed for Db2 and Informix.
-
-# Installation of Informix client SDK:
-# * Ubuntu 22.04: 
-#   * https://stackoverflow.com/questions/60186991/installing-informix-csdk-in-an-ubuntu-docker-container
-#   * "apt install unixodbc-dev" does not solve the problem
-# * Ubuntu 20.04:
-#   * Only libncurses.so.5 is missing, but installation was not possible
-# * Ubuntu 18.04:
-#   * Works, but the used version "Informix Client-SDK 4.10.FC15" does not have the .NET library included.
+# I only managed to install the Informix client SDK on Ubuntu 18.04, not on 20.04 or 22.04.
+# If you are able to use newer versions, let me know how.
 
 Write-LogMessage -Message "Pulling image ubuntu:18.04"
 $null = docker pull ubuntu:18.04
@@ -86,8 +77,7 @@ if ($container.Count -gt 1) {
 }
 
 Write-LogMessage -Message "Building new container"
-#$null = docker run --name PowerShell-B --net dbms-net -v /home/anj/Software:/mnt/Software -e LD_LIBRARY_PATH=/NuGet/Net.IBM.Data.Db2-lnx/buildTransitive/clidriver/lib:/NuGet/IBM.Data.DB2.Core-lnx/buildTransitive/clidriver/lib -e CLIENT_LOCALE=en_US.utf8 -di ubuntu:18.04
-$null = docker run --name PowerShell-B --net dbms-net -e LD_LIBRARY_PATH=/NuGet/Net.IBM.Data.Db2-lnx/buildTransitive/clidriver/lib:/NuGet/IBM.Data.DB2.Core-lnx/buildTransitive/clidriver/lib -e CLIENT_LOCALE=en_US.utf8 -di ubuntu:18.04
+$null = docker run --name PowerShell-B --net dbms-net -v /home/anj/Software:/mnt/Software -e INFORMIXDIR=/opt/IBM/Informix_Client-SDK -e LD_LIBRARY_PATH=/NuGet/Net.IBM.Data.Db2-lnx/buildTransitive/clidriver/lib:/NuGet/IBM.Data.DB2.Core-lnx/buildTransitive/clidriver/lib:/opt/IBM/Informix_Client-SDK/lib:/opt/IBM/Informix_Client-SDK/lib/cli:/opt/IBM/Informix_Client-SDK/lib/esql -e CLIENT_LOCALE=en_US.utf8 -di ubuntu:18.04
 
 Write-LogMessage -Message "Installing en_US.utf8"
 $null = docker exec -ti PowerShell-B sh -c @'
@@ -97,15 +87,17 @@ rm -rf /var/lib/apt/lists/* && \
 localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 '@
 
-<#
-Write-LogMessage -Message "Preparing installation of Informix SDK"
+Write-LogMessage -Message "Installing Informix client SDK"
 $null = docker exec -ti PowerShell-B sh -c @'
 apt-get update && \
-apt-get install -y unixodbc-dev && \
+apt-get install -y unixodbc-dev libelf-dev && \
 cd /tmp && \
-tar -xf /mnt/Software/clientsdk.4.10.FC15.linux-x86_64.tar
+tar -xf /mnt/Software/INFO_CLT_SDK_LNX_X86_4.50.FC8.tar
+echo 'LICENSE_ACCEPTED=TRUE' > response
+echo 'USER_INSTALL_DIR=/opt/IBM/Informix_Client-SDK' >> response
+echo 'CHOSEN_INSTALL_FEATURE_LIST=SDK-NETCORE,GLS' >> response
+./installclientsdk -i silent -f response
 '@
-#>
 
 Write-LogMessage -Message "Installing PowerShell"
 $null = docker exec -ti PowerShell-B sh -c @'
@@ -348,7 +340,7 @@ useradd stackoverflow
 echo "stackoverflow:start456" | chpasswd
 '@
 
-    Write-LogMessage -Message "Creating application"
+    Write-LogMessage -Message "Creating application with /NuGet/Net.IBM.Data.Db2-lnx/lib/net6.0/IBM.Data.Db2.dll"
     $output = docker exec -ti PowerShell-B pwsh -c @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /GitHub/PowerShell-for-DBAs/Db2
@@ -357,8 +349,8 @@ Set-Location -Path /GitHub/PowerShell-for-DBAs/Db2
 '@
     Write-LogMessage -Message "Output: $output"
 
-<# Does not work, the pwsh process just aborts somewhere during the process, nmot always at the same step:
-    Write-LogMessage -Message "Creating application"
+<# Does not work, the pwsh process just aborts somewhere during the process, not always at the same step:
+    Write-LogMessage -Message "Creating application with /NuGet/IBM.Data.DB2.Core-lnx/lib/netstandard2.1/IBM.Data.DB2.Core.dll"
     $output = docker exec -ti PowerShell-B pwsh -c @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /GitHub/PowerShell-for-DBAs/Db2
@@ -408,7 +400,7 @@ GRANT RESOURCE TO stackoverflow;
 END_OF_SQL
 '@
 
-    Write-LogMessage -Message "Creating application"
+    Write-LogMessage -Message "Creating application with /NuGet/Net.IBM.Data.Db2-lnx/lib/net6.0/IBM.Data.Db2.dll"
     $output = docker exec -ti PowerShell-B pwsh -c @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /GitHub/PowerShell-for-DBAs/Informix
@@ -417,17 +409,26 @@ Set-Location -Path /GitHub/PowerShell-for-DBAs/Informix
 '@
     Write-LogMessage -Message "Output: $output"
 
-    Write-LogMessage -Message "Creating application"
+<# Does not work, the pwsh process just aborts somewhere during the process, not always at the same step:
+    Write-LogMessage -Message "Creating application with /NuGet/IBM.Data.DB2.Core-lnx/lib/netstandard2.1/IBM.Data.DB2.Core.dll"
     $output = docker exec -ti PowerShell-B pwsh -c @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /GitHub/PowerShell-for-DBAs/Informix
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
-$Env:DB2_DLL = '/NuGet/IBM.Data.DB2.Core-lnx/lib/netstandard2.1/IBM.Data.DB2.Core.dll'
+$Env:INFORMIX_DLL = '/NuGet/IBM.Data.DB2.Core-lnx/lib/netstandard2.1/IBM.Data.DB2.Core.dll'
 ./Application.ps1
-# After installing the client SDK:
-#$Env:INFORMIX_DLL = '/...Client SDK...'
-#$Env:INFORMIX_INSTANCE = 'Informix-1:9088:informix'
-#./Application.ps1
+'@
+    Write-LogMessage -Message "Output: $output"
+#>
+
+    Write-LogMessage -Message "Creating application with /opt/IBM/Informix_Client-SDK/bin/Informix.Net.Core.dll"
+    $output = docker exec -ti PowerShell-B pwsh -c @'
+$ProgressPreference = 'SilentlyContinue'
+Set-Location -Path /GitHub/PowerShell-for-DBAs/Informix
+../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
+$Env:INFORMIX_DLL = '/opt/IBM/Informix_Client-SDK/bin/Informix.Net.Core.dll'
+$Env:INFORMIX_INSTANCE = 'Informix-1:9088:informix'
+./Application.ps1
 '@
     Write-LogMessage -Message "Output: $output"
 
