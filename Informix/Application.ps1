@@ -31,6 +31,11 @@ if ($Env:INFORMIX_DLL -match 'IBM\.Data\.Db2\.dll') {
 
     . .\Connect-IfxInstance_Db2_Core.ps1
     . .\Invoke-IfxQuery_Db2_Core.ps1
+} elseif ($Env:INFORMIX_DLL -match 'Informix\.Net\.Core\.dll') {
+    Add-Type -Path $Env:INFORMIX_DLL
+
+    . .\Connect-IfxInstance_Core.ps1
+    . .\Invoke-IfxQuery_Core.ps1
 } else {
     Add-Type -Path $Env:INFORMIX_DLL
 
