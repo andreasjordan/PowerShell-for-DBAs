@@ -57,7 +57,7 @@ function Invoke-IfxQuery {
     }
 
     process {
-        Write-Verbose -Message "Creating command from connection and setting query"
+        Write-Verbose -Message "Creating command from connection and setting query: $Query"
         $command = $Connection.CreateCommand()
         $command.CommandText = $Query
         $command.CommandTimeout = $QueryTimeout
@@ -86,6 +86,7 @@ function Invoke-IfxQuery {
                     $parameter.Value = [DBNull]::Value
                 }
                 $null = $command.Parameters.Add($parameter)
+                Write-Verbose -Message "Added parameter $parameterName with value: $($ParameterValues[$parameterName])"
             }
             $command.CommandText = $Query
         }
