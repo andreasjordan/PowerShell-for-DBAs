@@ -131,7 +131,8 @@ function Invoke-IfxQuery {
         } catch {
             if ($EnableException) {
                 if ($VerbosePreference -eq 'Continue') {
-                    $ErrorCommand = $command
+                    Write-Verbose -Message 'Setting global variable $ErrorCommand'
+                    Set-Variable -Name ErrorCommand -Value $command -Scope Global
                 }
                 throw
             } else {
