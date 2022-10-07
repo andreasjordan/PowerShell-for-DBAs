@@ -2,9 +2,16 @@ How to use PowerShell as an Oracle database administrator.
 
 ## Install the server
 
+You can use any existing server in your environment. If you want to setup a server just for tests, you find some recommendations in this section.
+
+### Windows
+
 I use the free express edition of Oracle 21c for my labs. See my install script [Server.ps1](Server.ps1) in this folder for details on how to run an unattended installation from a remote computer.
 
-But you can use any existing server in your environment.
+
+### Docker
+
+I use the image [container-registry.oracle.com/database/express:latest](https://container-registry.oracle.com/) for my labs. Click on "Database" and then on "express" to get to the "Oracle Database XE Release 21c (21.3.0.0) Docker Image Documentation". See my install script [SetupServerWithDocker.ps1](../PowerShell/SetupServerWithDocker.ps1) in the PowerShell folder for details.
 
 
 ## Install the client for PowerShell 5.1 on Windows

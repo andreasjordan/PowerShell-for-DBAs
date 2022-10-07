@@ -1,6 +1,10 @@
-How to use PowerShell as a MySQL database administrator.
+How to use PowerShell as a MySQL or MariaDB database administrator.
 
 ## Install the server
+
+You can use any existing server in your environment. If you want to setup a server just for tests, you find some recommendations in this section.
+
+### MySQL on Windows
 
 I use the windows version of the [MySQL Installer 8.0.30](https://dev.mysql.com/downloads/installer/) (mysql-installer-community-8.0.30.0.msi) for my labs.
 
@@ -9,7 +13,15 @@ I have not yet found an easy way to run an unattended installation from a remote
 * Config Type: Server Computer (or Dedicated Computer if this is the only DBMS installed)
 * MySQL Root Password: start123
 
-But you can use any existing server in your environment. Just be sure to be able to connect from your client as root. In my lab, I ran `CREATE USER 'root'@'%' IDENTIFIED BY 'start123'; GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;` as the localhost root user.
+
+### MySQL on Docker
+
+I use the image [mysql:latest](https://hub.docker.com/_/mysql) for my labs. See my install script [SetupServerWithDocker.ps1](../PowerShell/SetupServerWithDocker.ps1) in the PowerShell folder for details.
+
+
+### MariaDB on Docker
+
+I use the image [mariadb:latest](https://hub.docker.com/_/mariadb) for my labs. See my install script [SetupServerWithDocker.ps1](../PowerShell/SetupServerWithDocker.ps1) in the PowerShell folder for details.
 
 
 ## Install the client

@@ -2,9 +2,15 @@ How to use PowerShell as a Microsoft SQL Server database administrator.
 
 ## Install the server
 
+You can use any existing server in your environment. If you want to setup a server just for tests, you find some recommendations in this section.
+
+### Windows
+
 I use the free express edition of SQL Server 2019 for my labs. See my install script [Server.ps1](Server.ps1) in this folder for details on how to run an unattended installation from a remote computer. The PowerShell module dbatools also has a command to run the installation.
 
-But you can use any existing server in your environment.
+### Docker
+
+I use the image [mcr.microsoft.com/mssql/server:2019-latest](https://hub.docker.com/_/microsoft-mssql-server) for my labs. See my install script [SetupServerWithDocker.ps1](../PowerShell/SetupServerWithDocker.ps1) in the PowerShell folder for details.
 
 
 ## Install the client

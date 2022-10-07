@@ -2,9 +2,16 @@ How to use PowerShell as an IBM Informix database administrator.
 
 ## Install the server
 
+You can use any existing server in your environment. If you want to setup a server just for tests, you find some recommendations in this section.
+
+### Windows
+
 I use IBM Informix 14.10 for my labs. See my install script [Server.ps1](Server.ps1) in this folder for details.
 
-But you can use any existing server in your environment.
+
+### Docker
+
+I use the image [ibmcom/informix-developer-database:latest](https://hub.docker.com/r/ibmcom/informix-developer-database) for my labs. See my install script [SetupServerWithDocker.ps1](../PowerShell/SetupServerWithDocker.ps1) in the PowerShell folder for details.
 
 
 ## Install the client for PowerShell 5.1 on Windows

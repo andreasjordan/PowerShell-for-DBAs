@@ -15,10 +15,13 @@ The basic idea is to install the .NET driver for the specific database managemen
 Already covered database management systems:
 * [Microsoft SQL Server](./SQLServer/README.md)
 * [Oracle](./Oracle/README.md)
-* [MySQL](./MySQL/README.md)
+* [MySQL / MariaDB](./MySQL/README.md)
 * [PostgreSQL](./PostgreSQL/README.md)
 * [IBM Db2](./Db2/README.md)
 * [IBM Informix](./Informix/README.md)
+
+Work in progress and help is needed:
+* [Apache Cassandra](./Cassandra/README.md) 
 
 Are there other database systems that I should add here?
 
@@ -29,12 +32,14 @@ Today I work mostly with Windows, so this can all be installed on a single Windo
 
 I created [InstallAllClients.ps1](./PowerShell/InstallAllClients.ps1) for my lab - there you will find the exact versions and libraries I have tested with.
 
+While setting up all databases on docker, I also set up two PowerShell containers and tested from there. See [SetupServerWithDocker.ps1](./PowerShell/SetupServerWithDocker.ps1) for details.
+
 
 ## What sample data do I use?
 
 My little "application" is based on the StackOverflow database.
 
-I have taken the 10GB version you can download [here](https://www.brentozar.com/archive/2015/10/how-to-download-the-stack-overflow-database-via-bittorrent/) from the website of Brenz Ozar. It is small enough for the SQL Server Express Edition.
+I have taken the 10GB version you can download [here](https://www.brentozar.com/archive/2015/10/how-to-download-the-stack-overflow-database-via-bittorrent/) from the website of Brent Ozar. It is small enough for the SQL Server Express Edition.
 
 I then selected some of the most popular questions and all related data (like answers, comments, users, etc.) and put that data in the JSON file [SampleData.json](./PowerShell/SampleData.json). I also changed one table and renamed the column named "Date" to "CreationDate" to not mess with the identically named data type. I don't use all the fancy data types, but only those needed for the data: numbers, timestamps and characters. See [CreateSampleData.ps1](./PowerShell/CreateSampleData.ps1) for details.
 
