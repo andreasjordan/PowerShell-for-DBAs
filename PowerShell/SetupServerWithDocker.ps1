@@ -1,10 +1,10 @@
 # Setup of all DBMS with docker
 
 # Remove those DBMS, that you don't want to install
-$installDBMS = 'SQLServer', 'Oracle', 'MySQL', 'PostgreSQL', 'Db2', 'Informix'
+$installDBMS = 'SQLServer', 'Oracle', 'MySQL', 'MariaDB', 'PostgreSQL', 'Db2', 'Informix', 'Cassandra'
 
 # Set to $true to stop all container after usage, so that only one DBMS is running at a time.
-$stopContainer = $false
+$stopContainer = $true
 
 # If you don't have PSFramework, but want to use it: Install-Module -Name PSFramework -Scope CurrentUser
 Import-Module -Name PSFramework
@@ -269,6 +269,52 @@ Set-Location -Path /GitHub/PowerShell-for-DBAs/MySQL
     }
 }
 
+if ('MariaDB' -in $installDBMS) { 
+    Write-LogMessage -Message "Starting setup of MariaDB-1"
+
+    Write-LogMessage -Message "Pulling image mariadb:latest"
+    $null = docker pull mariadb:latest
+
+    $container = docker container ls -a -f name=^/MariaDB-1$
+    if ($container.Count -gt 1) {
+        Write-LogMessage -Message "Removing existing container"
+        $null = docker rm -f MariaDB-1
+    }
+    
+    Write-LogMessage -Message "Building new container"
+    $null = docker run --name MariaDB-1 --net dbms-net --cpus=2 --memory=2g -p 3307:3306 -e MARIADB_ROOT_PASSWORD=start123 -d mariadb:latest
+    while (1) {
+        $logs = docker logs MariaDB-1 2>&1
+        if ($logs -match 'port: 3306') { break }
+        Start-Sleep -Seconds 1
+    }
+    
+    Write-LogMessage -Message "Creating user and database"
+    $null = docker exec -ti MariaDB-1 bash -c @'
+mariadb -p'start123' <<END_OF_SQL
+CREATE USER 'stackoverflow'@'%' IDENTIFIED BY 'start456';
+CREATE DATABASE stackoverflow;
+GRANT ALL PRIVILEGES ON stackoverflow.* TO 'stackoverflow'@'%';
+exit
+END_OF_SQL
+'@
+
+    Write-LogMessage -Message "Creating application"
+    $output = docker exec -ti PowerShell-A pwsh -c @'
+$ProgressPreference = 'SilentlyContinue'
+Set-Location -Path /GitHub/PowerShell-for-DBAs/MySQL
+../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
+$Env:MYSQL_INSTANCE = 'MariaDB-1'
+./Application.ps1
+'@
+    Write-LogMessage -Message "Output: $output"
+
+    if ($stopContainer) {
+        Write-LogMessage -Message "Stopping container"
+        $null = docker stop MariaDB-1
+    }
+}
+
 if ('PostgreSQL' -in $installDBMS) { 
     Write-LogMessage -Message "Starting setup of PostgreSQL-1"
 
@@ -437,6 +483,75 @@ $Env:INFORMIX_INSTANCE = 'Informix-1:9088:informix'
         $null = docker stop Informix-1
     }
 }
+
+if ('Cassandra' -in $installDBMS) { 
+    Write-LogMessage -Message "Starting setup of Cassandra-1"
+
+    Write-LogMessage -Message "Pulling image cassandra:latest"
+    $null = docker pull cassandra:latest
+
+    $container = docker container ls -a -f name=^/Cassandra-1$
+    if ($container.Count -gt 1) {
+        Write-LogMessage -Message "Removing existing container"
+        $null = docker rm -f Cassandra-1
+    }
+
+    Write-LogMessage -Message "Building new container"
+    $null = docker run --name Cassandra-1 --net dbms-net --cpus=2 --memory=4g -p 9042:9042 -d cassandra:latest
+    while (1) {
+        $logs = docker logs Cassandra-1 2>&1
+        if ($logs -match 'Created default superuser role') { break }
+        Start-Sleep -Seconds 1
+    }
+
+    Write-LogMessage -Message "Configuring authenticator and authorizer"
+    docker exec -ti Cassandra-1 bash -c @'
+cat /etc/cassandra/cassandra.yaml \
+| sed -e 's/^authenticator:.*/authenticator: PasswordAuthenticator/' \
+| sed -e 's/^authorizer:.*/authorizer: CassandraAuthorizer/' \
+> /etc/cassandra/cassandra_new.yaml
+mv /etc/cassandra/cassandra_new.yaml /etc/cassandra/cassandra.yaml
+'@
+
+    Write-LogMessage -Message "Restarting container"
+    $null = docker restart Cassandra-1
+    while (1) {
+        $logs = docker logs Cassandra-1 2>&1
+        if (($logs -match 'Startup complete').Count -gt 1) { break }
+        Start-Sleep -Seconds 1
+    }
+
+    # We need to wait some more seconds...
+    Start-Sleep -Seconds 10
+
+    Write-LogMessage -Message "Creating keyspace and role"
+    docker exec -ti Cassandra-1 bash -c @'
+cqlsh -u cassandra -p cassandra <<"END_OF_SQL"
+CREATE KEYSPACE stackoverflow WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+CREATE ROLE stackoverflow WITH PASSWORD = 'start456' AND LOGIN = true;
+CREATE ROLE stackoverflow_admin;
+GRANT ALL PERMISSIONS on KEYSPACE stackoverflow to stackoverflow_admin;
+GRANT stackoverflow_admin TO stackoverflow;
+END_OF_SQL
+'@
+
+<# Does not work yet:
+    Write-LogMessage -Message "Creating application"
+    $output = docker exec -ti PowerShell-B pwsh -c @'
+$ProgressPreference = 'SilentlyContinue'
+Set-Location -Path /GitHub/PowerShell-for-DBAs/Cassandra
+../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
+./Application.ps1
+'@
+    Write-LogMessage -Message "Output: $output"
+#>
+
+    if ($stopContainer) {
+        Write-LogMessage -Message "Stopping container"
+        $null = docker stop Informix-1
+    }
+}
+
 
 if ($stopContainer) {
     Write-LogMessage -Message "Stopping PowerShell container"
