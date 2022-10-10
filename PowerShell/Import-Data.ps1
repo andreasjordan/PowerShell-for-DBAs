@@ -77,7 +77,11 @@ function Import-Data {
 
                 switch ($DBMS) {
                     SQLServer {
-                        $null = Invoke-DbaQuery -SqlInstance $Connection -Query $insertIntoSql -SqlParameter $parameterValues -EnableException
+                        if (Get-Module -Name dbatools) {
+                            $null = Invoke-DbaQuery -SqlInstance $Connection -Query $insertIntoSql -SqlParameter $parameterValues -EnableException
+                        } else {
+                            $null = Invoke-SqlQuery -Connection $Connection -Query $insertIntoSql -ParameterValues $parameterValues -EnableException
+                        }
                     }
                     Oracle {
                         $null = Invoke-OraQuery -Connection $Connection -Query $insertIntoSql -ParameterValues $parameterValues -EnableException

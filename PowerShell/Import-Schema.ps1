@@ -60,7 +60,11 @@ function Import-Schema {
             Write-Debug -Message "Running query: $query"
             switch ($DBMS) {
                 SQLServer {
-                    $null = Invoke-DbaQuery -SqlInstance $Connection -Query $query -EnableException
+                    if (Get-Module -Name dbatools) {
+                        $null = Invoke-DbaQuery -SqlInstance $Connection -Query $query -EnableException
+                    } else {
+                        $null = Invoke-SqlQuery -Connection $Connection -Query $query -EnableException
+                    }
                 }
                 Oracle {
                     $null = Invoke-OraQuery -Connection $Connection -Query $query -EnableException

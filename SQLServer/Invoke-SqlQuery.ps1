@@ -75,6 +75,9 @@ function Invoke-SqlQuery {
                     $parameter.SqlDbType = $ParameterTypes[$parameterName]
                 }
                 $parameter.Value = $ParameterValues[$parameterName]
+                if ($null -eq $parameter.Value) {
+                    $parameter.Value = [DBNull]::Value
+                }
                 $null = $command.Parameters.Add($parameter)
             }
         }
@@ -118,6 +121,7 @@ function Invoke-SqlQuery {
             }
         } catch {
             if ($EnableException) {
+                $Global:ErrorCommand = $command
                 throw
             } else {
                 Write-Warning -Message "Query could not be executed: $($_.Exception.InnerException.Message)"

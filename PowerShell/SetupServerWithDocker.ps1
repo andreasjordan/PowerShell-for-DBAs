@@ -160,12 +160,21 @@ exit
 END_OF_SQL
 '@
 
-    Write-LogMessage -Message "Creating application"
+    Write-LogMessage -Message "Creating application with only SMO from dbatools"
     $output = docker exec -ti PowerShell-A pwsh -c @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/SQLServer
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
 ./Application.ps1
+'@
+    Write-LogMessage -Message "Output: $output"
+
+    Write-LogMessage -Message "Creating application with commands from dbatools"
+    $output = docker exec -ti PowerShell-A pwsh -c @'
+$ProgressPreference = 'SilentlyContinue'
+Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/SQLServer
+../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
+./Application_dbatools.ps1
 '@
     Write-LogMessage -Message "Output: $output"
 
