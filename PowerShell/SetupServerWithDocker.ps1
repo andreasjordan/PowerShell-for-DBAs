@@ -1,9 +1,9 @@
 [CmdletBinding()]
 param (
     [ValidateSet("SQLServer", "Oracle", "PostgreSQL", "MySQL", "Db2", "Informix")][String[]]$DBMS = @("SQLServer", "Oracle", "PostgreSQL", "MySQL", "Db2", "Informix"),
-    [String]$NuGetPath = "~/NuGet",
-    [String]$GitHubPath = "~/GitHub",
-    [String]$SoftwarePath = "~/Software",
+    [String]$NuGetPath = (Resolve-Path -Path "~/NuGet").Path,
+    [String]$GitHubPath = (Resolve-Path -Path "~/GitHub").Path,
+    [String]$SoftwarePath = (Resolve-Path -Path "~/Software").Path,
     [Switch]$StopContainer
 )
 
@@ -47,6 +47,10 @@ try {
     }
 }
 
+# Loading my docker function and always use -EnableException
+. ./MyDocker.ps1
+$PSDefaultParameterValues = @{ "*-MyDocker*:EnableException" = $true }
+
 # Download the needed NuGet packages
 foreach ($package in 'Oracle.ManagedDataAccess.Core', 'MySql.Data', 'Npgsql', 'Net.IBM.Data.Db2-lnx', 'IBM.Data.DB2.Core-lnx') {
     if (-not (Test-Path -Path $NuGetPath/$package)) {
@@ -57,49 +61,78 @@ foreach ($package in 'Oracle.ManagedDataAccess.Core', 'MySql.Data', 'Npgsql', 'N
     }
 }
 
-$network = docker network ls -f name=^dbms-net$
-if ($network.Count -eq 1) {
-    Write-LogMessage -Message "Creating network dbms-net"
-    $null = docker network create dbms-net
+if (-not (Get-MyDockerNetwork -Name dbms-net)) {
+    $null = New-MyDockerNetwork -Name dbms-net
 }
 
 if ($runPowerShellA) {
-    Write-LogMessage -Message "Starting setup of PowerShell-A"
     # Works for SQL Server, Oracle, MySQL and PostgreSQL, but not for Db2 and Informix.
-    
-    $container = docker container ls -a -f name=^/PowerShell-A$
-    if ($container.Count -gt 1) {
-        Write-LogMessage -Level Verbose -Message "Removing existing container"
-        $null = docker rm -f PowerShell-A
+    $containerParams = @{
+        Name        = 'PowerShell-A'
+        Image       = 'mcr.microsoft.com/powershell:7.2-ubuntu-22.04'
+        Network     = 'dbms-net'
+        Memory      = '2g'
+        Volume      = @(
+            "$($GitHubPath):/mnt/GitHub"
+            "$($NuGetPath):/mnt/NuGet"
+        )
+        Interactive = $true
     }
-    
-    Write-LogMessage -Message "Building new container from image mcr.microsoft.com/powershell:7.2-ubuntu-22.04"
-    $null = docker run --name PowerShell-A --net dbms-net -v ${GitHubPath}:/mnt/GitHub -v ${NuGetPath}:/mnt/NuGet -di mcr.microsoft.com/powershell:7.2-ubuntu-22.04
-    
+    Write-LogMessage -Message "Starting setup of container $($containerParams.Name)"
+    if (Get-MyDockerContainer -Name $containerParams.Name) {
+        Write-LogMessage -Level Verbose -Message "Removing existing container"
+        Remove-MyDockerContainer -Name $containerParams.Name -Force
+    }
+    Write-LogMessage -Message "Building new container from image $($containerParams.Image)"
+    New-MyDockerContainer @containerParams
+
     Write-LogMessage -Message "Creating environment"
-    $null = docker exec -ti PowerShell-A pwsh -c @'
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell pwsh -Command @'
+$ProgressPreference = 'SilentlyContinue'
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 Install-Module -Name dbatools
 '@
 }
 
 if ($runPowerShellB) {
-    Write-LogMessage -Message "Starting setup of PowerShell-B"
     # Needed for Db2 and Informix.
     # I only managed to install the Informix client SDK on Ubuntu 18.04, not on 20.04 or 22.04.
     # If you are able to use newer versions, let me know how.
-
-    $container = docker container ls -a -f name=^/PowerShell-B$
-    if ($container.Count -gt 1) {
-        Write-LogMessage -Level Verbose -Message "Removing existing container"
-        $null = docker rm -f PowerShell-B
+    $containerParams = @{
+        Name        = 'PowerShell-B'
+        Image       = 'ubuntu:18.04'
+        Network     = 'dbms-net'
+        Memory      = '2g'
+        Volume      = @(
+            "$($GitHubPath):/mnt/GitHub"
+            "$($NuGetPath):/mnt/NuGet"
+            "$($SoftwarePath):/mnt/Software"
+        )
+        Environment = @(
+            "CLIENT_LOCALE=en_US.utf8"
+            "INFORMIXDIR=/opt/IBM/Informix_Client-SDK"
+            "LD_LIBRARY_PATH=$(
+                @(
+                    "/mnt/NuGet/Net.IBM.Data.Db2-lnx/buildTransitive/clidriver/lib"
+                    "/mnt/NuGet/IBM.Data.DB2.Core-lnx/buildTransitive/clidriver/lib"
+                    "/opt/IBM/Informix_Client-SDK/lib"
+                    "/opt/IBM/Informix_Client-SDK/lib/cli"
+                    "/opt/IBM/Informix_Client-SDK/lib/esql"
+                ) -join ':'
+            )"
+        )
+        Interactive = $true
     }
-
-    Write-LogMessage -Message "Building new container from image ubuntu:18.04"
-    $null = docker run --name PowerShell-B --net dbms-net -v ${GitHubPath}:/mnt/GitHub -v ${NuGetPath}:/mnt/NuGet -v ${SoftwarePath}:/mnt/Software -e INFORMIXDIR=/opt/IBM/Informix_Client-SDK -e LD_LIBRARY_PATH=/mnt/NuGet/Net.IBM.Data.Db2-lnx/buildTransitive/clidriver/lib:/mnt/NuGet/IBM.Data.DB2.Core-lnx/buildTransitive/clidriver/lib:/opt/IBM/Informix_Client-SDK/lib:/opt/IBM/Informix_Client-SDK/lib/cli:/opt/IBM/Informix_Client-SDK/lib/esql -e CLIENT_LOCALE=en_US.utf8 -di ubuntu:18.04
+    Write-LogMessage -Message "Starting setup of container $($containerParams.Name)"
+    if (Get-MyDockerContainer -Name $containerParams.Name) {
+        Write-LogMessage -Level Verbose -Message "Removing existing container"
+        Remove-MyDockerContainer -Name $containerParams.Name -Force
+    }
+    Write-LogMessage -Message "Building new container from image $($containerParams.Image)"
+    New-MyDockerContainer @containerParams
 
     Write-LogMessage -Message "Installing en_US.utf8"
-    $null = docker exec -ti PowerShell-B sh -c @'
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell sh -Command @'
 apt-get update && \
 apt-get install -y locales && \
 rm -rf /var/lib/apt/lists/* && \
@@ -107,7 +140,7 @@ localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 '@
 
     Write-LogMessage -Message "Installing Informix client SDK"
-    $null = docker exec -ti PowerShell-B sh -c @'
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell sh -Command @'
 apt-get update && \
 apt-get install -y unixodbc-dev libelf-dev && \
 cd /tmp && \
@@ -119,7 +152,7 @@ echo 'CHOSEN_INSTALL_FEATURE_LIST=SDK-NETCORE,GLS' >> response
 '@
 
     Write-LogMessage -Message "Installing PowerShell"
-    $null = docker exec -ti PowerShell-B sh -c @'
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell sh -Command @'
 apt-get update && \
 apt-get install -y wget apt-transport-https software-properties-common && \
 wget -q "https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb" && \
@@ -131,24 +164,29 @@ apt-get install -y powershell
 
 
 if ('SQLServer' -in $DBMS) {
-    Write-LogMessage -Message "Starting setup of SQLServer-1"
-
-    $container = docker container ls -a -f name=^/SQLServer-1$
-    if ($container.Count -gt 1) {
+    $containerParams = @{
+        Name        = 'SQLServer-1'
+        Image       = 'mcr.microsoft.com/mssql/server:2019-latest'
+        Network     = 'dbms-net'
+        Memory      = '2g'
+        Port        = @('1433:1433')
+        Environment = @(
+            'ACCEPT_EULA=Y'
+            '"MSSQL_SA_PASSWORD=P#ssw0rd"'
+            'MSSQL_PID=Express'
+        )
+    }
+    Write-LogMessage -Message "Starting setup of container $($containerParams.Name)"
+    if (Get-MyDockerContainer -Name $containerParams.Name) {
         Write-LogMessage -Level Verbose -Message "Removing existing container"
-        $null = docker rm -f SQLServer-1
+        Remove-MyDockerContainer -Name $containerParams.Name -Force
     }
-    
-    Write-LogMessage -Message "Building new container from image mcr.microsoft.com/mssql/server:2019-latest"
-    $null = docker run --name SQLServer-1 --net dbms-net --cpus=2 --memory=2g -p 1433:1433 -e ACCEPT_EULA=Y -e "MSSQL_SA_PASSWORD=P#ssw0rd" -e MSSQL_PID=Express -d mcr.microsoft.com/mssql/server:2019-latest
-    while (1) {
-        $logs = docker logs SQLServer-1 2>&1
-        if ($logs -match 'SQL Server is now ready for client connections') { break }
-        Start-Sleep -Seconds 1
-    }
+    Write-LogMessage -Message "Building new container from image $($containerParams.Image)"
+    New-MyDockerContainer @containerParams
+    Wait-MyDockerContainer -Name $containerParams.Name -LogRegex 'SQL Server is now ready for client connections' -EnableException
 
     Write-LogMessage -Message "Creating user"
-    $null = docker exec -ti SQLServer-1 bash -c @'
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
 /opt/mssql-tools/bin/sqlcmd -U sa -P 'P#ssw0rd' <<END_OF_SQL
 CREATE LOGIN StackOverflow WITH PASSWORD = 'start456', CHECK_POLICY = OFF
 GO
@@ -170,7 +208,7 @@ Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/SQLServer
     Write-LogMessage -Message "Output: $output"
 
     Write-LogMessage -Message "Creating application with commands from dbatools"
-    $output = docker exec -ti PowerShell-A pwsh -c @'
+    $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/SQLServer
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
@@ -179,31 +217,38 @@ Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/SQLServer
     Write-LogMessage -Message "Output: $output"
 
     if ($StopContainer) {
-        $null = docker stop SQLServer-1
+        Stop-MyDockerContainer -Name $containerParams.Name
     }
 }
 
 if ('Oracle' -in $DBMS) { 
     # https://docs.oracle.com/cd/E37670_01/E75728/html/oracle-registry-server.html
     # https://container-registry.oracle.com/
-    Write-LogMessage -Message "Starting setup of Oracle-1"
-
-    $container = docker container ls -a -f name=^/Oracle-1$
-    if ($container.Count -gt 1) {
+    $containerParams = @{
+        Name        = 'Oracle-1'
+        Image       = 'container-registry.oracle.com/database/express:latest'
+        Network     = 'dbms-net'
+        Memory      = '3g'
+        Port        = @(
+            '1521:1521'
+            '5500:5500'
+        )
+        Environment = @(
+            'ORACLE_PWD=start123'
+            'ORACLE_CHARACTERSET=AL32UTF8'
+        )
+    }
+    Write-LogMessage -Message "Starting setup of container $($containerParams.Name)"
+    if (Get-MyDockerContainer -Name $containerParams.Name) {
         Write-LogMessage -Level Verbose -Message "Removing existing container"
-        $null = docker rm -f Oracle-1
+        Remove-MyDockerContainer -Name $containerParams.Name -Force
     }
-
-    Write-LogMessage -Message "Building new container from image container-registry.oracle.com/database/express:latest"
-    $null = docker run --name Oracle-1 --net dbms-net --cpus=2 --memory=2g -p 1521:1521 -p 5500:5500 -e ORACLE_PWD=start123 -e ORACLE_CHARACTERSET=AL32UTF8 -d container-registry.oracle.com/database/express:latest
-    while (1) {
-        $logs = docker logs Oracle-1 2>&1
-        if ($logs -match 'DATABASE IS READY TO USE!') { break }
-        Start-Sleep -Seconds 1
-    }
+    Write-LogMessage -Message "Building new container from image $($containerParams.Image)"
+    New-MyDockerContainer @containerParams
+    Wait-MyDockerContainer -Name $containerParams.Name -LogRegex 'DATABASE IS READY TO USE!' -EnableException
 
     Write-LogMessage -Message "Creating user"
-    $null = docker exec -ti Oracle-1 bash -c @'
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
 sqlplus / as sysdba <<END_OF_SQL
 ALTER SESSION SET CONTAINER=XEPDB1;
 CREATE USER stackoverflow IDENTIFIED BY start456 DEFAULT TABLESPACE users QUOTA UNLIMITED ON users TEMPORARY TABLESPACE temp;
@@ -214,7 +259,7 @@ END_OF_SQL
 '@
 
     Write-LogMessage -Message "Creating application"
-    $output = docker exec -ti PowerShell-A pwsh -c @'
+    $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Oracle
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
@@ -223,29 +268,34 @@ Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Oracle
     Write-LogMessage -Message "Output: $output"
 
     if ($StopContainer) {
-        $null = docker stop Oracle-1
+        Stop-MyDockerContainer -Name $containerParams.Name
     }
 }
 
 if ('MySQL' -in $DBMS) { 
-    Write-LogMessage -Message "Starting setup of MySQL-1"
-
-    $container = docker container ls -a -f name=^/MySQL-1$
-    if ($container.Count -gt 1) {
+    $containerParams = @{
+        Name        = 'MySQL-1'
+        Image       = 'mysql:latest'
+        Network     = 'dbms-net'
+        Memory      = '2g'
+        Port        = @(
+            '3306:3306'
+        )
+        Environment = @(
+            'MYSQL_ROOT_PASSWORD=start123'
+        )
+    }
+    Write-LogMessage -Message "Starting setup of container $($containerParams.Name)"
+    if (Get-MyDockerContainer -Name $containerParams.Name) {
         Write-LogMessage -Level Verbose -Message "Removing existing container"
-        $null = docker rm -f MySQL-1
+        Remove-MyDockerContainer -Name $containerParams.Name -Force
     }
-    
-    Write-LogMessage -Message "Building new container from image mysql:latest"
-    $null = docker run --name MySQL-1 --net dbms-net --cpus=2 --memory=2g -p 3306:3306 -e MYSQL_ROOT_PASSWORD=start123 -d mysql:latest
-    while (1) {
-        $logs = docker logs MySQL-1 2>&1
-        if ($logs -match 'ready for connections.*port: 3306 ') { break }
-        Start-Sleep -Seconds 1
-    }
+    Write-LogMessage -Message "Building new container from image $($containerParams.Image)"
+    New-MyDockerContainer @containerParams
+    Wait-MyDockerContainer -Name $containerParams.Name -LogRegex 'ready for connections.*port: 3306 ' -EnableException
 
     Write-LogMessage -Message "Creating user and database"
-    $null = docker exec -ti MySQL-1 bash -c @'
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
 mysql -p'start123' <<END_OF_SQL
 CREATE USER 'stackoverflow'@'%' IDENTIFIED BY 'start456';
 CREATE DATABASE stackoverflow;
@@ -255,7 +305,7 @@ END_OF_SQL
 '@
 
     Write-LogMessage -Message "Creating application"
-    $output = docker exec -ti PowerShell-A pwsh -c @'
+    $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/MySQL
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
@@ -264,29 +314,34 @@ Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/MySQL
     Write-LogMessage -Message "Output: $output"
 
     if ($StopContainer) {
-        $null = docker stop MySQL-1
+        Stop-MyDockerContainer -Name $containerParams.Name
     }
 }
 
 if ('MariaDB' -in $DBMS) { 
-    Write-LogMessage -Message "Starting setup of MariaDB-1"
-
-    $container = docker container ls -a -f name=^/MariaDB-1$
-    if ($container.Count -gt 1) {
+    $containerParams = @{
+        Name        = 'MariaDB-1'
+        Image       = 'mariadb:latest'
+        Network     = 'dbms-net'
+        Memory      = '2g'
+        Port        = @(
+            '3307:3306'
+        )
+        Environment = @(
+            'MARIADB_ROOT_PASSWORD=start123'
+        )
+    }
+    Write-LogMessage -Message "Starting setup of container $($containerParams.Name)"
+    if (Get-MyDockerContainer -Name $containerParams.Name) {
         Write-LogMessage -Level Verbose -Message "Removing existing container"
-        $null = docker rm -f MariaDB-1
+        Remove-MyDockerContainer -Name $containerParams.Name -Force
     }
-    
-    Write-LogMessage -Message "Building new container from image mariadb:latest"
-    $null = docker run --name MariaDB-1 --net dbms-net --cpus=2 --memory=2g -p 3307:3306 -e MARIADB_ROOT_PASSWORD=start123 -d mariadb:latest
-    while (1) {
-        $logs = docker logs MariaDB-1 2>&1
-        if ($logs -match 'port: 3306') { break }
-        Start-Sleep -Seconds 1
-    }
+    Write-LogMessage -Message "Building new container from image $($containerParams.Image)"
+    New-MyDockerContainer @containerParams
+    Wait-MyDockerContainer -Name $containerParams.Name -LogRegex 'port: 3306' -EnableException
     
     Write-LogMessage -Message "Creating user and database"
-    $null = docker exec -ti MariaDB-1 bash -c @'
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
 mariadb -p'start123' <<END_OF_SQL
 CREATE USER 'stackoverflow'@'%' IDENTIFIED BY 'start456';
 CREATE DATABASE stackoverflow;
@@ -296,7 +351,7 @@ END_OF_SQL
 '@
 
     Write-LogMessage -Message "Creating application"
-    $output = docker exec -ti PowerShell-A pwsh -c @'
+    $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/MySQL
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
@@ -306,31 +361,36 @@ $Env:MYSQL_INSTANCE = 'MariaDB-1'
     Write-LogMessage -Message "Output: $output"
 
     if ($StopContainer) {
-        $null = docker stop MariaDB-1
+        Stop-MyDockerContainer -Name $containerParams.Name
     }
 }
 
 if ('PostgreSQL' -in $DBMS) { 
-    Write-LogMessage -Message "Starting setup of PostgreSQL-1"
-
-    $container = docker container ls -a -f name=^/PostgreSQL-1$
-    if ($container.Count -gt 1) {
+    $containerParams = @{
+        Name        = 'PostgreSQL-1'
+        Image       = 'postgres:latest'
+        Network     = 'dbms-net'
+        Memory      = '2g'
+        Port        = @(
+            '5432:5432'
+        )
+        Environment = @(
+            'POSTGRES_PASSWORD=start123'
+        )
+    }
+    Write-LogMessage -Message "Starting setup of container $($containerParams.Name)"
+    if (Get-MyDockerContainer -Name $containerParams.Name) {
         Write-LogMessage -Level Verbose -Message "Removing existing container"
-        $null = docker rm -f PostgreSQL-1
+        Remove-MyDockerContainer -Name $containerParams.Name -Force
     }
-
-    Write-LogMessage -Message "Building new container from image postgres:latest"
-    $null = docker run --name PostgreSQL-1 --net dbms-net --cpus=2 --memory=2g -e POSTGRES_PASSWORD=start123 -p 5432:5432 -d postgres:latest
-    while (1) {
-        $logs = docker logs PostgreSQL-1 2>&1
-        if ($logs -match 'database system is ready to accept connections') { break }
-        Start-Sleep -Seconds 1
-    }
+    Write-LogMessage -Message "Building new container from image $($containerParams.Image)"
+    New-MyDockerContainer @containerParams
+    Wait-MyDockerContainer -Name $containerParams.Name -LogRegex 'database system is ready to accept connections' -EnableException
 
     Write-LogMessage -Message "Creating user and database"
-    $null = docker exec -ti PostgreSQL-1 bash -c @'
-su - postgres <<"END_OF_SHELL"
-psql <<"END_OF_SQL"
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
+su - postgres <<END_OF_SHELL
+psql <<END_OF_SQL
 CREATE USER stackoverflow WITH PASSWORD 'start456';
 CREATE DATABASE stackoverflow WITH OWNER stackoverflow;
 END_OF_SQL
@@ -338,7 +398,7 @@ END_OF_SHELL
 '@
 
     Write-LogMessage -Message "Creating application"
-    $output = docker exec -ti PowerShell-A pwsh -c @'
+    $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/PostgreSQL
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
@@ -347,35 +407,44 @@ Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/PostgreSQL
     Write-LogMessage -Message "Output: $output"
 
     if ($StopContainer) {
-        $null = docker stop PostgreSQL-1
+        Stop-MyDockerContainer -Name $containerParams.Name
     }
 }
 
 if ('Db2' -in $DBMS) { 
-    Write-LogMessage -Message "Starting setup of Db2-1"
-
-    $container = docker container ls -a -f name=^/Db2-1$
-    if ($container.Count -gt 1) {
+    $containerParams = @{
+        Name        = 'Db2-1'
+        Image       = 'ibmcom/db2:latest'
+        Network     = 'dbms-net'
+        Memory      = '3g'
+        Port        = @(
+            '50000:50000'
+        )
+        Environment = @(
+            'LICENSE=accept'
+            'DB2INST1_PASSWORD=start123'
+            'DBNAME=DEMO'
+        )
+        Privileged  = $true
+    }
+    Write-LogMessage -Message "Starting setup of container $($containerParams.Name)"
+    if (Get-MyDockerContainer -Name $containerParams.Name) {
         Write-LogMessage -Level Verbose -Message "Removing existing container"
-        $null = docker rm -f Db2-1
+        Remove-MyDockerContainer -Name $containerParams.Name -Force
     }
-    
-    Write-LogMessage -Message "Building new container from image ibmcom/db2:latest"
-    $null = docker run --name Db2-1 --net dbms-net --cpus=2 --memory=3g --privileged=true -p 50000:50000 -e LICENSE=accept -e DB2INST1_PASSWORD=start123 -e DBNAME=DEMO -d ibmcom/db2:latest
-    while (1) {
-        $logs = docker logs Db2-1 2>&1
-        if ($logs -match 'Setup has completed') { break }
-        Start-Sleep -Seconds 1
-    }
+    Write-LogMessage -Message "Building new container from image $($containerParams.Image)"
+    New-MyDockerContainer @containerParams
+    #$null = docker run --name Db2-1 --net dbms-net --cpus=2 --memory=3g --privileged=true -p 50000:50000 -e LICENSE=accept -e DB2INST1_PASSWORD=start123 -e DBNAME=DEMO -d ibmcom/db2:latest
+    Wait-MyDockerContainer -Name $containerParams.Name -LogRegex 'Setup has completed' -EnableException
     
     Write-LogMessage -Message "Creating user"
-    $null = docker exec -ti Db2-1 sh -c @'
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
 useradd stackoverflow
-echo "stackoverflow:start456" | chpasswd
+echo 'stackoverflow:start456' | chpasswd
 '@
 
     Write-LogMessage -Message "Creating application with /NuGet/Net.IBM.Data.Db2-lnx/lib/net6.0/IBM.Data.Db2.dll"
-    $output = docker exec -ti PowerShell-B pwsh -c @'
+    $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Db2
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
@@ -385,7 +454,7 @@ Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Db2
 
 <# Does not work, the pwsh process just aborts somewhere during the process, not always at the same step:
     Write-LogMessage -Message "Creating application with /NuGet/IBM.Data.DB2.Core-lnx/lib/netstandard2.1/IBM.Data.DB2.Core.dll"
-    $output = docker exec -ti PowerShell-B pwsh -c @'
+    $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Db2
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
@@ -396,30 +465,38 @@ $Env:DB2_DLL = '/mnt/NuGet/IBM.Data.DB2.Core-lnx/lib/netstandard2.1/IBM.Data.DB2
 #>
 
     if ($StopContainer) {
-        $null = docker stop Db2-1
+        Stop-MyDockerContainer -Name $containerParams.Name
     }
 }
 
 if ('Informix' -in $DBMS) { 
     # https://github.com/informix/informix-dockerhub-readme/blob/master/14.10.FC7W1/informix-developer-database.md
-    Write-LogMessage -Message "Starting setup of Informix-1"
-
-    $container = docker container ls -a -f name=^/Informix-1$
-    if ($container.Count -gt 1) {
+    $containerParams = @{
+        Name        = 'Informix-1'
+        Image       = 'ibmcom/informix-developer-database:latest'
+        Network     = 'dbms-net'
+        Memory      = '2g'
+        Port        = @(
+            '9088:9088'
+            '9089:9089'
+        )
+        Environment = @(
+            'LICENSE=accept'
+            'TYPE=oltp'
+            'DB_LOCALE=en_US.utf8'
+        )
+    }
+    Write-LogMessage -Message "Starting setup of container $($containerParams.Name)"
+    if (Get-MyDockerContainer -Name $containerParams.Name) {
         Write-LogMessage -Level Verbose -Message "Removing existing container"
-        $null = docker rm -f Informix-1
+        Remove-MyDockerContainer -Name $containerParams.Name -Force
     }
-
-    Write-LogMessage -Message "Building new container from image ibmcom/informix-developer-database:latest"
-    $null = docker run --name Informix-1 --net dbms-net --cpus=2 --memory=2g --privileged=true -p 9088:9088 -p 9089:9089 -e LICENSE=accept -e TYPE=oltp -e DB_LOCALE=en_US.utf8 -d ibmcom/informix-developer-database:latest
-    while (1) {
-        $logs = docker logs Informix-1 2>&1
-        if ($logs -match 'Started .+ dbWorker threads') { break }
-        Start-Sleep -Seconds 1
-    }
+    Write-LogMessage -Message "Building new container from image $($containerParams.Image)"
+    New-MyDockerContainer @containerParams
+    Wait-MyDockerContainer -Name $containerParams.Name -LogRegex 'Started .+ dbWorker threads' -EnableException
 
     Write-LogMessage -Message "Creating user and database"
-    $null = docker exec -ti Informix-1 bash -c @'
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
 sudo su -c 'useradd stackoverflow'
 sudo su -c 'echo 'stackoverflow:start456' | chpasswd'
 . ./.bashrc
@@ -431,7 +508,7 @@ END_OF_SQL
 '@
 
     Write-LogMessage -Message "Creating application with /NuGet/Net.IBM.Data.Db2-lnx/lib/net6.0/IBM.Data.Db2.dll"
-    $output = docker exec -ti PowerShell-B pwsh -c @'
+    $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Informix
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
@@ -452,7 +529,7 @@ $Env:INFORMIX_DLL = '/mnt/NuGet/IBM.Data.DB2.Core-lnx/lib/netstandard2.1/IBM.Dat
 #>
 
     Write-LogMessage -Message "Creating application with /opt/IBM/Informix_Client-SDK/bin/Informix.Net.Core.dll"
-    $output = docker exec -ti PowerShell-B pwsh -c @'
+    $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Informix
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
@@ -463,32 +540,31 @@ $Env:INFORMIX_INSTANCE = 'Informix-1:9088:informix'
     Write-LogMessage -Message "Output: $output"
 
     if ($StopContainer) {
-        $null = docker stop Informix-1
+        Stop-MyDockerContainer -Name $containerParams.Name
     }
 }
 
 if ('Cassandra' -in $DBMS) { 
-    Write-LogMessage -Message "Starting setup of Cassandra-1"
-
-    Write-LogMessage -Message "Pulling image cassandra:latest"
-    $null = docker pull cassandra:latest
-
-    $container = docker container ls -a -f name=^/Cassandra-1$
-    if ($container.Count -gt 1) {
+    $containerParams = @{
+        Name        = 'Cassandra-1'
+        Image       = 'cassandra:latest'
+        Network     = 'dbms-net'
+        Memory      = '4g'
+        Port        = @(
+            '9042:9042'
+        )
+    }
+    Write-LogMessage -Message "Starting setup of container $($containerParams.Name)"
+    if (Get-MyDockerContainer -Name $containerParams.Name) {
         Write-LogMessage -Level Verbose -Message "Removing existing container"
-        $null = docker rm -f Cassandra-1
+        Remove-MyDockerContainer -Name $containerParams.Name -Force
     }
-
-    Write-LogMessage -Message "Building new container"
-    $null = docker run --name Cassandra-1 --net dbms-net --cpus=2 --memory=4g -p 9042:9042 -d cassandra:latest
-    while (1) {
-        $logs = docker logs Cassandra-1 2>&1
-        if ($logs -match 'Created default superuser role') { break }
-        Start-Sleep -Seconds 1
-    }
+    Write-LogMessage -Message "Building new container from image $($containerParams.Image)"
+    New-MyDockerContainer @containerParams
+    Wait-MyDockerContainer -Name $containerParams.Name -LogRegex 'Created default superuser role' -EnableException
 
     Write-LogMessage -Message "Configuring authenticator and authorizer"
-    docker exec -ti Cassandra-1 bash -c @'
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
 cat /etc/cassandra/cassandra.yaml \
 | sed -e 's/^authenticator:.*/authenticator: PasswordAuthenticator/' \
 | sed -e 's/^authorizer:.*/authorizer: CassandraAuthorizer/' \
@@ -508,7 +584,7 @@ mv /etc/cassandra/cassandra_new.yaml /etc/cassandra/cassandra.yaml
     Start-Sleep -Seconds 10
 
     Write-LogMessage -Message "Creating keyspace and role"
-    docker exec -ti Cassandra-1 bash -c @'
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
 cqlsh -u cassandra -p cassandra <<"END_OF_SQL"
 CREATE KEYSPACE stackoverflow WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
 CREATE ROLE stackoverflow WITH PASSWORD = 'start456' AND LOGIN = true;
@@ -530,11 +606,15 @@ Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Cassandra
 #>
 
     if ($StopContainer) {
-        $null = docker stop Informix-1
+        Stop-MyDockerContainer -Name $containerParams.Name
     }
 }
 
 if ($StopContainer) {
-    $null = docker stop PowerShell-A
-    $null = docker stop PowerShell-B
+    if (Get-MyDockerContainer -Name PowerShell-A) {
+        Stop-MyDockerContainer -Name PowerShell-A
+    }
+    if (Get-MyDockerContainer -Name PowerShell-B) {
+        Stop-MyDockerContainer -Name PowerShell-B
+    }
 }
