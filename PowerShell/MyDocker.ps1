@@ -304,7 +304,7 @@ function Invoke-MyDockerContainer {
         [switch]$EnableException
     )
 
-    $argumentList = "exec", "--interactive", "--tty"
+    $argumentList = "exec", "--interactive"
     foreach ($e in $Environment) {
         $argumentList += "-e", $e
     }
