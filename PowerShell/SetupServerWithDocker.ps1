@@ -199,7 +199,7 @@ END_OF_SQL
 '@
 
     Write-LogMessage -Message "Creating application with only SMO from dbatools"
-    $output = docker exec -ti PowerShell-A pwsh -c @'
+    $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/SQLServer
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
