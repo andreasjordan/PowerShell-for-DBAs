@@ -59,13 +59,13 @@ function Invoke-MyDocker {
     [CmdletBinding()]
     Param(
         [string[]]$ArgumentList,
-        [switch]$Sudo,
         [switch]$RawOutput,
         [switch]$EnableException
     )
 
-    if ($Sudo) {
-        # later...
+    if ($Env:USE_SUDO) {
+        $ArgumentList = 'docker', $ArgumentList
+        $result = Invoke-MyProgram -Path 'sudo' -ArgumentList $ArgumentList
     } else {
         $result = Invoke-MyProgram -Path 'docker' -ArgumentList $ArgumentList
     }
@@ -160,13 +160,15 @@ function Get-MyDockerContainer {
 
     try {
         $containerNames = Invoke-MyDocker -ArgumentList container, ls, '-a', '--format "{{.Names}}"' -EnableException
-        $container = Invoke-MyDocker -ArgumentList container, inspect, $containerNames -EnableException | ConvertFrom-Json
-    
-        if ($Name) {
-            $container = $container | Where-Object { $_.Name.TrimStart('/') -in $Name }
+        if ($containerNames) {
+            $container = Invoke-MyDocker -ArgumentList container, inspect, $containerNames -EnableException | ConvertFrom-Json
+
+            if ($Name) {
+                $container = $container | Where-Object { $_.Name.TrimStart('/') -in $Name }
+            }
+            
+            $container
         }
-        
-        $container
     } catch {
         if ($EnableException) {
             throw
