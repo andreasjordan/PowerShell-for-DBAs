@@ -344,6 +344,8 @@ function Wait-MyDockerContainer {
             }
             Start-Sleep -Seconds 1
         }
+        # Just to be save, we wait additional 5 seconds
+        Start-Sleep -Seconds 5
     } catch {
         if ($EnableException) {
             throw
