@@ -51,6 +51,9 @@ try {
 . ./MyDocker.ps1
 $PSDefaultParameterValues = @{ "*-MyDocker*:EnableException" = $true }
 
+# Suppress all progress bars
+$ProgressPreference = 'SilentlyContinue'
+
 # Download the needed NuGet packages
 foreach ($package in 'Oracle.ManagedDataAccess.Core', 'MySql.Data', 'Npgsql', 'Net.IBM.Data.Db2-lnx', 'IBM.Data.DB2.Core-lnx') {
     if (-not (Test-Path -Path $NuGetPath/$package)) {
