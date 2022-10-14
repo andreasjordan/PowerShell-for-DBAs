@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-$nuGetPath = 'C:\NuGet'
+$nuGetPath = '~\NuGet'
 
 if (-not (Test-Path -Path $nuGetPath)) {
     $null = New-Item -Path $nuGetPath -ItemType Directory
