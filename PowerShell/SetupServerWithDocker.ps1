@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param (
-    [ValidateSet("SQLServer", "Oracle", "PostgreSQL", "MySQL", "MariaDB", "Db2", "Informix")][String[]]$DBMS = @("SQLServer", "Oracle", "PostgreSQL", "MySQL", "MariaDB", "Db2", "Informix"),
+    [ValidateSet("SQLServer", "Oracle", "PostgreSQL", "MySQL", "MariaDB", "Db2", "Informix", "Cassandra")][String[]]$DBMS = @("SQLServer", "Oracle", "PostgreSQL", "MySQL", "MariaDB", "Db2", "Informix"),
     [String]$NuGetPath = (Resolve-Path -Path "~/NuGet").Path,
     [String]$GitHubPath = (Resolve-Path -Path "~/GitHub").Path,
     [String]$SoftwarePath = (Resolve-Path -Path "~/Software").Path,
