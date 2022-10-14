@@ -461,7 +461,6 @@ if ('Db2' -in $DBMS) {
     }
     Write-LogMessage -Message "Building new container from image $($containerParams.Image)"
     New-MyDockerContainer @containerParams
-    #$null = docker run --name Db2-1 --net dbms-net --cpus=2 --memory=3g --privileged=true -p 50000:50000 -e LICENSE=accept -e DB2INST1_PASSWORD=start123 -e DBNAME=DEMO -d ibmcom/db2:latest
     Wait-MyDockerContainer -Name $containerParams.Name -LogRegex 'Setup has completed' -EnableException
     
     Write-LogMessage -Message "Creating user"
