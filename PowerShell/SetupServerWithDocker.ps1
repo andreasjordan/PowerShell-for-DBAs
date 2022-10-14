@@ -79,6 +79,26 @@ if ($runPowerShellA) {
             "$($GitHubPath):/mnt/GitHub"
             "$($NuGetPath):/mnt/NuGet"
         )
+        Environment = @(
+            'SQLSERVER_INSTANCE=SQLServer-1'
+            'SQLSERVER_DATABASE=StackOverflow'
+            'SQLSERVER_USERNAME=StackOverflow'
+            'SQLSERVER_PASSWORD=start456'
+            'ORACLE_DLL=/mnt/NuGet/Oracle.ManagedDataAccess.Core/lib/netstandard2.1/Oracle.ManagedDataAccess.dll'
+            'ORACLE_INSTANCE=Oracle-1/XEPDB1'
+            'ORACLE_USERNAME=stackoverflow'
+            'ORACLE_PASSWORD=start456'
+            'MYSQL_DLL=/mnt/NuGet/MySql.Data/lib/net6.0/MySql.Data.dll'
+            'MYSQL_INSTANCE=MySQL-1'
+            'MYSQL_DATABASE=stackoverflow'
+            'MYSQL_USERNAME=stackoverflow'
+            'MYSQL_PASSWORD=start456'
+            'POSTGRESQL_DLL=/mnt/NuGet/Npgsql/lib/net6.0/Npgsql.dll'
+            'POSTGRESQL_INSTANCE=PostgreSQL-1'
+            'POSTGRESQL_DATABASE=stackoverflow'
+            'POSTGRESQL_USERNAME=stackoverflow'
+            'POSTGRESQL_PASSWORD=start456'
+        )
         Interactive = $true
     }
     Write-LogMessage -Message "Starting setup of container $($containerParams.Name)"
@@ -123,7 +143,17 @@ if ($runPowerShellB) {
                     "/opt/IBM/Informix_Client-SDK/lib/esql"
                 ) -join ':'
             )"
-        )
+            'DB2_DLL=/mnt/NuGet/Net.IBM.Data.Db2-lnx/lib/net6.0/IBM.Data.Db2.dll'
+            'DB2_INSTANCE=Db2-1:50000'
+            'DB2_DATABASE=DEMO'
+            'DB2_USERNAME=stackoverflow'
+            'DB2_PASSWORD=start456'
+            'INFORMIX_DLL=/mnt/NuGet/Net.IBM.Data.Db2-lnx/lib/net6.0/IBM.Data.Db2.dll'
+            'INFORMIX_INSTANCE=Informix-1:9089'
+            'INFORMIX_DATABASE=stackoverflow'
+            'INFORMIX_USERNAME=stackoverflow'
+            'INFORMIX_PASSWORD=start456'
+            )
         Interactive = $true
     }
     Write-LogMessage -Message "Starting setup of container $($containerParams.Name)"
@@ -205,7 +235,6 @@ END_OF_SQL
     $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/SQLServer
-../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
 ./Application.ps1
 '@
     Write-LogMessage -Message "Output: $output"
@@ -214,7 +243,6 @@ Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/SQLServer
     $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/SQLServer
-../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
 ./Application_dbatools.ps1
 '@
     Write-LogMessage -Message "Output: $output"
@@ -265,7 +293,6 @@ END_OF_SQL
     $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Oracle
-../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
 ./Application.ps1
 '@
     Write-LogMessage -Message "Output: $output"
@@ -311,7 +338,6 @@ END_OF_SQL
     $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/MySQL
-../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
 ./Application.ps1
 '@
     Write-LogMessage -Message "Output: $output"
@@ -357,7 +383,6 @@ END_OF_SQL
     $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/MySQL
-../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
 $Env:MYSQL_INSTANCE = 'MariaDB-1'
 ./Application.ps1
 '@
@@ -404,7 +429,6 @@ END_OF_SHELL
     $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/PostgreSQL
-../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
 ./Application.ps1
 '@
     Write-LogMessage -Message "Output: $output"
@@ -419,7 +443,7 @@ if ('Db2' -in $DBMS) {
         Name        = 'Db2-1'
         Image       = 'ibmcom/db2:latest'
         Network     = 'dbms-net'
-        Memory      = '3g'
+        Memory      = '4g'
         Port        = @(
             '50000:50000'
         )
@@ -450,7 +474,6 @@ echo 'stackoverflow:start456' | chpasswd
     $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Db2
-../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
 ./Application.ps1
 '@
     Write-LogMessage -Message "Output: $output"
@@ -514,7 +537,8 @@ END_OF_SQL
     $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Informix
-../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
+$Env:INFORMIX_DLL = '/mnt/NuGet/Net.IBM.Data.Db2-lnx/lib/net6.0/IBM.Data.Db2.dll'
+$Env:INFORMIX_INSTANCE = 'Informix-1:9089'
 ./Application.ps1
 '@
     Write-LogMessage -Message "Output: $output"
