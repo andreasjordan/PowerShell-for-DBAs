@@ -504,7 +504,7 @@ sudo su -c 'useradd stackoverflow'
 sudo su -c 'echo 'stackoverflow:start456' | chpasswd'
 . ./.bashrc
 /opt/ibm/informix/bin/dbaccess <<"END_OF_SQL"
-CREATE DATABASE stackoverflow WITH BUFFERED LOG;
+CREATE DATABASE stackoverflow WITH LOG;
 GRANT CONNECT TO stackoverflow;
 GRANT RESOURCE TO stackoverflow;
 END_OF_SQL
