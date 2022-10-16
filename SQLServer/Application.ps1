@@ -18,10 +18,6 @@ if (-not $Env:SQLSERVER_PASSWORD) {
     $credential = [PSCredential]::new($Env:SQLSERVER_USERNAME, (ConvertTo-SecureString -String $Env:SQLSERVER_PASSWORD -AsPlainText -Force))
 }
 
-$moduleBase = (Get-Module -Name dbatools -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1).ModuleBase
-foreach ($dll in (Get-ChildItem -Path $moduleBase/bin/smo/coreclr -Filter *.dll)) {
-    Add-Type -Path $dll.FullName
-}
 . .\Connect-SqlInstance.ps1
 . .\Invoke-SqlQuery.ps1
 
