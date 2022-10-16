@@ -1,6 +1,6 @@
 function Connect-SqlInstance {
     [CmdletBinding()]
-    [OutputType([System.Data.SqlClient.SqlConnection])]
+    [OutputType([Microsoft.Data.SqlClient.SqlConnection])]
     param (
         [Parameter(Mandatory)][string]$Instance,
         [Parameter(Mandatory)][PSCredential]$Credential,
@@ -11,7 +11,7 @@ function Connect-SqlInstance {
 
     Write-Verbose -Message "Creating connection to instance [$Instance]"
 
-    $csb = [System.Data.SqlClient.SqlConnectionStringBuilder]::new()
+    $csb = [Microsoft.Data.SqlClient.SqlConnectionStringBuilder]::new()
     $csb['Data Source'] = $Instance
     $csb['User ID'] = $Credential.UserName
     $csb.Password = $Credential.GetNetworkCredential().Password
@@ -23,7 +23,7 @@ function Connect-SqlInstance {
         Write-Verbose -Message "Disabling connection pooling"
         $csb.Pooling = $false
     }
-    $connection = [System.Data.SqlClient.SqlConnection]::new($csb.ConnectionString)
+    $connection = [Microsoft.Data.SqlClient.SqlConnection]::new($csb.ConnectionString)
 
     try {
         Write-Verbose -Message "Opening connection"

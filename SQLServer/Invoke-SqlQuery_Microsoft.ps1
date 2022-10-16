@@ -1,7 +1,7 @@
 function Invoke-SqlQuery {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][System.Data.SqlClient.SqlConnection]$Connection,
+        [Parameter(Mandatory)][Microsoft.Data.SqlClient.SqlConnection]$Connection,
         [Parameter(Mandatory)][string]$Query,
         [Int32]$QueryTimeout = 600,
         [ValidateSet("DataSet", "DataTable", "DataRow", "PSObject", "SingleValue")]
@@ -83,7 +83,7 @@ function Invoke-SqlQuery {
         }
 
         Write-Verbose -Message "Creating data adapter and setting command"
-        $dataAdapter = [System.Data.SqlClient.SqlDataAdapter]::new()
+        $dataAdapter = [Microsoft.Data.SqlClient.SqlDataAdapter]::new()
         $dataAdapter.SelectCommand = $command
 
         Write-Verbose -Message "Creating data set"
