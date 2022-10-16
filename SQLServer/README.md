@@ -15,10 +15,12 @@ I use the image [mcr.microsoft.com/mssql/server:2019-latest](https://hub.docker.
 
 ## Install the client
 
-We can use (nearly) the same sources and installation code on all the target environments:
-* PowerShell 5.1 on Windows
-* PowerShell 7.2 on Windows
-* PowerShell 7.2 on Linux
+### System.Data.SqlClient
+
+As PowerShell and Windows are both from Microsoft: The client is just nativly build into PowerShell. If you want to use the namespace System.Data.SqlClient, there is nothing that you need to do.
+
+See [Connect-SqlInstance.ps1](Connect-SqlInstance.ps1), [Invoke-SqlQuery.ps1](Invoke-SqlQuery.ps1) and [Application.ps1](Application.ps1) on how to use this client.
+
 
 ### PowerShell module dbatools
 
@@ -34,6 +36,8 @@ In general, Microsoft goes one step further than the other vendors. They publish
 They give you a .NET interface to all layers within SQL Servers, such as the instances themselves, all logins, databases, tables, indexes, etc.
 Best of all, it's now open source, you can take a look at the code here on [GitHub](https://github.com/microsoft/sqlmanagementobjects).
 
+See [Application_dbatools.ps1](Application_dbatools.ps1) on how to use this client.
+
 
 ### PowerShell module SqlServer
 
@@ -44,13 +48,15 @@ https://docs.microsoft.com/en-us/powershell/module/sqlserver
 This is the official PowerShell module by Microsoft and has a command [Invoke-Sqlcmd](https://docs.microsoft.com/en-us/powershell/module/sqlserver/invoke-sqlcmd) that can be used to execute a query.
 
 
-### NuGet package Microsoft.SqlServer.SqlManagementObjects
-
-https://docs.microsoft.com/en-us/sql/relational-databases/server-management-objects-smo/installing-smo
+### NuGet package Microsoft.Data.SqlClient
 
 https://www.nuget.org/packages/Microsoft.SqlServer.SqlManagementObjects
 
-I definitly want to try that - but there are dependencies like [Microsoft.Data.SqlClient](https://www.nuget.org/packages/Microsoft.Data.SqlClient/) which also has dependencies. And I still have not enough knowledge about installing NuGet packages with PowerShell.
+This is the new version of the SQL Client from Microsoft and I definitly want to try that - but there are some dependencies. And I still have not enough knowledge about installing NuGet packages with dependencies.
+
+But dbatools include all the needed DLLs and they can be loaded without loading the module itself.
+
+See [Connect-SqlInstance_Microsoft.ps1](Connect-SqlInstance_Microsoft.ps1), [Invoke-SqlQuery_Microsoft.ps1](Invoke-SqlQuery_Microsoft.ps1) and [Application_Microsoft.ps1](Application_Microsoft.ps1) on how to use this client.
 
 
 ### Devart dotConnect for SQL Server 4.0 Standard
