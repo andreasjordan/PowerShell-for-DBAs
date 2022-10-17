@@ -235,11 +235,19 @@ exit
 END_OF_SQL
 '@
 
-    Write-LogMessage -Message "Creating application with only SMO from dbatools"
+    Write-LogMessage -Message "Creating application using namespace System.Data.SqlClient"
     $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/SQLServer
 ./Application.ps1
+'@
+    Write-LogMessage -Message "Output: $output"
+
+    Write-LogMessage -Message "Creating application using namespace Microsoft.Data.SqlClient from libraries used by dbatools"
+    $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
+$ProgressPreference = 'SilentlyContinue'
+Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/SQLServer
+./Application_Microsoft.ps1
 '@
     Write-LogMessage -Message "Output: $output"
 
