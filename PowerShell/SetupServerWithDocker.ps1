@@ -172,8 +172,9 @@ rm -rf /var/lib/apt/lists/* && \
 localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 '@
 
-    Write-LogMessage -Message "Installing Informix client SDK"
-    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell sh -Command @'
+    if (Get-ChildItem -Path $SoftwarePath -Filter INFO_CLT_SDK_LNX_X86_4.50.FC8.tar) {
+        Write-LogMessage -Message "Installing Informix client SDK"
+        $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell sh -Command @'
 apt-get update && \
 apt-get install -y unixodbc-dev libelf-dev && \
 cd /tmp && \
@@ -183,6 +184,9 @@ echo 'USER_INSTALL_DIR=/opt/IBM/Informix_Client-SDK' >> response
 echo 'CHOSEN_INSTALL_FEATURE_LIST=SDK-NETCORE,GLS' >> response
 ./installclientsdk -i silent -f response
 '@
+    } else {
+        Write-LogMessage -Message "Skipping installation of Informix client SDK"
+    }
 
     Write-LogMessage -Message "Installing PowerShell"
     $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell sh -Command @'
@@ -554,8 +558,9 @@ $Env:INFORMIX_DLL = '/mnt/NuGet/IBM.Data.DB2.Core-lnx/lib/netstandard2.1/IBM.Dat
     Write-LogMessage -Message "Output: $output"
 #>
 
-    Write-LogMessage -Message "Creating application with /opt/IBM/Informix_Client-SDK/bin/Informix.Net.Core.dll"
-    $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
+    if (Get-ChildItem -Path $SoftwarePath -Filter INFO_CLT_SDK_LNX_X86_4.50.FC8.tar) {
+        Write-LogMessage -Message "Creating application with /opt/IBM/Informix_Client-SDK/bin/Informix.Net.Core.dll"
+        $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Informix
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
@@ -563,7 +568,10 @@ $Env:INFORMIX_DLL = '/opt/IBM/Informix_Client-SDK/bin/Informix.Net.Core.dll'
 $Env:INFORMIX_INSTANCE = 'Informix-1:9088:informix'
 ./Application.ps1
 '@
-    Write-LogMessage -Message "Output: $output"
+        Write-LogMessage -Message "Output: $output"
+    } else {
+        Write-LogMessage -Message "Skipping creation of application with /opt/IBM/Informix_Client-SDK/bin/Informix.Net.Core.dll"
+    }
 
     if ($StopContainer) {
         Stop-MyDockerContainer -Name $containerParams.Name
