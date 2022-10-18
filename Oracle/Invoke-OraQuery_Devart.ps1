@@ -118,10 +118,11 @@ function Invoke-OraQuery {
                 }
             }
         } catch {
+            $message = "Query failed: $($_.Exception.InnerException.Message)"
             if ($EnableException) {
-                throw
+                Write-Error -Message $message -TargetObject $command -ErrorAction Stop
             } else {
-                Write-Warning -Message "Query could not be executed: $($_.Exception.InnerException.Message)"
+                Write-Warning -Message $message
             }
         }
     }
