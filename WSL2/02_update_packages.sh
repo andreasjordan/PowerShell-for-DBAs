@@ -1,5 +1,5 @@
 #!/bin/bash
 
-sudo apt update && \
-sudo apt -y upgrade && \
+apt update && \
+apt -y upgrade && \
 echo 'OK'

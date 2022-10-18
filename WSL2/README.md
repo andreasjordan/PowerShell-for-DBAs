@@ -20,14 +20,16 @@ Create a symbolic link to access the scripts in this folder from inside the WSL2
 
 Then paste the command in the linux vm and execute it. You will be placed in this folder and can now easily execute the numbered scripts to setup the vm. 
 
+You need to execute the shell scripts starting with 01, 02, 03, 05 and 06 with sudo.
+
 If you want to run all scripts at once, use:
 ```
-./01_setup_DNS.sh && \
-./02_update_packages.sh && \
-./03_install_pwsh.sh && \
+sudo ./01_setup_DNS.sh && \
+sudo ./02_update_packages.sh && \
+sudo ./03_install_pwsh.sh && \
 ./04_setup_pwsh.ps1 && \
-./05_install_docker.sh && \
-./06_setup_docker.sh && \
+sudo ./05_install_docker.sh && \
+sudo ./06_setup_docker.sh && \
 ./07_setup_git.sh && \
 ./08_setup_container.sh && \
 echo 'All OK'
