@@ -4,6 +4,7 @@ $ErrorActionPreference = 'Stop'
 
 # The script will install these PowerShell modules:
 $modules = @(
+    'Microsoft.PowerShell.ConsoleGuiTools'
     'PSFramework'
     'dbatools'
 )
