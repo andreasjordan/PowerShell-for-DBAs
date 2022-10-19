@@ -46,10 +46,11 @@ function Connect-PgInstance {
         Write-Verbose -Message "Returning connection object"
         $connection
     } catch {
+        $message = "Connection failed: $($_.Exception.InnerException.Message)"
         if ($EnableException) {
-            throw
+            Write-Error -Message $message -TargetObject $connection -ErrorAction Stop
         } else {
-            Write-Warning -Message "Connection could not be opened: $($_.Exception.InnerException.Message)"
+            Write-Warning -Message $message
         }
     }
 }
