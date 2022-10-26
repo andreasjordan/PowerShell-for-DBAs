@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param (
-    [ValidateSet("SQLServer", "Oracle", "PostgreSQL", "MySQL", "MariaDB", "Db2", "Informix", "Cassandra")][String[]]$DBMS = @("SQLServer", "Oracle", "PostgreSQL", "MySQL", "MariaDB", "Db2", "Informix"),
+    [ValidateSet("SQLServer", "Oracle", "PostgreSQL", "PostGIS", "MySQL", "MariaDB", "Db2", "Informix", "Cassandra")][String[]]$DBMS = @("SQLServer", "Oracle", "PostgreSQL", "MySQL", "MariaDB", "Db2", "Informix"),
     [String]$NuGetPath = (Resolve-Path -Path "~/NuGet").Path,
     [String]$GitHubPath = (Resolve-Path -Path "~/GitHub").Path,
     [String]$SoftwarePath = (Resolve-Path -Path "~/Software").Path,
@@ -9,7 +9,7 @@ param (
 
 # Test, if we need the container PowerShell-A
 $runPowerShellA = $false
-foreach ($db in 'SQLServer', 'Oracle', 'MySQL', 'MariaDB', 'PostgreSQL') {
+foreach ($db in 'SQLServer', 'Oracle', 'MySQL', 'MariaDB', 'PostgreSQL', 'PostGIS') {
     if ($db -in $DBMS) {
         $runPowerShellA = $true
     }
@@ -290,13 +290,24 @@ if ('Oracle' -in $DBMS) {
     New-MyDockerContainer @containerParams
     Wait-MyDockerContainer -Name $containerParams.Name -LogRegex 'DATABASE IS READY TO USE!' -EnableException
 
-    Write-LogMessage -Message "Creating user"
+    Write-LogMessage -Message "Creating user stackoverflow"
     $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
 sqlplus / as sysdba <<END_OF_SQL
 ALTER SESSION SET CONTAINER=XEPDB1;
 CREATE USER stackoverflow IDENTIFIED BY start456 DEFAULT TABLESPACE users QUOTA UNLIMITED ON users TEMPORARY TABLESPACE temp;
 GRANT CREATE SESSION TO stackoverflow;
 GRANT ALL PRIVILEGES TO stackoverflow;
+exit
+END_OF_SQL
+'@
+
+Write-LogMessage -Message "Creating user geodemo"
+$null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
+sqlplus / as sysdba <<END_OF_SQL
+ALTER SESSION SET CONTAINER=XEPDB1;
+CREATE USER geodemo IDENTIFIED BY start456 DEFAULT TABLESPACE users QUOTA UNLIMITED ON users TEMPORARY TABLESPACE temp;
+GRANT CREATE SESSION TO geodemo;
+GRANT ALL PRIVILEGES TO geodemo;
 exit
 END_OF_SQL
 '@
@@ -444,6 +455,45 @@ Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/PostgreSQL
 ./Application.ps1
 '@
     Write-LogMessage -Message "Output: $output"
+
+    if ($StopContainer) {
+        Stop-MyDockerContainer -Name $containerParams.Name
+    }
+}
+
+if ('PostGIS' -in $DBMS) { 
+    $containerParams = @{
+        Name        = 'PostGIS-1'
+        Image       = 'postgis/postgis:latest'
+        Network     = 'dbms-net'
+        Memory      = '2g'
+        Port        = @(
+            '5433:5432'
+        )
+        Environment = @(
+            'POSTGRES_PASSWORD=start123'
+        )
+    }
+    Write-LogMessage -Message "Starting setup of container $($containerParams.Name)"
+    if (Get-MyDockerContainer -Name $containerParams.Name) {
+        Write-LogMessage -Level Verbose -Message "Removing existing container"
+        Remove-MyDockerContainer -Name $containerParams.Name -Force
+    }
+    Write-LogMessage -Message "Building new container from image $($containerParams.Image)"
+    New-MyDockerContainer @containerParams
+    Wait-MyDockerContainer -Name $containerParams.Name -LogRegex 'database system is ready to accept connections' -EnableException
+
+    Write-LogMessage -Message "Creating user and database"
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
+su - postgres <<END_OF_SHELL
+psql <<END_OF_SQL
+CREATE USER geodemo WITH PASSWORD 'start456';
+CREATE DATABASE geodemo WITH OWNER geodemo;
+\connect geodemo
+CREATE EXTENSION postgis;
+END_OF_SQL
+END_OF_SHELL
+'@
 
     if ($StopContainer) {
         Stop-MyDockerContainer -Name $containerParams.Name
