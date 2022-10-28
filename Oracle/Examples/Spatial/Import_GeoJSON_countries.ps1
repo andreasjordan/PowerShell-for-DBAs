@@ -1,8 +1,11 @@
+$ErrorActionPreference = 'Stop'
+$PSDefaultParameterValues = @{ "*-Ora*:EnableException" = $true }
+
 Add-Type -Path $Env:ORACLE_DLL
 . ..\..\Connect-OraInstance.ps1
 . ..\..\Invoke-OraQuery.ps1
 
-$connection = Connect-OraInstance -Instance localhost/XEPDB1 -Credential geouser
+$connection = Connect-OraInstance -Instance localhost/XEPDB1 -Credential geodemo
 
 $query = 'CREATE TABLE countries (name VARCHAR2(50), iso CHAR(3), geometry SDO_GEOMETRY)' 
 Invoke-OraQuery -Connection $connection -Query $query
@@ -22,5 +25,10 @@ foreach ($feature in $geoJSON.features) {
             geometry = 'CLOB'
         }
     }
-    Invoke-OraQuery @invokeParams
+    try {
+        Invoke-OraQuery @invokeParams
+    } catch {
+        # On one of my labs, Kazakhstan failed to import with "ORA-40441: JSON syntax error".
+        Write-Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
+    }
 }
