@@ -21,14 +21,11 @@ foreach ($feature in $geoJSON.features) {
             iso      = $feature.properties.ISO_A3
             geometry = $feature.geometry | ConvertTo-Json -Depth 4 -Compress 
         }
-        ParameterTypes  = @{
-            geometry = 'CLOB'
-        }
     }
     try {
         Invoke-OraQuery @invokeParams
     } catch {
-        # On one of my labs, Kazakhstan failed to import with "ORA-40441: JSON syntax error".
+        # When using NuGet package Oracle.ManagedDataAccess.Core, Kazakhstan failed to import with "ORA-40441: JSON syntax error".
         Write-Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
     }
 }
