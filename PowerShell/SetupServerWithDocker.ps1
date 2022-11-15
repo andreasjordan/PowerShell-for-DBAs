@@ -4,22 +4,25 @@ param (
     [String]$NuGetPath = (Resolve-Path -Path "~/NuGet").Path,
     [String]$GitHubPath = (Resolve-Path -Path "~/GitHub").Path,
     [String]$SoftwarePath = (Resolve-Path -Path "~/Software").Path,
+    [Switch]$ServerContainerOnly,
     [Switch]$StopContainer
 )
 
-# Test, if we need the container PowerShell-A
 $runPowerShellA = $false
-foreach ($db in 'SQLServer', 'Oracle', 'MySQL', 'MariaDB', 'PostgreSQL', 'PostGIS') {
-    if ($db -in $DBMS) {
-        $runPowerShellA = $true
-    }
-}
-
-# Test, if we need the container PowerShell-B
 $runPowerShellB = $false
-foreach ($db in 'Db2', 'Informix') {
-    if ($db -in $DBMS) {
-        $runPowerShellB = $true
+if (-not $ServerContainerOnly) {
+    # Test, if we need the container PowerShell-A
+    foreach ($db in 'SQLServer', 'Oracle', 'MySQL', 'MariaDB', 'PostgreSQL', 'PostGIS') {
+        if ($db -in $DBMS) {
+            $runPowerShellA = $true
+        }
+    }
+
+    # Test, if we need the container PowerShell-B
+    foreach ($db in 'Db2', 'Informix') {
+        if ($db -in $DBMS) {
+            $runPowerShellB = $true
+        }
     }
 }
 
@@ -55,12 +58,14 @@ $PSDefaultParameterValues = @{ "*-MyDocker*:EnableException" = $true }
 $ProgressPreference = 'SilentlyContinue'
 
 # Download the needed NuGet packages
-foreach ($package in 'Oracle.ManagedDataAccess.Core', 'MySql.Data', 'Npgsql', 'Net.IBM.Data.Db2-lnx', 'IBM.Data.DB2.Core-lnx') {
-    if (-not (Test-Path -Path $NuGetPath/$package)) {
-        Write-LogMessage -Message "Downloading NuGet package $package to $NuGetPath/$package"
-        Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/$package -OutFile package.zip -UseBasicParsing
-        Expand-Archive -Path package.zip -DestinationPath $NuGetPath/$package
-        Remove-Item -Path package.zip
+if (-not $ServerContainerOnly) {
+    foreach ($package in 'Oracle.ManagedDataAccess.Core', 'MySql.Data', 'Npgsql', 'Net.IBM.Data.Db2-lnx', 'IBM.Data.DB2.Core-lnx') {
+        if (-not (Test-Path -Path $NuGetPath/$package)) {
+            Write-LogMessage -Message "Downloading NuGet package $package to $NuGetPath/$package"
+            Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/$package -OutFile package.zip -UseBasicParsing
+            Expand-Archive -Path package.zip -DestinationPath $NuGetPath/$package
+            Remove-Item -Path package.zip
+        }
     }
 }
 
@@ -222,7 +227,7 @@ if ('SQLServer' -in $DBMS) {
     New-MyDockerContainer @containerParams
     Wait-MyDockerContainer -Name $containerParams.Name -LogRegex 'SQL Server is now ready for client connections' -EnableException
 
-    Write-LogMessage -Message "Creating user"
+    Write-LogMessage -Message "Creating database and user"
     $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
 /opt/mssql-tools/bin/sqlcmd -U sa -P 'P#ssw0rd' <<END_OF_SQL
 CREATE LOGIN StackOverflow WITH PASSWORD = 'start456', CHECK_POLICY = OFF
@@ -235,29 +240,31 @@ exit
 END_OF_SQL
 '@
 
-    Write-LogMessage -Message "Creating application using namespace System.Data.SqlClient"
-    $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
+    if (-not $ServerContainerOnly) {
+        Write-LogMessage -Message "Creating application using namespace System.Data.SqlClient"
+        $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/SQLServer
 ./Application.ps1
 '@
-    Write-LogMessage -Message "Output: $output"
+        Write-LogMessage -Message "Output: $output"
 
-    Write-LogMessage -Message "Creating application using namespace Microsoft.Data.SqlClient from libraries used by dbatools"
-    $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
+        Write-LogMessage -Message "Creating application using namespace Microsoft.Data.SqlClient from libraries used by dbatools"
+        $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/SQLServer
 ./Application_Microsoft.ps1
 '@
-    Write-LogMessage -Message "Output: $output"
+        Write-LogMessage -Message "Output: $output"
 
-    Write-LogMessage -Message "Creating application with commands from dbatools"
-    $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
+        Write-LogMessage -Message "Creating application with commands from dbatools"
+        $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/SQLServer
 ./Application_dbatools.ps1
 '@
-    Write-LogMessage -Message "Output: $output"
+        Write-LogMessage -Message "Output: $output"
+    }
 
     if ($StopContainer) {
         Stop-MyDockerContainer -Name $containerParams.Name
@@ -301,8 +308,8 @@ exit
 END_OF_SQL
 '@
 
-Write-LogMessage -Message "Creating user geodemo"
-$null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
+    Write-LogMessage -Message "Creating user geodemo"
+    $null = Invoke-MyDockerContainer -Name $containerParams.Name -Shell bash -Command @'
 sqlplus / as sysdba <<END_OF_SQL
 ALTER SESSION SET CONTAINER=XEPDB1;
 CREATE USER geodemo IDENTIFIED BY start456 DEFAULT TABLESPACE users QUOTA UNLIMITED ON users TEMPORARY TABLESPACE temp;
@@ -312,13 +319,15 @@ exit
 END_OF_SQL
 '@
 
-    Write-LogMessage -Message "Creating application"
-    $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
+    if (-not $ServerContainerOnly) {
+        Write-LogMessage -Message "Creating application"
+        $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Oracle
 ./Application.ps1
 '@
-    Write-LogMessage -Message "Output: $output"
+        Write-LogMessage -Message "Output: $output"
+    }
 
     if ($StopContainer) {
         Stop-MyDockerContainer -Name $containerParams.Name
@@ -357,13 +366,15 @@ exit
 END_OF_SQL
 '@
 
-    Write-LogMessage -Message "Creating application"
-    $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
+    if (-not $ServerContainerOnly) {
+        Write-LogMessage -Message "Creating application"
+        $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/MySQL
 ./Application.ps1
 '@
-    Write-LogMessage -Message "Output: $output"
+        Write-LogMessage -Message "Output: $output"
+    }
 
     if ($StopContainer) {
         Stop-MyDockerContainer -Name $containerParams.Name
@@ -402,14 +413,16 @@ exit
 END_OF_SQL
 '@
 
-    Write-LogMessage -Message "Creating application"
-    $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
+    if (-not $ServerContainerOnly) {
+        Write-LogMessage -Message "Creating application"
+        $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/MySQL
 $Env:MYSQL_INSTANCE = 'MariaDB-1'
 ./Application.ps1
 '@
-    Write-LogMessage -Message "Output: $output"
+        Write-LogMessage -Message "Output: $output"
+    }
 
     if ($StopContainer) {
         Stop-MyDockerContainer -Name $containerParams.Name
@@ -448,13 +461,15 @@ END_OF_SQL
 END_OF_SHELL
 '@
 
-    Write-LogMessage -Message "Creating application"
-    $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
+    if (-not $ServerContainerOnly) {
+        Write-LogMessage -Message "Creating application"
+        $output = Invoke-MyDockerContainer -Name PowerShell-A -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/PostgreSQL
 ./Application.ps1
 '@
-    Write-LogMessage -Message "Output: $output"
+        Write-LogMessage -Message "Output: $output"
+    }
 
     if ($StopContainer) {
         Stop-MyDockerContainer -Name $containerParams.Name
@@ -531,25 +546,27 @@ useradd stackoverflow
 echo 'stackoverflow:start456' | chpasswd
 '@
 
-    Write-LogMessage -Message "Creating application with /NuGet/Net.IBM.Data.Db2-lnx/lib/net6.0/IBM.Data.Db2.dll"
-    $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
+    if (-not $ServerContainerOnly) {
+        Write-LogMessage -Message "Creating application with /NuGet/Net.IBM.Data.Db2-lnx/lib/net6.0/IBM.Data.Db2.dll"
+        $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Db2
 ./Application.ps1
 '@
-    Write-LogMessage -Message "Output: $output"
+        Write-LogMessage -Message "Output: $output"
 
 <# Does not work, the pwsh process just aborts somewhere during the process, not always at the same step:
-    Write-LogMessage -Message "Creating application with /NuGet/IBM.Data.DB2.Core-lnx/lib/netstandard2.1/IBM.Data.DB2.Core.dll"
-    $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
+        Write-LogMessage -Message "Creating application with /NuGet/IBM.Data.DB2.Core-lnx/lib/netstandard2.1/IBM.Data.DB2.Core.dll"
+        $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Db2
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
 $Env:DB2_DLL = '/mnt/NuGet/IBM.Data.DB2.Core-lnx/lib/netstandard2.1/IBM.Data.DB2.Core.dll'
 ./Application.ps1
 '@
-    Write-LogMessage -Message "Output: $output"
+        Write-LogMessage -Message "Output: $output"
 #>
+    }
 
     if ($StopContainer) {
         Stop-MyDockerContainer -Name $containerParams.Name
@@ -594,31 +611,32 @@ GRANT RESOURCE TO stackoverflow;
 END_OF_SQL
 '@
 
-    Write-LogMessage -Message "Creating application with /NuGet/Net.IBM.Data.Db2-lnx/lib/net6.0/IBM.Data.Db2.dll"
-    $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
+    if (-not $ServerContainerOnly) {
+        Write-LogMessage -Message "Creating application with /NuGet/Net.IBM.Data.Db2-lnx/lib/net6.0/IBM.Data.Db2.dll"
+        $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Informix
 $Env:INFORMIX_DLL = '/mnt/NuGet/Net.IBM.Data.Db2-lnx/lib/net6.0/IBM.Data.Db2.dll'
 $Env:INFORMIX_INSTANCE = 'Informix-1:9089'
 ./Application.ps1
 '@
-    Write-LogMessage -Message "Output: $output"
+        Write-LogMessage -Message "Output: $output"
 
 <# Does not work, the pwsh process just aborts somewhere during the process, not always at the same step:
-    Write-LogMessage -Message "Creating application with /NuGet/IBM.Data.DB2.Core-lnx/lib/netstandard2.1/IBM.Data.DB2.Core.dll"
-    $output = docker exec -ti PowerShell-B pwsh -c @'
+        Write-LogMessage -Message "Creating application with /NuGet/IBM.Data.DB2.Core-lnx/lib/netstandard2.1/IBM.Data.DB2.Core.dll"
+        $output = docker exec -ti PowerShell-B pwsh -c @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Informix
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
 $Env:INFORMIX_DLL = '/mnt/NuGet/IBM.Data.DB2.Core-lnx/lib/netstandard2.1/IBM.Data.DB2.Core.dll'
 ./Application.ps1
 '@
-    Write-LogMessage -Message "Output: $output"
+        Write-LogMessage -Message "Output: $output"
 #>
 
-    if (Get-ChildItem -Path $SoftwarePath -Filter INFO_CLT_SDK_LNX_X86_4.50.FC8.tar) {
-        Write-LogMessage -Message "Creating application with /opt/IBM/Informix_Client-SDK/bin/Informix.Net.Core.dll"
-        $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
+        if (Get-ChildItem -Path $SoftwarePath -Filter INFO_CLT_SDK_LNX_X86_4.50.FC8.tar) {
+            Write-LogMessage -Message "Creating application with /opt/IBM/Informix_Client-SDK/bin/Informix.Net.Core.dll"
+            $output = Invoke-MyDockerContainer -Name PowerShell-B -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Informix
 ../PowerShell/SetEnvironment.ps1 -Client Docker -Server Docker
@@ -626,9 +644,10 @@ $Env:INFORMIX_DLL = '/opt/IBM/Informix_Client-SDK/bin/Informix.Net.Core.dll'
 $Env:INFORMIX_INSTANCE = 'Informix-1:9088:informix'
 ./Application.ps1
 '@
-        Write-LogMessage -Message "Output: $output"
-    } else {
-        Write-LogMessage -Message "Skipping creation of application with /opt/IBM/Informix_Client-SDK/bin/Informix.Net.Core.dll"
+            Write-LogMessage -Message "Output: $output"
+        } else {
+            Write-LogMessage -Message "Skipping creation of application with /opt/IBM/Informix_Client-SDK/bin/Informix.Net.Core.dll"
+        }
     }
 
     if ($StopContainer) {
@@ -686,6 +705,7 @@ GRANT stackoverflow_admin TO stackoverflow;
 END_OF_SQL
 '@
 
+    if (-not $ServerContainerOnly) {
 <# Does not work yet:
     Write-LogMessage -Message "Creating application"
     $output = docker exec -ti PowerShell-B pwsh -c @'
@@ -696,7 +716,8 @@ Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/Cassandra
 '@
     Write-LogMessage -Message "Output: $output"
 #>
-
+    }
+    
     if ($StopContainer) {
         Stop-MyDockerContainer -Name $containerParams.Name
     }
