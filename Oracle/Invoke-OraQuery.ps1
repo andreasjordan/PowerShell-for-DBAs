@@ -74,6 +74,8 @@ function Invoke-OraQuery {
                 $parameter.ParameterName = $parameterName
                 if (($null -ne $ParameterTypes) -and ($null -ne $ParameterTypes[$parameterName])) {
                     $parameter.OracleDbType = $ParameterTypes[$parameterName]
+                } elseif ($ParameterValues[$parameterName].Length -gt 4000) {
+                    $parameter.OracleDbType = 'CLOB'
                 }
                 $parameter.Value = $ParameterValues[$parameterName]
                 $null = $command.Parameters.Add($parameter)
