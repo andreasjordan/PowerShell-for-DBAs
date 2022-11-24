@@ -50,6 +50,7 @@ function Write-SqlTable {
             Stop-PSFFunction -Message "Filling data table failed: $($_.Exception.Message)" -Target $row -EnableException $EnableException
             return
         }
+        $columnMappings = @( )
         $rowCount = $Data.Count
     } elseif ($PSBoundParameters.Keys -contains 'DataReader') {
         Write-PSFMessage -Level Verbose -Message "Getting source schema table"
