@@ -1,7 +1,7 @@
 function Write-SqlTable {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)][System.Data.SqlClient.SqlConnection]$Connection,
+        [Parameter(Mandatory)][Microsoft.Data.SqlClient.SqlConnection]$Connection,
         [Parameter(Mandatory)][string]$Table,
         [object[]]$Data,
         [object]$DataReader,
@@ -65,7 +65,7 @@ function Write-SqlTable {
             $targetColumnName = $targetSchemaTable.Rows | Where-Object ColumnName -eq $sourceColumnName | Select-Object -ExpandProperty ColumnName
             if ($null -ne $targetColumnName) {
                 Write-PSFMessage -Level Verbose -Message "Adding column mapping: $sourceColumnName -> $targetColumnName"
-                $columnMappings += [System.Data.SqlClient.SqlBulkCopyColumnMapping]::new($sourceColumnName, $targetColumnName)
+                $columnMappings += [Microsoft.Data.SqlClient.SqlBulkCopyColumnMapping]::new($sourceColumnName, $targetColumnName)
             } else {
                 Stop-PSFFunction -Message "No target column for source column $sourceColumnName found." -Target $Table -EnableException $EnableException
                 return
@@ -97,9 +97,9 @@ function Write-SqlTable {
     Write-Progress -Id 1 -Activity "Initializing bulk copy for $Table"
     try {
         $bulkCopyOptions = 0
-        $bulkCopyOptions += [System.Data.SqlClient.SqlBulkCopyOptions]::TableLock
-        $bulkCopyOptions += [System.Data.SqlClient.SqlBulkCopyOptions]::UseInternalTransaction
-        $bulkCopy = [System.Data.SqlClient.SqlBulkCopy]::new($Connection, $bulkCopyOptions, $null)
+        $bulkCopyOptions += [Microsoft.Data.SqlClient.SqlBulkCopyOptions]::TableLock
+        $bulkCopyOptions += [Microsoft.Data.SqlClient.SqlBulkCopyOptions]::UseInternalTransaction
+        $bulkCopy = [Microsoft.Data.SqlClient.SqlBulkCopy]::new($Connection, $bulkCopyOptions, $null)
         $bulkCopy.DestinationTableName = $Table
         $columnMappings | ForEach-Object -Process { $null = $bulkCopy.ColumnMappings.Add($_) }
         $bulkCopy.BatchSize = $BatchSize
