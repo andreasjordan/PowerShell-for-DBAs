@@ -17,7 +17,7 @@ function Connect-SqlInstance {
         $csb['User ID'] = $Credential.UserName
         $csb.Password = $Credential.GetNetworkCredential().Password
     } else {
-        $csb.IntegratedSecurity = $true
+        $csb['Integrated Security'] = $true
     }
     $csb['Initial Catalog'] = $Database
     if ($PooledConnection) {
