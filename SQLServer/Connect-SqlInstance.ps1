@@ -3,7 +3,7 @@ function Connect-SqlInstance {
     [OutputType([System.Data.SqlClient.SqlConnection])]
     param (
         [Parameter(Mandatory)][string]$Instance,
-        [Parameter(Mandatory)][PSCredential]$Credential,
+        [PSCredential]$Credential,
         [string]$Database,
         [switch]$PooledConnection,
         [switch]$EnableException
@@ -13,8 +13,12 @@ function Connect-SqlInstance {
 
     $csb = [System.Data.SqlClient.SqlConnectionStringBuilder]::new()
     $csb['Data Source'] = $Instance
-    $csb['User ID'] = $Credential.UserName
-    $csb.Password = $Credential.GetNetworkCredential().Password
+    if ($Credential) {
+        $csb['User ID'] = $Credential.UserName
+        $csb.Password = $Credential.GetNetworkCredential().Password
+    } else {
+        $csb.IntegratedSecurity = $true
+    }
     $csb['Initial Catalog'] = $Database
     if ($PooledConnection) {
         Write-Verbose -Message "Using connection pooling"
