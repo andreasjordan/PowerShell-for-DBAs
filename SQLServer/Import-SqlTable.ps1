@@ -6,6 +6,7 @@ function Import-SqlTable {
         [Parameter(Mandatory)][string]$Table,
         [int]$BatchSize = 1000,
         [System.Text.Encoding]$Encoding = [System.Text.Encoding]::UTF8,
+        [hashtable]$ColumnMap,
         [switch]$TruncateTable,
         [switch]$EnableException
     )
@@ -98,7 +99,12 @@ function Import-SqlTable {
             if ($null -ne $rowObject) {
                 $newRow = $dataTable.NewRow()
                 foreach ($column in $targetSchemaTable) {
-                    $value = $rowObject.$($column.ColumnName)
+                    if ($column.ColumnName -in $ColumnMap.Keys) {
+                        $sourceColumnName = $ColumnMap[$column.ColumnName]
+                    } else {
+                        $sourceColumnName = $column.ColumnName
+                    }
+                    $value = $rowObject.$sourceColumnName
                     if ($null -ne $value) {
                         $newRow[$column.ColumnName] = $value
                     }
