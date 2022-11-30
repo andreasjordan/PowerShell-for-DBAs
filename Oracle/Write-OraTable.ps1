@@ -39,7 +39,7 @@ function Write-OraTable {
         try {
             foreach ($row in $Data) {
                 $newRow = $dataTable.NewRow()
-                foreach ($column in $schemaTable) {
+                foreach ($column in $targetSchemaTable) {
                     $value = $row.$($column.ColumnName)
                     if ($null -ne $value) {
                         $newRow[$column.ColumnName] = $value
