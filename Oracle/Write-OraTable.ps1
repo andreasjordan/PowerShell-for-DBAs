@@ -104,7 +104,9 @@ function Write-OraTable {
         $bulkCopyOptions += [Oracle.ManagedDataAccess.Client.OracleBulkCopyOptions]::UseInternalTransaction
         $bulkCopy = [Oracle.ManagedDataAccess.Client.OracleBulkCopy]::new($Connection, $bulkCopyOptions)
         $bulkCopy.DestinationTableName = $Table
-        $columnMappings | ForEach-Object -Process { $null = $bulkCopy.ColumnMappings.Add($_) }
+        foreach ($mapping in $columnMappings) {
+            $null = $bulkCopy.ColumnMappings.Add($mapping)
+        }
         $bulkCopy.BatchSize = $BatchSize
         $bulkCopy.NotifyAfter = $BatchSize
         $bulkCopy.BulkCopyTimeout = 0
