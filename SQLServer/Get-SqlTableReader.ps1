@@ -1,6 +1,6 @@
 function Get-SqlTableReader {
     [CmdletBinding()]
-    [OutputType([Oracle.ManagedDataAccess.Client.OracleDataReader])]
+    [OutputType([System.Data.SqlClient.SqlDataReader])]
     param (
         [Parameter(Mandatory)][System.Data.SqlClient.SqlConnection]$Connection,
         [Parameter(Mandatory)][string]$Table,
