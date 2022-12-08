@@ -1,6 +1,7 @@
 Import-Module -Name AutomatedLab
 
 $LabName = "ITTage"
+$LabVmPath = "C:\AutomatedLab-$LabName"
 
 
 <# Some commands that I use for importing, removing, stopping, starting or connecting to the lab:
@@ -84,6 +85,7 @@ $ChocolateyPackages = @(
     'notepadplusplus'
     'vscode'
     'vscode-powershell'
+    'zoomit'
 # Just in case you would like to have these as well:
 #    '7zip'
 #    'googlechrome'
@@ -137,7 +139,7 @@ $DockerRunCommands = @(
 
 
 Set-PSFConfig -Module AutomatedLab -Name DoNotWaitForLinux -Value $true
-New-LabDefinition -Name $LabName -DefaultVirtualizationEngine HyperV
+New-LabDefinition -Name $LabName -DefaultVirtualizationEngine HyperV -VmPath $LabVmPath
 Set-LabInstallationCredential -Username $LabAdminUser -Password $LabAdminPassword
 Add-LabVirtualNetworkDefinition -Name $LabName -AddressSpace "$LabNetworkBase.0/24"
 foreach ($md in $MachineDefinition) {
@@ -484,6 +486,15 @@ if ($linuxVMs.Name -contains 'LIN-CL') {
     $pwshCommand = "Invoke-Expression -Command ([System.Net.WebClient]::new().DownloadString('https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/IT-Tage2022/Setup_Lab_Linux.ps1'))"
     $sshCommand = "pwsh -c ""$pwshCommand"""
     $null = Invoke-SSHCommand -SSHSession $sshSession -TimeOut 600 -Command $sshCommand
+}
+
+
+# WIN-CL
+
+if ($windowsVMs.Name -contains 'WIN-CL') {
+    Invoke-LabCommand -ComputerName WIN-CL -ActivityName 'Setup data for IT-Tage 2022' -ScriptBlock {
+        pwsh C:\ITTage\PowerShell-for-DBAs\IT-Tage2022\Setup_StackOverflow_Data.ps1
+    }
 }
 
 
