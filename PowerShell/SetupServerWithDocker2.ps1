@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param (
-    [Parameter(Mandatory)][String]$DatabaseDefinitionFile = '/tmp/tmp_DatabaseDefinition.json'
+    [String]$DatabaseDefinitionFile = '/tmp/tmp_DatabaseDefinition.json'
 )
 
 # New version, work in progress.
