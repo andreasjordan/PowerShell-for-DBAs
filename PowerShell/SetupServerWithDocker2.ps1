@@ -1,77 +1,18 @@
+[CmdletBinding()]
+param (
+    [Parameter(Mandatory)][String]$DatabaseDefinitionFile = '/tmp/tmp_DatabaseDefinition.json'
+)
+
 # New version, work in progress.
 # * No support for Db2, Informix and Cassandra
 # * No additional PowerShell container
 # * Target environment is my lab based on AutomatedLab
 # * Only works with PowerShell 7.3 (mainly to also support PostgreSQL)
+# * Only works from within the docker host
 
 $ErrorActionPreference = 'Stop'
 
-$LabMachineName = 'DockerDatabases'
-if ((hostname) -eq $LabMachineName) {
-    $LabMachineName = 'localhost'
-}
-$LabAdminPassword = 'Passw0rd!'
-
-$DatabaseDefinition = @(
-    [PSCustomObject]@{
-        ContainerName     = 'SQLServer'
-        Instance          = "$LabMachineName"
-        SqlQueries        = @(
-            "CREATE LOGIN StackOverflow WITH PASSWORD = '$LabAdminPassword', CHECK_POLICY = OFF"
-            'CREATE DATABASE StackOverflow'
-            'ALTER AUTHORIZATION ON DATABASE::StackOverflow TO StackOverflow'
-        )
-    }
-    [PSCustomObject]@{
-        ContainerName     = 'Oracle'
-        Instance          = "$LabMachineName/XEPDB1"
-        SqlQueries        = @(
-            "CREATE USER stackoverflow IDENTIFIED BY ""$LabAdminPassword"" DEFAULT TABLESPACE users QUOTA UNLIMITED ON users TEMPORARY TABLESPACE temp"
-            'GRANT CREATE SESSION TO stackoverflow'
-            'GRANT ALL PRIVILEGES TO stackoverflow'
-            "CREATE USER geodemo IDENTIFIED BY ""$LabAdminPassword"" DEFAULT TABLESPACE users QUOTA UNLIMITED ON users TEMPORARY TABLESPACE temp"
-            'GRANT CREATE SESSION TO geodemo'
-            'GRANT ALL PRIVILEGES TO geodemo'
-        )
-    }
-    [PSCustomObject]@{
-        ContainerName     = 'MySQL'
-        Instance          = "$LabMachineName"
-        SqlQueries        = @(
-            "CREATE USER 'stackoverflow'@'%' IDENTIFIED BY '$LabAdminPassword'"
-            'CREATE DATABASE stackoverflow'
-            "GRANT ALL PRIVILEGES ON stackoverflow.* TO 'stackoverflow'@'%'"
-        )
-    }
-    [PSCustomObject]@{
-        ContainerName     = 'MariaDB'
-        Instance          = "$($LabMachineName):13306"
-        SqlQueries        = @(
-            "CREATE USER 'stackoverflow'@'%' IDENTIFIED BY '$LabAdminPassword'"
-            'CREATE DATABASE stackoverflow'
-            "GRANT ALL PRIVILEGES ON stackoverflow.* TO 'stackoverflow'@'%'"
-        )
-    }
-    [PSCustomObject]@{
-        ContainerName     = 'PostgreSQL'
-        Instance          = "$LabMachineName"
-        SqlQueries        = @(
-            "CREATE USER stackoverflow WITH PASSWORD '$LabAdminPassword'"
-            'CREATE DATABASE stackoverflow WITH OWNER stackoverflow'
-        )
-    }
-    [PSCustomObject]@{
-        ContainerName     = 'PostGIS'
-        Instance          = "$($LabMachineName):15432"
-        SqlQueries        = @(
-            "CREATE USER geodemo WITH PASSWORD '$LabAdminPassword'"
-            'CREATE DATABASE geodemo WITH OWNER geodemo'
-            '\connect geodemo'
-            'CREATE EXTENSION postgis'
-        )
-    }
-)
-
+$DatabaseDefinition = Get-Content -Path $DatabaseDefinitionFile | ConvertFrom-Json
 
 # Load all needed DLLs
 $dllDefinition = @(
@@ -132,73 +73,75 @@ foreach ($dll in $dllDefinition) {
 # SQL Server
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'SQLServer'
-
-$sqlSaCredential = [PSCredential]::new('sa', (ConvertTo-SecureString -String $LabAdminPassword -AsPlainText -Force))
-while ($true) {
-    try {
-        $sqlSaConnection = Connect-SqlInstance -Instance $dbDef.Instance -Credential $sqlSaCredential -EnableException
-        break
-    } catch {
-        Start-Sleep -Seconds 30
+if ($dbDef) {
+    $sqlSaCredential = [PSCredential]::new('sa', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+    while ($true) {
+        try {
+            $sqlSaConnection = Connect-SqlInstance -Instance $dbDef.Instance -Credential $sqlSaCredential -EnableException
+            break
+        } catch {
+            Start-Sleep -Seconds 30
+        }
     }
+    foreach ($query in $dbDef.SqlQueries) {
+        Invoke-SqlQuery -Connection $sqlSaConnection -Query $query
+    }
+    
+    Push-Location -Path ..\SQLServer
+    $Env:SQLSERVER_INSTANCE = $dbDef.Instance
+    $Env:SQLSERVER_USERNAME = 'StackOverflow'
+    $Env:SQLSERVER_PASSWORD = $dbDef.AdminPassword
+    $Env:SQLSERVER_DATABASE = 'StackOverflow'
+    ./Application.ps1
+    Pop-Location
 }
-foreach ($query in $dbDef.SqlQueries) {
-    Invoke-SqlQuery -Connection $sqlSaConnection -Query $query
-}
-
-Push-Location -Path ..\SQLServer
-$Env:SQLSERVER_INSTANCE = $dbDef.Instance
-$Env:SQLSERVER_USERNAME = 'StackOverflow'
-$Env:SQLSERVER_PASSWORD = $LabAdminPassword
-$Env:SQLSERVER_DATABASE = 'StackOverflow'
-./Application.ps1
-Pop-Location
 
 
 # Oracle
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'Oracle'
-
-$oraSysCredential = [PSCredential]::new('sys', (ConvertTo-SecureString -String $LabAdminPassword -AsPlainText -Force))
-while ($true) {
-    try {
-        $oraSysConnection = Connect-OraInstance -Instance $dbDef.Instance -Credential $oraSysCredential -AsSysdba -EnableException
-        break
-    } catch {
-        Start-Sleep -Seconds 30
-    }
-}
-foreach ($query in $dbDef.SqlQueries) {
-    Invoke-OraQuery -Connection $oraSysConnection -Query $query
-}
-
-Push-Location -Path ..\Oracle
-$Env:ORACLE_INSTANCE = $dbDef.Instance
-$Env:ORACLE_USERNAME = 'stackoverflow'
-$Env:ORACLE_PASSWORD = $LabAdminPassword
-./Application.ps1
-Pop-Location
-
-$credential = [PSCredential]::new('geodemo', (ConvertTo-SecureString -String $LabAdminPassword -AsPlainText -Force))
-$connection = Connect-OraInstance -Instance $dbDef.Instance -Credential $credential
-Invoke-OraQuery -Connection $connection -Query 'CREATE TABLE countries (name VARCHAR2(50), iso CHAR(3), geometry SDO_GEOMETRY)'
-$geoJSON = Invoke-RestMethod -Method Get -Uri https://datahub.io/core/geo-countries/r/0.geojson
-foreach ($feature in $geoJSON.features) {
-    $invokeParams = @{
-        Connection      = $connection
-        Query           = 'INSERT INTO countries VALUES (:name, :iso, sdo_util.from_geojson(:geometry))'
-        ParameterValues = @{
-            name     = $feature.properties.ADMIN
-            iso      = $feature.properties.ISO_A3
-            geometry = $feature.geometry | ConvertTo-Json -Depth 4 -Compress 
+if ($dbDef) {
+    $oraSysCredential = [PSCredential]::new('sys', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+    while ($true) {
+        try {
+            $oraSysConnection = Connect-OraInstance -Instance $dbDef.Instance -Credential $oraSysCredential -AsSysdba -EnableException
+            break
+        } catch {
+            Start-Sleep -Seconds 30
         }
-        EnableException = $true
     }
-    try {
-        Invoke-OraQuery @invokeParams
-    } catch {
-        # When using NuGet package Oracle.ManagedDataAccess.Core, Kazakhstan failed to import with "ORA-40441: JSON syntax error".
-        Write-Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
+    foreach ($query in $dbDef.SqlQueries) {
+        Invoke-OraQuery -Connection $oraSysConnection -Query $query
+    }
+
+    Push-Location -Path ..\Oracle
+    $Env:ORACLE_INSTANCE = $dbDef.Instance
+    $Env:ORACLE_USERNAME = 'stackoverflow'
+    $Env:ORACLE_PASSWORD = $dbDef.AdminPassword
+    ./Application.ps1
+    Pop-Location
+
+    $credential = [PSCredential]::new('geodemo', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+    $connection = Connect-OraInstance -Instance $dbDef.Instance -Credential $credential
+    Invoke-OraQuery -Connection $connection -Query 'CREATE TABLE countries (name VARCHAR2(50), iso CHAR(3), geometry SDO_GEOMETRY)'
+    $geoJSON = Invoke-RestMethod -Method Get -Uri https://datahub.io/core/geo-countries/r/0.geojson
+    foreach ($feature in $geoJSON.features) {
+        $invokeParams = @{
+            Connection      = $connection
+            Query           = 'INSERT INTO countries VALUES (:name, :iso, sdo_util.from_geojson(:geometry))'
+            ParameterValues = @{
+                name     = $feature.properties.ADMIN
+                iso      = $feature.properties.ISO_A3
+                geometry = $feature.geometry | ConvertTo-Json -Depth 4 -Compress 
+            }
+            EnableException = $true
+        }
+        try {
+            Invoke-OraQuery @invokeParams
+        } catch {
+            # When using NuGet package Oracle.ManagedDataAccess.Core, Kazakhstan failed to import with "ORA-40441: JSON syntax error".
+            Write-Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
+        }
     }
 }
 
@@ -206,125 +149,129 @@ foreach ($feature in $geoJSON.features) {
 # MySQL
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'MySQL'
-
-$myRootCredential = [PSCredential]::new('root', (ConvertTo-SecureString -String $LabAdminPassword -AsPlainText -Force))
-while ($true) {
-    try {
-        $myRootConnection = Connect-MyInstance -Instance $dbDef.Instance -Credential $myRootCredential -EnableException
-        break
-    } catch {
-        Start-Sleep -Seconds 30
+if ($dbDef) {
+    $myRootCredential = [PSCredential]::new('root', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+    while ($true) {
+        try {
+            $myRootConnection = Connect-MyInstance -Instance $dbDef.Instance -Credential $myRootCredential -EnableException
+            break
+        } catch {
+            Start-Sleep -Seconds 30
+        }
     }
-}
-foreach ($query in $dbDef.SqlQueries) {
-    Invoke-MyQuery -Connection $myRootConnection -Query $query
-}
+    foreach ($query in $dbDef.SqlQueries) {
+        Invoke-MyQuery -Connection $myRootConnection -Query $query
+    }
 
-Push-Location -Path ..\MySQL
-$Env:MYSQL_INSTANCE = $dbDef.Instance
-$Env:MYSQL_USERNAME = 'stackoverflow'
-$Env:MYSQL_PASSWORD = $LabAdminPassword
-$Env:MYSQL_DATABASE = 'stackoverflow'
-./Application.ps1
-Pop-Location
+    Push-Location -Path ..\MySQL
+    $Env:MYSQL_INSTANCE = $dbDef.Instance
+    $Env:MYSQL_USERNAME = 'stackoverflow'
+    $Env:MYSQL_PASSWORD = $dbDef.AdminPassword
+    $Env:MYSQL_DATABASE = 'stackoverflow'
+    ./Application.ps1
+    Pop-Location
+}
 
 
 # MariaDB
 # https://stackoverflow.com/questions/74060289/mysqlconnection-open-system-invalidcastexception-object-cannot-be-cast-from-d
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'MariaDB'
-
-$myRootCredential = [PSCredential]::new('root', (ConvertTo-SecureString -String $LabAdminPassword -AsPlainText -Force))
-while ($true) {
-    try {
-        $myRootConnection = Connect-MyInstance -Instance $dbDef.Instance -Credential $myRootCredential -EnableException
-        break
-    } catch {
-        Start-Sleep -Seconds 30
+if ($dbDef) {
+    $myRootCredential = [PSCredential]::new('root', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+    while ($true) {
+        try {
+            $myRootConnection = Connect-MyInstance -Instance $dbDef.Instance -Credential $myRootCredential -EnableException
+            break
+        } catch {
+            Start-Sleep -Seconds 30
+        }
     }
-}
-foreach ($query in $dbDef.SqlQueries) {
-    Invoke-MyQuery -Connection $myRootConnection -Query $query
-}
+    foreach ($query in $dbDef.SqlQueries) {
+        Invoke-MyQuery -Connection $myRootConnection -Query $query
+    }
 
-Push-Location -Path ..\MySQL
-$Env:MYSQL_INSTANCE = $dbDef.Instance
-$Env:MYSQL_USERNAME = 'stackoverflow'
-$Env:MYSQL_PASSWORD = $LabAdminPassword
-$Env:MYSQL_DATABASE = 'stackoverflow'
-./Application.ps1
-Pop-Location
+    Push-Location -Path ..\MySQL
+    $Env:MYSQL_INSTANCE = $dbDef.Instance
+    $Env:MYSQL_USERNAME = 'stackoverflow'
+    $Env:MYSQL_PASSWORD = $dbDef.AdminPassword
+    $Env:MYSQL_DATABASE = 'stackoverflow'
+    ./Application.ps1
+    Pop-Location
+}
 
 
 # PostgreSQL
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'PostgreSQL'
-
-$pgPostgresCredential = [PSCredential]::new('postgres', (ConvertTo-SecureString -String $LabAdminPassword -AsPlainText -Force))
-while ($true) {
-    try {
-        $pgPostgresConnection = Connect-PgInstance -Instance $dbDef.Instance -Credential $pgPostgresCredential -EnableException
-        break
-    } catch {
-        Start-Sleep -Seconds 30
+if ($dbDef) {
+    $pgPostgresCredential = [PSCredential]::new('postgres', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+    while ($true) {
+        try {
+            $pgPostgresConnection = Connect-PgInstance -Instance $dbDef.Instance -Credential $pgPostgresCredential -EnableException
+            break
+        } catch {
+            Start-Sleep -Seconds 30
+        }
     }
-}
-foreach ($query in $dbDef.SqlQueries) {
-    if ($query -match '^\\connect (.+)$') {
-        $pgPostgresConnection = Connect-PgInstance -Instance $dbDef.Instance -Credential $pgPostgresCredential -Database $Matches[1]
-    } else {
-        Invoke-PgQuery -Connection $pgPostgresConnection -Query $query
+    foreach ($query in $dbDef.SqlQueries) {
+        if ($query -match '^\\connect (.+)$') {
+            $pgPostgresConnection = Connect-PgInstance -Instance $dbDef.Instance -Credential $pgPostgresCredential -Database $Matches[1]
+        } else {
+            Invoke-PgQuery -Connection $pgPostgresConnection -Query $query
+        }
     }
-}
 
-Push-Location -Path ..\PostgreSQL
-$Env:POSTGRESQL_INSTANCE = $dbDef.Instance
-$Env:POSTGRESQL_USERNAME = 'stackoverflow'
-$Env:POSTGRESQL_PASSWORD = $LabAdminPassword
-$Env:POSTGRESQL_DATABASE = 'stackoverflow'
-./Application.ps1
-Pop-Location
+    Push-Location -Path ..\PostgreSQL
+    $Env:POSTGRESQL_INSTANCE = $dbDef.Instance
+    $Env:POSTGRESQL_USERNAME = 'stackoverflow'
+    $Env:POSTGRESQL_PASSWORD = $dbDef.AdminPassword
+    $Env:POSTGRESQL_DATABASE = 'stackoverflow'
+    ./Application.ps1
+    Pop-Location
+}
 
 
 # PostGIS
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'PostGIS'
-
-$pgPostgresCredential = [PSCredential]::new('postgres', (ConvertTo-SecureString -String $LabAdminPassword -AsPlainText -Force))
-while ($true) {
-    try {
-        $pgPostgresConnection = Connect-PgInstance -Instance $dbDef.Instance -Credential $pgPostgresCredential -EnableException
-        break
-    } catch {
-        Start-Sleep -Seconds 30
-    }
-}
-foreach ($query in $dbDef.SqlQueries) {
-    if ($query -match '^\\connect (.+)$') {
-        $pgPostgresConnection = Connect-PgInstance -Instance $dbDef.Instance -Credential $pgPostgresCredential -Database $Matches[1]
-    } else {
-        Invoke-PgQuery -Connection $pgPostgresConnection -Query $query
-    }
-}
-
-$credential = [PSCredential]::new('geodemo', (ConvertTo-SecureString -String $LabAdminPassword -AsPlainText -Force))
-$connection = Connect-PgInstance -Instance $dbDef.Instance -Credential $credential -Database geodemo
-Invoke-PgQuery -Connection $connection -Query 'CREATE TABLE countries (name VARCHAR(50), iso CHAR(3), geometry GEOMETRY)' 
-$geoJSON = Invoke-RestMethod -Method Get -Uri https://datahub.io/core/geo-countries/r/0.geojson
-foreach ($feature in $geoJSON.features) {
-    $invokeParams = @{
-        Connection      = $connection
-        Query           = 'INSERT INTO countries VALUES (:name, :iso, ST_GeomFromGeoJSON(:geometry))'
-        ParameterValues = @{
-            name     = $feature.properties.ADMIN
-            iso      = $feature.properties.ISO_A3
-            geometry = $feature.geometry | ConvertTo-Json -Depth 4 -Compress 
+if ($dbDef) {
+    $pgPostgresCredential = [PSCredential]::new('postgres', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+    while ($true) {
+        try {
+            $pgPostgresConnection = Connect-PgInstance -Instance $dbDef.Instance -Credential $pgPostgresCredential -EnableException
+            break
+        } catch {
+            Start-Sleep -Seconds 30
         }
-        EnableException = $true
     }
-    try {
-        Invoke-PgQuery @invokeParams
-    } catch {
-        Write-Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
+    foreach ($query in $dbDef.SqlQueries) {
+        if ($query -match '^\\connect (.+)$') {
+            $pgPostgresConnection = Connect-PgInstance -Instance $dbDef.Instance -Credential $pgPostgresCredential -Database $Matches[1]
+        } else {
+            Invoke-PgQuery -Connection $pgPostgresConnection -Query $query
+        }
+    }
+
+    $credential = [PSCredential]::new('geodemo', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+    $connection = Connect-PgInstance -Instance $dbDef.Instance -Credential $credential -Database geodemo
+    Invoke-PgQuery -Connection $connection -Query 'CREATE TABLE countries (name VARCHAR(50), iso CHAR(3), geometry GEOMETRY)' 
+    $geoJSON = Invoke-RestMethod -Method Get -Uri https://datahub.io/core/geo-countries/r/0.geojson
+    foreach ($feature in $geoJSON.features) {
+        $invokeParams = @{
+            Connection      = $connection
+            Query           = 'INSERT INTO countries VALUES (:name, :iso, ST_GeomFromGeoJSON(:geometry))'
+            ParameterValues = @{
+                name     = $feature.properties.ADMIN
+                iso      = $feature.properties.ISO_A3
+                geometry = $feature.geometry | ConvertTo-Json -Depth 4 -Compress 
+            }
+            EnableException = $true
+        }
+        try {
+            Invoke-PgQuery @invokeParams
+        } catch {
+            Write-Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
+        }
     }
 }
