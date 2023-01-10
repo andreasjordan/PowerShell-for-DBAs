@@ -2,4 +2,4 @@ Am 08.12.2022 war ich bei der [PowerShell UserGroup Inn-Salzach](https://www.mee
 
 Den Demo-Code habe ich [hier](2022-12-08-PowerShell_und_Datenbanken.ps1) abgelegt.
 
-Die Aufzeichnung wird später auf dem [YouTube-Kanal](https://www.youtube.com/@powershellusergroupinn-sal4778) der UserGroup verfügbar und dann auch hier verlinkt sein.
+Die Aufzeichnung ist jetzt [hier](https://youtu.be/6MjCXOzRtwk) auf dem [YouTube-Kanal](https://www.youtube.com/@powershellusergroupinn-sal4778) der UserGroup verfügbar.
