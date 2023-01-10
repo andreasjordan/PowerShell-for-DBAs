@@ -7,6 +7,9 @@
 $ErrorActionPreference = 'Stop'
 
 $LabMachineName = 'DockerDatabases'
+if ($Env:HOSTNAME -eq $LabMachineName) {
+    $LabMachineName = 'localhost'
+}
 $LabAdminPassword = 'Passw0rd!'
 
 $DatabaseDefinition = @(
