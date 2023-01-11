@@ -132,14 +132,13 @@ if ($dbDef) {
             ParameterValues = @{
                 name     = $feature.properties.ADMIN
                 iso      = $feature.properties.ISO_A3
-                geometry = $feature.geometry | ConvertTo-Json -Depth 4 -Compress 
+                geometry = $feature.geometry | ConvertTo-Json -Depth 4
             }
             EnableException = $true
         }
         try {
             Invoke-OraQuery @invokeParams
         } catch {
-            # When using NuGet package Oracle.ManagedDataAccess.Core, Kazakhstan failed to import with "ORA-40441: JSON syntax error".
             Write-Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
         }
     }
