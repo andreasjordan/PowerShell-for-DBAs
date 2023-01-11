@@ -25,7 +25,6 @@ foreach ($feature in $geoJSON.features) {
     try {
         Invoke-OraQuery @invokeParams
     } catch {
-        # When using NuGet package Oracle.ManagedDataAccess.Core, Kazakhstan failed to import with "ORA-40441: JSON syntax error".
         Write-Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
     }
 }
