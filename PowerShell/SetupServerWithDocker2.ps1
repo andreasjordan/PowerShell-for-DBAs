@@ -132,7 +132,7 @@ if ($dbDef) {
             ParameterValues = @{
                 name     = $feature.properties.ADMIN
                 iso      = $feature.properties.ISO_A3
-                geometry = ($feature.geometry | ConvertTo-Json -Depth 4).Replace(' ', '')
+                geometry = ($feature.geometry | ConvertTo-Json -Depth 4 -Compress) -replace '\.(\d{10})\d+', '.$1'
             }
             EnableException = $true
         }
