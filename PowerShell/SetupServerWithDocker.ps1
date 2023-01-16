@@ -73,12 +73,12 @@ $containerParams = @{
         'ORACLE_INSTANCE=Oracle/XEPDB1'
         'ORACLE_USERNAME=stackoverflow'
         'ORACLE_PASSWORD=start456'
-        'MYSQL_DLL=/mnt/NuGet/MySql.Data/lib/net6.0/MySql.Data.dll'
+        'MYSQL_DLL=/mnt/NuGet/MySql.Data/lib/net7.0/MySql.Data.dll'
         'MYSQL_INSTANCE=MySQL'
         'MYSQL_DATABASE=stackoverflow'
         'MYSQL_USERNAME=stackoverflow'
         'MYSQL_PASSWORD=start456'
-        'POSTGRESQL_DLL=/mnt/NuGet/Npgsql/lib/net6.0/Npgsql.dll'
+        'POSTGRESQL_DLL=/mnt/NuGet/Npgsql/lib/net7.0/Npgsql.dll'
         'POSTGRESQL_INSTANCE=PostgreSQL'
         'POSTGRESQL_DATABASE=stackoverflow'
         'POSTGRESQL_USERNAME=stackoverflow'
@@ -264,7 +264,7 @@ Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/MySQL
 if ('MariaDB' -in $DBMS) { 
     $containerParams = @{
         Name        = 'MariaDB'
-        Image       = 'mariadb:latest'
+        Image       = 'mariadb:10.9'
         Network     = 'dbms-net'
         Memory      = '2g'
         Port        = @(
@@ -346,6 +346,7 @@ END_OF_SHELL
         $output = Invoke-MyDockerContainer -Name PowerShell -Shell pwsh -Command @'
 $ProgressPreference = 'SilentlyContinue'
 Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/PostgreSQL
+Add-Type -Path /mnt/NuGet/Microsoft.Extensions.Logging.Abstractions/lib/net7.0/Microsoft.Extensions.Logging.Abstractions.dll
 ./Application.ps1
 '@
         Write-LogMessage -Message "Output: $output"
