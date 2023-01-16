@@ -1,17 +1,14 @@
 How to use PowerShell as a MySQL or MariaDB database administrator.
 
+If you are missing some files, please download the 2023-01 release of this repository to find them.
+
 ## Install the server
 
 You can use any existing server in your environment. If you want to setup a server just for tests, you find some recommendations in this section.
 
 ### MySQL on Windows
 
-I use the windows version of the [MySQL Installer 8.0.30](https://dev.mysql.com/downloads/installer/) (mysql-installer-community-8.0.30.0.msi) for my labs.
-
-I have not yet found an easy way to run an unattended installation from a remote computer. So I ran an interactive installation on the target server and used the following options:
-* Choosing a Setup Type: Server only
-* Config Type: Server Computer (or Dedicated Computer if this is the only DBMS installed)
-* MySQL Root Password: start123
+You can use the windows version of the [MySQL Installer 8.0.30](https://dev.mysql.com/downloads/installer/) (mysql-installer-community-8.0.30.0.msi). You will find further details in the 2023-01 release of this repository.
 
 
 ### MySQL on Docker
@@ -66,8 +63,7 @@ Remove-Item -Path mysql-connector-net-noinstall.zip
 
 https://www.devart.com/dotconnect/mysql/
 
-This free version might also be an option, but is for Windows only. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation.
-See [Connect-MyInstance_Devart.ps1](Connect-MyInstance_Devart.ps1) and [Invoke-MyQuery_Devart.ps1](Invoke-MyQuery_Devart.ps1) on how to use this client.
+This free version might also be an option, but is for Windows only. You will find further details in the 2023-01 release of this repository.
 
 
 ## Create an environment variable with the location of the dll
@@ -89,11 +85,6 @@ I use this code for the MySQL Connector/NET 8.0.30 for PowerShell 5.1:
 I use this code for the NuGet package MySql.Data:
 ```
 "`$Env:MYSQL_DLL = '$((Get-Location).Path)/MySQL/lib/net6.0/MySql.Data.dll'" | Add-Content -Path $PROFILE
-```
-
-I use this code for the Devart client:
-```
-"`$Env:MYSQL_DLL = 'C:\Program Files (x86)\Devart\dotConnect\MySQL\Devart.Data.MySQL.dll'" | Add-Content -Path $PROFILE
 ```
 
 

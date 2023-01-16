@@ -1,12 +1,14 @@
 How to use PowerShell as a PostgreSQL database administrator.
 
+If you are missing some files, please download the 2023-01 release of this repository to find them.
+
 ## Install the server
 
 You can use any existing server in your environment. If you want to setup a server just for tests, you find some recommendations in this section.
 
 ### Windows
 
-I use the windows installer by [EDB](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads) of PostgreSQL 14.5 for my labs. See my install script [Server.ps1](Server.ps1) in this folder for details on how to run an unattended installation from a remote computer.
+You can use the windows installer by [EDB](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads) of PostgreSQL 14.5. You will find further details in the 2023-01 release of this repository.
 
 
 ### Docker
@@ -18,7 +20,7 @@ I use the image [postgres:latest](https://hub.docker.com/_/postgres) for my labs
 
 ### Devart dotConnect for PostgreSQL 8.0 Express
 
-I use the free Express edition of dotConnect by DevArt in my lab, as this is an easy to install client. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation.
+You can use the free Express edition of dotConnect by DevArt, as this is an easy to install client. You will find further details in the 2023-01 release of this repository.
 
 Works with PowerShell 5.1 and PowerShell 7.2 on Windows.
 
@@ -59,38 +61,9 @@ I use this code for Npgsql:
 "`$Env:POSTGRESQL_DLL = '$((Get-Location).Path)/lib/netstandard2.1/Npgsql.dll'" | Add-Content -Path $PROFILE
 ```
 
-I use this code for the Devart client:
-```
-"`$Env:POSTGRESQL_DLL = 'C:\Program Files (x86)\Devart\dotConnect\PostgreSQL\Devart.Data.PostgreSql.dll'" | Add-Content -Path $PROFILE
-```
-
 
 ## Install the application
 
 I use a sample "application" (just a bunch of tables) that is based on the schema and data from the StackOverflow database.
 
 See my script [Application.ps1](Application.ps1) in this folder for details.
-
-
-## Run some code
-
-First sample code (using [Connect-PgInstance_Devart.ps1](Connect-PgInstance_Devart.ps1) and [Invoke-PgQuery_Devart.ps1](Invoke-PgQuery_Devart.ps1)):
-
-```powershell
-Add-Type -Path 'C:\Program Files (x86)\Devart\dotConnect\PostgreSQL\Devart.Data.PostgreSql.dll'
-
-$instance = 'SQLLAB08:5432'
-$instance = 'SQLLAB08'
-$credential = Get-Credential -Message $instance -UserName postgres  # start123
-
-$connection = Connect-PgInstance -Instance $instance -Credential $credential
-
-$query = 'SELECT * FROM pg_file_settings'
-$data = Invoke-PgQuery -Connection $connection -Query $query
-$data | Out-GridView -Title $query
-
-$query = 'SELECT setting FROM pg_file_settings WHERE name = :name'
-$parameterValues = @{ name = 'port' }
-$port = Invoke-PgQuery -Connection $connection -Query $query -ParameterValues $parameterValues -As SingleValue
-"PostgreSQL is listening on port $port"
-```

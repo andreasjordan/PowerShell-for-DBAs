@@ -6,7 +6,7 @@ You can use any existing server in your environment. If you want to setup a serv
 
 ### Docker
 
-I use the image [cassandra:latest](https://hub.docker.com/_/cassandra) for my labs. See my install script [SetupServerWithDocker.ps1](../PowerShell/SetupServerWithDocker.ps1) in the PowerShell folder for details.
+I use the image [cassandra:latest](https://hub.docker.com/_/cassandra) for my labs. You will find further details in the 2023-01 release of this repository.
 
 
 ## Install the client

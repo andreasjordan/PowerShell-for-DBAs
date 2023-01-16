@@ -1,12 +1,14 @@
 How to use PowerShell as an Oracle database administrator.
 
+If you are missing some files, please download the 2023-01 release of this repository to find them.
+
 ## Install the server
 
 You can use any existing server in your environment. If you want to setup a server just for tests, you find some recommendations in this section.
 
 ### Windows
 
-I use the free express edition of Oracle 21c for my labs. See my install script [Server.ps1](Server.ps1) in this folder for details on how to run an unattended installation from a remote computer.
+You can use the free express edition of Oracle 21c. You will find further details in the 2023-01 release of this repository.
 
 
 ### Docker
@@ -18,7 +20,7 @@ I use the image [container-registry.oracle.com/database/express:latest](https://
 
 ### Oracle Database 19c Client
 
-I use the Oracle Database 19c Client in my lab, as this is the last client with a ready-to-use DLL. In the later versions, there are only NuGet packaged included. If you want to use the NuGet packages, I think it is much easier to install them directly without the client. But if you are not allowed to download things from the internet, using the 21c client might be a good option. See my install script [Client.ps1](Client.ps1) in this folder for details on how to run an unattended installation of only the needed components.
+You can use the Oracle Database 19c Client, as this is the last client with a ready-to-use DLL. In the later versions, there are only NuGet packaged included. If you want to use the NuGet packages, I think it is much easier to install them directly without the client. But if you are not allowed to download things from the internet, using the 21c client might be a good option. You will find further details in the 2023-01 release of this repository.
 
 But you can also use other ways to install the client. If you are unsure what components to install, just install all of them. If the oracle client is automatically installed by a software distribution tool, test if the file "Oracle.ManagedDataAccess.dll" is present in the path "odp.net\managed\common" in your oracle home.
 
@@ -42,7 +44,7 @@ Remove-Item -Path oracle.manageddataaccess.nupkg.zip
 
 https://www.devart.com/dotconnect/oracle/
 
-This free version might also be an option. See [Connect-OraInstance_Devart.ps1](Connect-OraInstance_Devart.ps1) and [Invoke-OraQuery_Devart.ps1](Invoke-OraQuery_Devart.ps1) on how to use this client.
+This free version might also be an option. You will find further details in the 2023-01 release of this repository.
 
 
 ## Install the client for PowerShell 7.2 on Windows
@@ -99,11 +101,6 @@ I use this code for the NuGet package Oracle.ManagedDataAccess:
 I use this code for the NuGet package Oracle.ManagedDataAccess.Core:
 ```
 "`$Env:ORACLE_DLL = '$((Get-Location).Path)/Oracle/lib/netstandard2.1/Oracle.ManagedDataAccess.dll'" | Add-Content -Path $PROFILE
-```
-
-I use this code for the Devart client:
-```
-"`$Env:ORACLE_DLL = 'C:\Program Files (x86)\Devart\dotConnect\Oracle\Devart.Data.Oracle.dll'" | Add-Content -Path $PROFILE
 ```
 
 

@@ -1,12 +1,14 @@
 How to use PowerShell as a Microsoft SQL Server database administrator.
 
+If you are missing some files, please download the 2023-01 release of this repository to find them.
+
 ## Install the server
 
 You can use any existing server in your environment. If you want to setup a server just for tests, you find some recommendations in this section.
 
 ### Windows
 
-I use the free express edition of SQL Server 2019 for my labs. See my install script [Server.ps1](Server.ps1) in this folder for details on how to run an unattended installation from a remote computer. The PowerShell module dbatools also has a command to run the installation.
+You can use the free express edition of SQL Server. You will find further details in the 2023-01 release of this repository.
 
 ### Docker
 
@@ -36,7 +38,7 @@ In general, Microsoft goes one step further than the other vendors. They publish
 They give you a .NET interface to all layers within SQL Servers, such as the instances themselves, all logins, databases, tables, indexes, etc.
 Best of all, it's now open source, you can take a look at the code here on [GitHub](https://github.com/microsoft/sqlmanagementobjects).
 
-See [Application_dbatools.ps1](Application_dbatools.ps1) on how to use this client.
+You will find further details in the 2023-01 release of this repository.
 
 
 ### PowerShell module SqlServer
@@ -56,7 +58,7 @@ This is the new version of the SQL Client from Microsoft and I definitly want to
 
 But dbatools include all the needed DLLs and they can be loaded without loading the module itself.
 
-See [Connect-SqlInstance_Microsoft.ps1](Connect-SqlInstance_Microsoft.ps1), [Invoke-SqlQuery_Microsoft.ps1](Invoke-SqlQuery_Microsoft.ps1) and [Application_Microsoft.ps1](Application_Microsoft.ps1) on how to use this client.
+You will find further details in the 2023-01 release of this repository.
 
 
 ### Devart dotConnect for SQL Server 4.0 Standard

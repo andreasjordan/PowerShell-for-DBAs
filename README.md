@@ -17,6 +17,8 @@ Already covered database management systems:
 * [Oracle](./Oracle/README.md)
 * [MySQL / MariaDB](./MySQL/README.md)
 * [PostgreSQL](./PostgreSQL/README.md)
+
+Already covered database management systems, but details are only available in the 2023-01 release of this repository:
 * [IBM Db2](./Db2/README.md)
 * [IBM Informix](./Informix/README.md)
 
