@@ -3,20 +3,6 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-if (-not $Env:POSTGRESQL_DLL) {
-    throw 'Environment variable POSTGRESQL_DLL not set'
-}
-if (-not (Test-Path -Path $Env:POSTGRESQL_DLL)) {
-    throw "Environment variable POSTGRESQL_DLL not set correctly, file [$Env:POSTGRESQL_DLL] not found"
-}
-Add-Type -Path $Env:POSTGRESQL_DLL
-if ($Env:POSTGRESQL_DLL -match 'Devart') {
-    . .\Connect-PgInstance_Devart.ps1
-    . .\Invoke-PgQuery_Devart.ps1
-} else {
-    . .\Connect-PgInstance.ps1
-    . .\Invoke-PgQuery.ps1
-}
 if (-not $Env:POSTGRESQL_INSTANCE) {
     throw 'Environment variable POSTGRESQL_INSTANCE not set'
 }
@@ -32,10 +18,15 @@ if (-not $Env:POSTGRESQL_PASSWORD) {
     $credential = [PSCredential]::new($Env:POSTGRESQL_USERNAME, (ConvertTo-SecureString -String $Env:POSTGRESQL_PASSWORD -AsPlainText -Force))
 }
 
-. ..\PowerShell\Import-Schema.ps1
-. ..\PowerShell\Import-Data.ps1
+. $PSScriptRoot\Import-PgLibrary.ps1
+. $PSScriptRoot\Connect-PgInstance.ps1
+. $PSScriptRoot\Invoke-PgQuery.ps1
+. $PSScriptRoot\..\PowerShell\Import-Schema.ps1
+. $PSScriptRoot\..\PowerShell\Import-Data.ps1
 
 try {
+    Import-PgLibrary -EnableException
+
     $connection = Connect-PgInstance -Instance $Env:POSTGRESQL_INSTANCE -Credential $credential -Database $Env:POSTGRESQL_DATABASE -EnableException
 
     $tables = Invoke-PgQuery -Connection $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'public'" -As SingleValue -EnableException
@@ -43,9 +34,9 @@ try {
         Invoke-PgQuery -Connection $connection -Query ("DROP TABLE $table") -EnableException
     }
 
-    Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS PostgreSQL -Connection $connection -EnableException
+    Import-Schema -Path $PSScriptRoot\..\PowerShell\SampleSchema.psd1 -DBMS PostgreSQL -Connection $connection -EnableException
     $start = Get-Date
-    Import-Data -Path ..\PowerShell\SampleData.json -DBMS PostgreSQL -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
+    Import-Data -Path $PSScriptRoot\..\PowerShell\SampleData.json -DBMS PostgreSQL -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
     $duration = (Get-Date) - $start
 
     $connection.Dispose()

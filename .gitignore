@@ -1,2 +1,13 @@
 _Local/**
 Software/**
+
+# NuGet packages for Oracle
+**/Oracle.ManagedDataAccess
+**/Oracle.ManagedDataAccess.Core
+
+# NuGet package for MySQL
+**/MySql.Data
+
+# NuGet packages for PostgreSQL
+**/Microsoft.Extensions.Logging.Abstractions
+**/Npgsql

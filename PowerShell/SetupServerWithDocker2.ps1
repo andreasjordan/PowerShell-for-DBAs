@@ -14,60 +14,18 @@ $ErrorActionPreference = 'Stop'
 
 $DatabaseDefinition = Get-Content -Path $DatabaseDefinitionFile | ConvertFrom-Json
 
-# Load all needed DLLs
-$dllDefinition = @(
-    @{
-        Package = 'Oracle.ManagedDataAccess.Core'
-        LibPath = 'netstandard2.1\Oracle.ManagedDataAccess.dll'
-        DBMS    = 'Oracle'
-    }
-    @{
-        Package = 'MySql.Data'
-        LibPath = 'net7.0\MySql.Data.dll'
-        DBMS    = 'MySQL'
-    }
-    @{
-        Package = 'Npgsql'
-        LibPath = 'net7.0\Npgsql.dll'
-        DBMS    = 'PostgreSQL'
-    }
-    @{
-        # Needed for Npgsql:
-        Package = 'Microsoft.Extensions.Logging.Abstractions'
-        LibPath = 'net7.0\Microsoft.Extensions.Logging.Abstractions.dll'
-    }
-)
-$dllBasePath = '..\_Local'
-if (-not (Test-Path -Path $dllBasePath)) {
-    $null = New-Item -Path $dllBasePath -ItemType Directory
-}
-foreach ($dll in $dllDefinition) {
-    Push-Location -Path $dllBasePath
-
-    if (-not (Test-Path -Path $dll.Package)) {
-        Invoke-WebRequest -Uri "https://www.nuget.org/api/v2/package/$($dll.Package)" -OutFile package.zip -UseBasicParsing
-        Expand-Archive -Path package.zip -DestinationPath $dll.Package
-        Remove-Item -Path package.zip
-    }
-    
-    $fullLibPath = (Resolve-Path -Path ".\$($dll.Package)\lib\$($dll.LibPath)").Path
-    Add-Type -Path $fullLibPath
-    if ($dll.DBMS) {
-        Set-Item -Path "Env:$($dll.DBMS.ToUpper())_DLL" -Value $fullLibPath
-    }
-
-    Pop-Location
-}
-
 # Load all wrapper scripts
-. ..\SQLServer\Connect-SqlInstance.ps1
-. ..\SQLServer\Invoke-SqlQuery.ps1
-. ..\Oracle\Connect-OraInstance.ps1
-. ..\Oracle\Invoke-OraQuery.ps1
-. ..\MySQL\Connect-MyInstance.ps1
-. ..\MySQL\Invoke-MyQuery.ps1
-. ..\PostgreSQL\Connect-PgInstance.ps1
-. ..\PostgreSQL\Invoke-PgQuery.ps1
+. $PSScriptRoot\..\SQLServer\Connect-SqlInstance.ps1
+. $PSScriptRoot\..\SQLServer\Invoke-SqlQuery.ps1
+. $PSScriptRoot\..\Oracle\Import-OraLibrary.ps1
+. $PSScriptRoot\..\Oracle\Connect-OraInstance.ps1
+. $PSScriptRoot\..\Oracle\Invoke-OraQuery.ps1
+. $PSScriptRoot\..\MySQL\Import-MyLibrary.ps1
+. $PSScriptRoot\..\MySQL\Connect-MyInstance.ps1
+. $PSScriptRoot\..\MySQL\Invoke-MyQuery.ps1
+. $PSScriptRoot\..\PostgreSQL\Import-PgLibrary.ps1
+. $PSScriptRoot\..\PostgreSQL\Connect-PgInstance.ps1
+. $PSScriptRoot\..\PostgreSQL\Invoke-PgQuery.ps1
 
 
 # SQL Server
@@ -87,13 +45,11 @@ if ($dbDef) {
         Invoke-SqlQuery -Connection $sqlSaConnection -Query $query
     }
     
-    Push-Location -Path ..\SQLServer
     $Env:SQLSERVER_INSTANCE = $dbDef.Instance
     $Env:SQLSERVER_USERNAME = 'StackOverflow'
     $Env:SQLSERVER_PASSWORD = $dbDef.AdminPassword
     $Env:SQLSERVER_DATABASE = 'StackOverflow'
-    ./Application.ps1
-    Pop-Location
+    $PSScriptRoot\..\SQLServer\Application.ps1
 }
 
 
@@ -104,6 +60,7 @@ if ($dbDef) {
     $oraSysCredential = [PSCredential]::new('sys', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
     while ($true) {
         try {
+            Import-OraLibrary -EnableException
             $oraSysConnection = Connect-OraInstance -Instance $dbDef.Instance -Credential $oraSysCredential -AsSysdba -EnableException
             break
         } catch {
@@ -114,12 +71,10 @@ if ($dbDef) {
         Invoke-OraQuery -Connection $oraSysConnection -Query $query
     }
 
-    Push-Location -Path ..\Oracle
     $Env:ORACLE_INSTANCE = $dbDef.Instance
     $Env:ORACLE_USERNAME = 'stackoverflow'
     $Env:ORACLE_PASSWORD = $dbDef.AdminPassword
-    ./Application.ps1
-    Pop-Location
+    $PSScriptRoot\..\Oracle\Application.ps1
 
     $credential = [PSCredential]::new('geodemo', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
     $connection = Connect-OraInstance -Instance $dbDef.Instance -Credential $credential
@@ -152,6 +107,7 @@ if ($dbDef) {
     $myRootCredential = [PSCredential]::new('root', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
     while ($true) {
         try {
+            Import-MyLibrary -EnableException
             $myRootConnection = Connect-MyInstance -Instance $dbDef.Instance -Credential $myRootCredential -EnableException
             break
         } catch {
@@ -162,13 +118,11 @@ if ($dbDef) {
         Invoke-MyQuery -Connection $myRootConnection -Query $query
     }
 
-    Push-Location -Path ..\MySQL
     $Env:MYSQL_INSTANCE = $dbDef.Instance
     $Env:MYSQL_USERNAME = 'stackoverflow'
     $Env:MYSQL_PASSWORD = $dbDef.AdminPassword
     $Env:MYSQL_DATABASE = 'stackoverflow'
-    ./Application.ps1
-    Pop-Location
+    $PSScriptRoot\..\MySQL\Application.ps1
 }
 
 
@@ -180,6 +134,7 @@ if ($dbDef) {
     $myRootCredential = [PSCredential]::new('root', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
     while ($true) {
         try {
+            Import-MyLibrary -EnableException
             $myRootConnection = Connect-MyInstance -Instance $dbDef.Instance -Credential $myRootCredential -EnableException
             break
         } catch {
@@ -190,13 +145,11 @@ if ($dbDef) {
         Invoke-MyQuery -Connection $myRootConnection -Query $query
     }
 
-    Push-Location -Path ..\MySQL
     $Env:MYSQL_INSTANCE = $dbDef.Instance
     $Env:MYSQL_USERNAME = 'stackoverflow'
     $Env:MYSQL_PASSWORD = $dbDef.AdminPassword
     $Env:MYSQL_DATABASE = 'stackoverflow'
-    ./Application.ps1
-    Pop-Location
+    $PSScriptRoot\..\MySQL\Application.ps1
 }
 
 
@@ -207,6 +160,7 @@ if ($dbDef) {
     $pgPostgresCredential = [PSCredential]::new('postgres', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
     while ($true) {
         try {
+            Import-PgLibrary -EnableException
             $pgPostgresConnection = Connect-PgInstance -Instance $dbDef.Instance -Credential $pgPostgresCredential -EnableException
             break
         } catch {
@@ -221,13 +175,11 @@ if ($dbDef) {
         }
     }
 
-    Push-Location -Path ..\PostgreSQL
     $Env:POSTGRESQL_INSTANCE = $dbDef.Instance
     $Env:POSTGRESQL_USERNAME = 'stackoverflow'
     $Env:POSTGRESQL_PASSWORD = $dbDef.AdminPassword
     $Env:POSTGRESQL_DATABASE = 'stackoverflow'
-    ./Application.ps1
-    Pop-Location
+    $PSScriptRoot\..\PostgreSQL\Application.ps1
 }
 
 
@@ -238,6 +190,7 @@ if ($dbDef) {
     $pgPostgresCredential = [PSCredential]::new('postgres', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
     while ($true) {
         try {
+            Import-PgLibrary -EnableException
             $pgPostgresConnection = Connect-PgInstance -Instance $dbDef.Instance -Credential $pgPostgresCredential -EnableException
             break
         } catch {

@@ -3,22 +3,6 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-if (-not $Env:ORACLE_DLL) {
-    throw 'Environment variable ORACLE_DLL not set'
-}
-if (-not (Test-Path -Path $Env:ORACLE_DLL)) {
-    throw "Environment variable ORACLE_DLL not set correctly, file [$Env:ORACLE_DLL] not found"
-}
-# Ignore the following error: Could not load file or assembly 'System.Text.Json, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51' or one of its dependencies
-# For details see: https://community.oracle.com/tech/developers/discussion/4502297
-try { Add-Type -Path $Env:ORACLE_DLL } catch { }
-if ($Env:ORACLE_DLL -match 'Devart') {
-    . .\Connect-OraInstance_Devart.ps1
-    . .\Invoke-OraQuery_Devart.ps1
-} else {
-    . .\Connect-OraInstance.ps1
-    . .\Invoke-OraQuery.ps1
-}
 if (-not $Env:ORACLE_INSTANCE) {
     throw 'Environment variable ORACLE_INSTANCE not set'
 }
@@ -31,10 +15,15 @@ if (-not $Env:ORACLE_PASSWORD) {
     $credential = [PSCredential]::new($Env:ORACLE_USERNAME, (ConvertTo-SecureString -String $Env:ORACLE_PASSWORD -AsPlainText -Force))
 }
 
-. ..\PowerShell\Import-Schema.ps1
-. ..\PowerShell\Import-Data.ps1
+. $PSScriptRoot\Import-OraLibrary.ps1
+. $PSScriptRoot\Connect-OraInstance.ps1
+. $PSScriptRoot\Invoke-OraQuery.ps1
+. $PSScriptRoot\..\PowerShell\Import-Schema.ps1
+. $PSScriptRoot\..\PowerShell\Import-Data.ps1
 
 try {
+    Import-OraLibrary -EnableException
+    
     $connection = Connect-OraInstance -Instance $Env:ORACLE_INSTANCE -Credential $credential -EnableException
 
     $tables = Invoke-OraQuery -Connection $connection -Query "SELECT table_name FROM user_tables" -As SingleValue -EnableException
@@ -42,9 +31,9 @@ try {
         Invoke-OraQuery -Connection $connection -Query ("DROP TABLE $table") -EnableException
     }
 
-    Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS Oracle -Connection $connection -EnableException
+    Import-Schema -Path $PSScriptRoot\..\PowerShell\SampleSchema.psd1 -DBMS Oracle -Connection $connection -EnableException
     $start = Get-Date
-    Import-Data -Path ..\PowerShell\SampleData.json -DBMS Oracle -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
+    Import-Data -Path $PSScriptRoot\..\PowerShell\SampleData.json -DBMS Oracle -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
     $duration = (Get-Date) - $start
 
     $connection.Dispose()

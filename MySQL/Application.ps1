@@ -3,22 +3,6 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-if (-not $Env:MYSQL_DLL) {
-    throw 'Environment variable MYSQL_DLL not set'
-}
-if (-not (Test-Path -Path $Env:MYSQL_DLL)) {
-    throw "Environment variable MYSQL_DLL not set correctly, file [$Env:MYSQL_DLL] not found"
-}
-# Ignore the following errors: Could not load file or assembly
-# For details see: https://community.oracle.com/tech/developers/discussion/4502297
-try { Add-Type -Path $Env:MYSQL_DLL } catch { }
-if ($Env:MYSQL_DLL -match 'Devart') {
-    . .\Connect-MyInstance_Devart.ps1
-    . .\Invoke-MyQuery_Devart.ps1
-} else {
-    . .\Connect-MyInstance.ps1
-    . .\Invoke-MyQuery.ps1
-}
 if (-not $Env:MYSQL_INSTANCE) {
     throw 'Environment variable MYSQL_INSTANCE not set'
 }
@@ -34,10 +18,15 @@ if (-not $Env:MYSQL_PASSWORD) {
     $credential = [PSCredential]::new($Env:MYSQL_USERNAME, (ConvertTo-SecureString -String $Env:MYSQL_PASSWORD -AsPlainText -Force))
 }
 
-. ..\PowerShell\Import-Schema.ps1
-. ..\PowerShell\Import-Data.ps1
+. $PSScriptRoot\Import-MyLibrary.ps1
+. $PSScriptRoot\Connect-MyInstance.ps1
+. $PSScriptRoot\Invoke-MyQuery.ps1
+. $PSScriptRoot\..\PowerShell\Import-Schema.ps1
+. $PSScriptRoot\..\PowerShell\Import-Data.ps1
 
 try {
+    Import-MyLibrary -EnableException
+
     $connection = Connect-MyInstance -Instance $Env:MYSQL_INSTANCE -Credential $credential -Database $Env:MYSQL_DATABASE -EnableException
 
     $tables = Invoke-MyQuery -Connection $connection -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '$($Env:MYSQL_USERNAME.ToLower())'" -As SingleValue -EnableException
@@ -45,9 +34,9 @@ try {
         Invoke-MyQuery -Connection $connection -Query ("DROP TABLE $table") -EnableException
     }
 
-    Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS MySQL -Connection $connection -EnableException
+    Import-Schema -Path $PSScriptRoot\..\PowerShell\SampleSchema.psd1 -DBMS MySQL -Connection $connection -EnableException
     $start = Get-Date
-    Import-Data -Path ..\PowerShell\SampleData.json -DBMS MySQL -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
+    Import-Data -Path $PSScriptRoot\..\PowerShell\SampleData.json -DBMS MySQL -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
     $duration = (Get-Date) - $start
 
     $connection.Dispose()

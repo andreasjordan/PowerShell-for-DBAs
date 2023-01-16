@@ -18,11 +18,10 @@ if (-not $Env:SQLSERVER_PASSWORD) {
     $credential = [PSCredential]::new($Env:SQLSERVER_USERNAME, (ConvertTo-SecureString -String $Env:SQLSERVER_PASSWORD -AsPlainText -Force))
 }
 
-. .\Connect-SqlInstance.ps1
-. .\Invoke-SqlQuery.ps1
-
-. ..\PowerShell\Import-Schema.ps1
-. ..\PowerShell\Import-Data.ps1
+. $PSScriptRoot\Connect-SqlInstance.ps1
+. $PSScriptRoot\Invoke-SqlQuery.ps1
+. $PSScriptRoot\..\PowerShell\Import-Schema.ps1
+. $PSScriptRoot\..\PowerShell\Import-Data.ps1
 
 try {
     $connection = Connect-SqlInstance -Instance $Env:SQLSERVER_INSTANCE -Credential $credential -Database $Env:SQLSERVER_DATABASE -EnableException
@@ -32,9 +31,9 @@ try {
         Invoke-SqlQuery -Connection $connection -Query ("DROP TABLE $table") -EnableException
     }
 
-    Import-Schema -Path ..\PowerShell\SampleSchema.psd1 -DBMS SQLServer -Connection $connection -EnableException
+    Import-Schema -Path $PSScriptRoot\..\PowerShell\SampleSchema.psd1 -DBMS SQLServer -Connection $connection -EnableException
     $start = Get-Date
-    Import-Data -Path ..\PowerShell\SampleData.json -DBMS SQLServer -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
+    Import-Data -Path $PSScriptRoot\..\PowerShell\SampleData.json -DBMS SQLServer -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
     $duration = (Get-Date) - $start
 
     Write-Host "Data import to $Env:SQLSERVER_INSTANCE finished in $($duration.TotalSeconds) seconds"
