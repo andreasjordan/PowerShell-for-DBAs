@@ -53,3 +53,22 @@ I use this technology for some time now in different projects with both SQL Serv
 On 2022-09-22 I presented some demos at the [DOAG in Nuremberg](https://shop.doag.org/events/anwenderkonferenz/2022/agenda/#eventDay.all#textSearch.PowerShell), you find the presentation and the democode in the folder [DOAG2022](./DOAG2022/README.md).
 
 On 2022-12-12 I will hold a workshop day at the [IT-Tage](https://www.ittage.informatik-aktuell.de/programm/2022/sql-server-powershell-fuer-datenbank-admins-dba.html) and afterwords share the demos here in this repo.
+
+
+## History
+
+It all began with a windows based lab. I learned how to install and configure the different database systems from a command line. It worked quite well, but even though I only used the free versions of the database systems, not all the programs I needed could be easily downloaded from the internet. So it was not completely "infrastructure-as-code".
+
+Next step was to use docker containers, as I was able to get docker images for all the different database systems without having to log in anywhere. As Docker Desktop it not completly free anymore, I also moved to Linux based on WSL2 on my windows 10 maschine. Resetting the WSL2 was easy but still not a one click action as I had to enter username and password followd by configuring the networking.
+
+I now use the PowerShell module AutomatedLab to set up my labs, as it also installs Linux systems without interaction.
+
+On the client side, I used three different sources to get the needed DLL for .NET: Vendor-provided clients (like the Oracle Client), third-party-provided clients (like those from DevArt), and NuGet packages. All three work very well, but there are small differences so the code has to be slightly adusted.
+
+I now use only NuGet packages to have a common source for all database systems that is completely "infrastructure-as-code" based on publicly available software.
+
+To reduce the repository but also keep the old version availably I decided to publish a release in january 2023 and afterwards remove these parts of the code:
+* How to install database servers on a windows system
+* How to use third-party-provided clients (like those from DevArt)
+* How to use the new namespace Microsoft.Data.SqlClient instead of System.Data.SqlClient for SQL Server - because it is not easy to install the needed DLLs
+* How to use dbatools for SQL Server - because I want the same interface and naming conventions for all databases
