@@ -12,8 +12,7 @@ $dbms = @(
     'MySQL'
     'MariaDB'
     'PostgreSQL'
-    'Db2'
-    'Informix'
+    'PostGIS'
 )
 
 # Select database systems to build
