@@ -49,7 +49,9 @@ if ($dbDef) {
     $Env:SQLSERVER_USERNAME = 'StackOverflow'
     $Env:SQLSERVER_PASSWORD = $dbDef.AdminPassword
     $Env:SQLSERVER_DATABASE = 'StackOverflow'
-    $PSScriptRoot\..\SQLServer\Application.ps1
+    Push-Location -Path $PSScriptRoot\..\SQLServer
+    .\Application.ps1
+    Pop-Location
 }
 
 
@@ -74,7 +76,9 @@ if ($dbDef) {
     $Env:ORACLE_INSTANCE = $dbDef.Instance
     $Env:ORACLE_USERNAME = 'stackoverflow'
     $Env:ORACLE_PASSWORD = $dbDef.AdminPassword
-    $PSScriptRoot\..\Oracle\Application.ps1
+    Push-Location -Path $PSScriptRoot\..\Oracle
+    .\Application.ps1
+    Pop-Location
 
     $credential = [PSCredential]::new('geodemo', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
     $connection = Connect-OraInstance -Instance $dbDef.Instance -Credential $credential
@@ -122,7 +126,9 @@ if ($dbDef) {
     $Env:MYSQL_USERNAME = 'stackoverflow'
     $Env:MYSQL_PASSWORD = $dbDef.AdminPassword
     $Env:MYSQL_DATABASE = 'stackoverflow'
-    $PSScriptRoot\..\MySQL\Application.ps1
+    Push-Location -Path $PSScriptRoot\..\MySQL
+    .\Application.ps1
+    Pop-Location
 }
 
 
@@ -149,7 +155,9 @@ if ($dbDef) {
     $Env:MYSQL_USERNAME = 'stackoverflow'
     $Env:MYSQL_PASSWORD = $dbDef.AdminPassword
     $Env:MYSQL_DATABASE = 'stackoverflow'
-    $PSScriptRoot\..\MySQL\Application.ps1
+    Push-Location -Path $PSScriptRoot\..\MySQL
+    .\Application.ps1
+    Pop-Location
 }
 
 
@@ -179,7 +187,9 @@ if ($dbDef) {
     $Env:POSTGRESQL_USERNAME = 'stackoverflow'
     $Env:POSTGRESQL_PASSWORD = $dbDef.AdminPassword
     $Env:POSTGRESQL_DATABASE = 'stackoverflow'
-    $PSScriptRoot\..\PostgreSQL\Application.ps1
+    Push-Location -Path $PSScriptRoot\..\PostgreSQL
+    .\Application.ps1
+    Pop-Location
 }
 
 
