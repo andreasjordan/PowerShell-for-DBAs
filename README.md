@@ -28,13 +28,11 @@ Work in progress and help is needed:
 Are there other database systems that I should add here?
 
 
-## What client operating systems do I use?
+## What operating systems do I use?
 
-Today I work mostly with Windows, so this can all be installed on a single Windows server or a small lab with Windows systems. But I also use WSL2 on Windows 10 with an Ubuntu image to test all clients from Linux as well. So you will find information about PowerShell 5.1 and 7.2 on Windows and PowerShell 7.2 on Linux. And it should work on MacOS as well.
+For the server part I now use docker to have a simple way to set up all the different database systems the same way.
 
-I created [InstallAllClients.ps1](./PowerShell/InstallAllClients.ps1) for my lab - there you will find the exact versions and libraries I have tested with.
-
-While setting up all databases on docker, I also set up two PowerShell containers and tested from there. See [SetupServerWithDocker.ps1](./PowerShell/SetupServerWithDocker.ps1) for details.
+For the client part I try to support both Windows and Linux, and I use both PowerShell 5.1 and 7.3. While setting up all databases on docker, I also set up a PowerShell container and test from there. See [SetupServerWithDocker.ps1](./PowerShell/SetupServerWithDocker.ps1) for details.
 
 
 ## What sample data do I use?
@@ -54,7 +52,9 @@ I use this technology for some time now in different projects with both SQL Serv
 
 On 2022-09-22 I presented some demos at the [DOAG in Nuremberg](https://shop.doag.org/events/anwenderkonferenz/2022/agenda/#eventDay.all#textSearch.PowerShell), you find the presentation and the democode in the folder [DOAG2022](./DOAG2022/README.md).
 
-On 2022-12-12 I will hold a workshop day at the [IT-Tage](https://www.ittage.informatik-aktuell.de/programm/2022/sql-server-powershell-fuer-datenbank-admins-dba.html) and afterwords share the demos here in this repo.
+On 2022-12-08 I was guest at the [PowerShell UserGroup Inn-Salzach](https://www.meetup.com/de-DE/PowerShell-UserGroup-Inn-Salzach), you find the demo code and a link to the video on YouTune in the folder [PSUG](./PSUG/README.md).
+
+On 2022-12-12 I held a workshop day at the [IT-Tage](https://www.ittage.informatik-aktuell.de/programm/2022/sql-server-powershell-fuer-datenbank-admins-dba.html), you find the demos in the folder [IT-Tage2022](./IT-Tage2022/README.md).
 
 
 ## History
