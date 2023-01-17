@@ -46,6 +46,64 @@ I then selected some of the most popular questions and all related data (like an
 So I have stored the table structure in a structured format as well ([SampleSchema.psd1](./PowerShell/SampleSchema.psd1)) and automatically generate the correct DDL statements for each database system. See [Import-Schema.ps1](./PowerShell/Import-Schema.ps1) and [Import-Data.ps1](./PowerShell/Import-Data.ps1) on how I load the data.
 
 
+## What commands are included?
+
+For every database system, I have the following set of commands. The noun is prefixed by "Sql", "Ora", "My" or "Pg" depending on the target database system.
+
+### Import-Library
+
+Imports the needed DLLs from the matching NuGet package. Downloads the package if needed. Not needed for SQL Server as I use the classes included in the .NET Framework.
+
+### Connect-Instance
+
+Takes information about the instance, connects to the instance and returns a connection object.
+
+### Invoke-Query
+
+Takes a connection object and a query, executes the query using a data adapter and returns the data.
+
+### Read-Query
+
+Takes a connection object and a query, executes the query using a data reader and returns the data row by row as PSCustomObject.
+
+This command can be used in a pipeline where the data is consumed row by row by other commands. This way, the lange result of a query can we saved to a file row by row.
+
+### Export-Table
+
+Takes a connection object, a table name and a file path, selects the table line by line and writes the data line by line to the file. Each line will be encoded in json using `($row | ConvertTo-Json -Compress)`. The file can be imported using Import-Table.
+
+### Import-Table
+
+Takes a file path, a connection object and a table name, reads the file line by line and imports the data into the table in batches using bulk copy.
+
+Supported file formats:
+* xml: Format used by the [Stack Exchange Data Dump](https://archive.org/details/stackexchange). Every line is one row formated as xml and will be decoded with `([xml]$line).row`.
+* json: My own idea. Every line is one row formated as json and will be decoded with `$line | ConvertFrom-Json`. This is the format that Export-Table writes.
+
+### Get-TableInformation
+
+Takes a connection object and optionally a list of table names. If no table names are given, all tables are processed. For every table an object with the table name, the number of pages/blocks and the numer of rows is returned. This information can be used to loop over the tables and to know how many rows will be transfered using Get-TableReader and Write-Table to be able to display a progress bar.
+
+### Get-TableReader
+
+Takes a connection object and a table name, returns a data reader object. This can be used with Write-Table to transfer data from one database to another.
+
+### Write-Table
+
+Takes a connection object, a table name and either an array of data objects or a data reader object. Imports the data into the table in batches using bulk copy.
+
+
+## What command should I use?
+
+As a starting point, always use Import-Library and Connect-Instance to set up a connection.
+
+While working with small amounts of data that can be in memory all at once, use Invoke-Query to read data and Write-Table to write data.
+
+To transfer large amounts of data between databases and files, use Export-Table and Import-Table in case the supported file formats meet your requirements. To be more flexible use Read-Query and Write-Table.
+
+To transfer large amounts of data between databases, use Get-TableInformation, Get-TableReader and Write-Table.
+
+
 ## How can I use this for my job as a DBA? Do you have demos?
 
 I use this technology for some time now in different projects with both SQL Server and Oracle.
