@@ -6,7 +6,7 @@ Software/**
 **/Oracle.ManagedDataAccess.Core
 
 # NuGet package for MySQL
-**/MySql.Data
+**/MySqlConnector
 
 # NuGet packages for PostgreSQL
 **/Microsoft.Extensions.Logging.Abstractions

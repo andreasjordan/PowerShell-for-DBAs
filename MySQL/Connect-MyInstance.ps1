@@ -1,6 +1,6 @@
 function Connect-MyInstance {
     [CmdletBinding()]
-    [OutputType([MySql.Data.MySqlClient.MySqlConnection])]
+    [OutputType([MySqlConnector.MySqlConnection])]
     param (
         [Parameter(Mandatory)][string]$Instance,
         [Parameter(Mandatory)][PSCredential]$Credential,
@@ -19,7 +19,7 @@ function Connect-MyInstance {
 
     Write-Verbose -Message "Creating connection to host [$myHost] on port [$myPort]"
 
-    $csb = [MySql.Data.MySqlClient.MySqlConnectionStringBuilder]::new()
+    $csb = [MySqlConnector.MySqlConnectionStringBuilder]::new()
     $csb.Server = $myHost
     $csb.Port = $myPort
     $csb.UserID = $Credential.UserName
@@ -34,9 +34,9 @@ function Connect-MyInstance {
         Write-Verbose -Message "Disabling connection pooling"
         $csb.Pooling = $false
     }
-    # $csb.CharacterSet = 'UTF8'   # To be able to use UTF8 data
-
-    $connection = [MySql.Data.MySqlClient.MySqlConnection]::new($csb.ConnectionString)
+    $csb.AllowLoadLocalInfile = $true  # Needed for Write-MyDTable
+    
+    $connection = [MySqlConnector.MySqlConnection]::new($csb.ConnectionString)
 
     try {
         Write-Verbose -Message "Opening connection"

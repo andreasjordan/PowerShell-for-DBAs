@@ -9,8 +9,8 @@ function Import-MyLibrary {
 
     $library = @(
         @{
-            Package = 'MySql.Data'
-            LibPath = 'net7.0\MySql.Data.dll'
+            Package = 'MySqlConnector'
+            LibPath = 'net7.0\MySqlConnector.dll'
         }
     )
 

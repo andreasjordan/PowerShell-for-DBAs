@@ -29,6 +29,11 @@ We can use (nearly) the same sources and installation code on all the target env
 * PowerShell 7.2 on Linux
 
 
+### NuGet package MySqlConnector
+
+I now use this package as it has a bulk copy class. But it only works on PowerShell 7.3, but that is ok for now. If you need to use PowerShell 5.1, then use one of the other packages.
+
+
 ### NuGet package MySql.Data
 
 Versions after 6.10.9 have a lot of non-solvable dependencies, but this can be ignored on Add-Type as the needed dll is loaded anyway. See [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details and [Application.ps1](Application.ps1) for the code to ignore the error.
