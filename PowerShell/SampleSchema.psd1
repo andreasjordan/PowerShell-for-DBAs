@@ -97,7 +97,7 @@
                 @{  ColumnName = 'Score';                 Datatype = 'INTEGER';     Constraint = 'NOT NULL' }
                 @{  ColumnName = 'Tags';                  Datatype = 'VARCHAR_150'; Constraint = 'NULL'     }
                 @{  ColumnName = 'Title';                 Datatype = 'VARCHAR_250'; Constraint = 'NULL'     }
-                @{  ColumnName = 'ViewCount';             Datatype = 'INTEGER';     Constraint = 'NOT NULL' }
+                @{  ColumnName = 'ViewCount';             Datatype = 'INTEGER';     Constraint = 'NULL'     }
             )
             PrimaryKey = 'Id'
         }
