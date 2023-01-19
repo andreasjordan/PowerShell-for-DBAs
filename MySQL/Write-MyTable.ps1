@@ -62,14 +62,14 @@ function Write-MyTable {
             return
         }
         $columnMappings = @( )
-        foreach ($sourceColumnName in $sourceSchemaTable.Rows.ColumnName) {
-            $targetColumnName = $targetSchemaTable.Rows | Where-Object ColumnName -eq $sourceColumnName | Select-Object -ExpandProperty ColumnName
+        foreach ($sourceColumn in $sourceSchemaTable.Rows) {
+            $targetColumnName = $targetSchemaTable.Rows | Where-Object ColumnName -eq $sourceColumn.ColumnName | Select-Object -ExpandProperty ColumnName
             if ($null -ne $targetColumnName) {
-                Write-PSFMessage -Level Verbose -Message "Adding column mapping: $sourceColumnName -> $targetColumnName"
-                $columnMappings += [MySqlConnector.MySqlBulkCopyColumnMapping]::new($sourceColumnName, $targetColumnName)
+                Write-PSFMessage -Level Verbose -Message "Adding column mapping: $($sourceColumn.ColumnOrdinal) -> $targetColumnName"
+                $columnMappings += [MySqlConnector.MySqlBulkCopyColumnMapping]::new($sourceColumn.ColumnOrdinal, $targetColumnName)
             } else {
                 if ($PSBoundParameters.Keys -contains 'DataReader') { $DataReader.Dispose() }
-                Stop-PSFFunction -Message "No target column for source column $sourceColumnName found." -Target $Table -EnableException $EnableException
+                Stop-PSFFunction -Message "No target column for source column $($sourceColumn.ColumnName) found." -Target $Table -EnableException $EnableException
                 return
             }
         }

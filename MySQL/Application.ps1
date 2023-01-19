@@ -1,6 +1,3 @@
-param(
-    [int]$MaxRowsPerTable
-)
 $ErrorActionPreference = 'Stop'
 
 if (-not $Env:MYSQL_INSTANCE) {
@@ -21,6 +18,7 @@ if (-not $Env:MYSQL_PASSWORD) {
 . $PSScriptRoot\Import-MyLibrary.ps1
 . $PSScriptRoot\Connect-MyInstance.ps1
 . $PSScriptRoot\Invoke-MyQuery.ps1
+. $PSScriptRoot\Write-MyTable.ps1
 . $PSScriptRoot\..\PowerShell\Import-Schema.ps1
 . $PSScriptRoot\..\PowerShell\Import-Data.ps1
 
@@ -36,7 +34,7 @@ try {
 
     Import-Schema -Path $PSScriptRoot\..\PowerShell\SampleSchema.psd1 -DBMS MySQL -Connection $connection -EnableException
     $start = Get-Date
-    Import-Data -Path $PSScriptRoot\..\PowerShell\SampleData.json -DBMS MySQL -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
+    Import-Data -Path $PSScriptRoot\..\PowerShell\SampleData.json -DBMS MySQL -Connection $connection -EnableException
     $duration = (Get-Date) - $start
 
     $connection.Dispose()

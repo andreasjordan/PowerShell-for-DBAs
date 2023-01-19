@@ -1,6 +1,3 @@
-param(
-    [int]$MaxRowsPerTable
-)
 $ErrorActionPreference = 'Stop'
 
 if (-not $Env:SQLSERVER_INSTANCE) {
@@ -20,6 +17,7 @@ if (-not $Env:SQLSERVER_PASSWORD) {
 
 . $PSScriptRoot\Connect-SqlInstance.ps1
 . $PSScriptRoot\Invoke-SqlQuery.ps1
+. $PSScriptRoot\Write-SqlTable.ps1
 . $PSScriptRoot\..\PowerShell\Import-Schema.ps1
 . $PSScriptRoot\..\PowerShell\Import-Data.ps1
 
@@ -33,7 +31,7 @@ try {
 
     Import-Schema -Path $PSScriptRoot\..\PowerShell\SampleSchema.psd1 -DBMS SQLServer -Connection $connection -EnableException
     $start = Get-Date
-    Import-Data -Path $PSScriptRoot\..\PowerShell\SampleData.json -DBMS SQLServer -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
+    Import-Data -Path $PSScriptRoot\..\PowerShell\SampleData.json -DBMS SQLServer -Connection $connection -EnableException
     $duration = (Get-Date) - $start
 
     Write-Host "Data import to $Env:SQLSERVER_INSTANCE finished in $($duration.TotalSeconds) seconds"

@@ -1,6 +1,3 @@
-param(
-    [int]$MaxRowsPerTable
-)
 $ErrorActionPreference = 'Stop'
 
 if (-not $Env:POSTGRESQL_INSTANCE) {
@@ -21,6 +18,7 @@ if (-not $Env:POSTGRESQL_PASSWORD) {
 . $PSScriptRoot\Import-PgLibrary.ps1
 . $PSScriptRoot\Connect-PgInstance.ps1
 . $PSScriptRoot\Invoke-PgQuery.ps1
+. $PSScriptRoot\Write-PgTable.ps1
 . $PSScriptRoot\..\PowerShell\Import-Schema.ps1
 . $PSScriptRoot\..\PowerShell\Import-Data.ps1
 
@@ -36,7 +34,7 @@ try {
 
     Import-Schema -Path $PSScriptRoot\..\PowerShell\SampleSchema.psd1 -DBMS PostgreSQL -Connection $connection -EnableException
     $start = Get-Date
-    Import-Data -Path $PSScriptRoot\..\PowerShell\SampleData.json -DBMS PostgreSQL -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
+    Import-Data -Path $PSScriptRoot\..\PowerShell\SampleData.json -DBMS PostgreSQL -Connection $connection -EnableException
     $duration = (Get-Date) - $start
 
     $connection.Dispose()

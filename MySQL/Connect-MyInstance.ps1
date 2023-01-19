@@ -34,8 +34,7 @@ function Connect-MyInstance {
         Write-Verbose -Message "Disabling connection pooling"
         $csb.Pooling = $false
     }
-    $csb.AllowLoadLocalInfile = $true  # Needed for Write-MyDTable
-    
+    $csb.AllowLoadLocalInfile = $true  # Needed for Write-MyTable
     $connection = [MySqlConnector.MySqlConnection]::new($csb.ConnectionString)
 
     try {

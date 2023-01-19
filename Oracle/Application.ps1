@@ -1,6 +1,3 @@
-param(
-    [int]$MaxRowsPerTable
-)
 $ErrorActionPreference = 'Stop'
 
 if (-not $Env:ORACLE_INSTANCE) {
@@ -18,6 +15,7 @@ if (-not $Env:ORACLE_PASSWORD) {
 . $PSScriptRoot\Import-OraLibrary.ps1
 . $PSScriptRoot\Connect-OraInstance.ps1
 . $PSScriptRoot\Invoke-OraQuery.ps1
+. $PSScriptRoot\Write-OraTable.ps1
 . $PSScriptRoot\..\PowerShell\Import-Schema.ps1
 . $PSScriptRoot\..\PowerShell\Import-Data.ps1
 
@@ -33,7 +31,7 @@ try {
 
     Import-Schema -Path $PSScriptRoot\..\PowerShell\SampleSchema.psd1 -DBMS Oracle -Connection $connection -EnableException
     $start = Get-Date
-    Import-Data -Path $PSScriptRoot\..\PowerShell\SampleData.json -DBMS Oracle -Connection $connection -MaxRowsPerTable $MaxRowsPerTable -EnableException
+    Import-Data -Path $PSScriptRoot\..\PowerShell\SampleData.json -DBMS Oracle -Connection $connection -EnableException
     $duration = (Get-Date) - $start
 
     $connection.Dispose()
