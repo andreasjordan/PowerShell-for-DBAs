@@ -12,6 +12,12 @@ param (
 
 $ErrorActionPreference = 'Stop'
 
+if (-not (Get-Module -Name PSFramework -ListAvailable)) {
+    $null = Install-PackageProvider -Name Nuget -Force
+    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+    Install-Module -Name PSFramework
+}
+
 $DatabaseDefinition = Get-Content -Path $DatabaseDefinitionFile | ConvertFrom-Json
 
 # Load all wrapper scripts
