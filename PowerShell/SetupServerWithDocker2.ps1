@@ -32,6 +32,8 @@ $DatabaseDefinition = Get-Content -Path $DatabaseDefinitionFile | ConvertFrom-Js
 . $PSScriptRoot\..\PostgreSQL\Connect-PgInstance.ps1
 . $PSScriptRoot\..\PostgreSQL\Invoke-PgQuery.ps1
 . $PSScriptRoot\..\PostgreSQL\Write-PgTable.ps1
+. $PSScriptRoot\Import-Schema.ps1
+. $PSScriptRoot\Import-Data.ps1
 
 # Load geographic data
 $geoJSON = Invoke-RestMethod -Method Get -Uri https://datahub.io/core/geo-countries/r/0.geojson
