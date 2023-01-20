@@ -101,7 +101,6 @@ if ($dbDef) {
         $credential = [PSCredential]::new('geodemo', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
         $connection = Connect-OraInstance -Instance $dbDef.Instance -Credential $credential -EnableException
         Invoke-OraQuery -Connection $connection -Query 'CREATE TABLE countries (name VARCHAR2(50), iso CHAR(3), geometry SDO_GEOMETRY)'
-        $geoJSON = Invoke-RestMethod -Method Get -Uri https://datahub.io/core/geo-countries/r/0.geojson
         foreach ($feature in $geoJSON.features) {
             $invokeParams = @{
                 Connection      = $connection
