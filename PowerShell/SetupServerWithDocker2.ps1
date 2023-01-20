@@ -19,18 +19,23 @@ $DatabaseDefinition = Get-Content -Path $DatabaseDefinitionFile | ConvertFrom-Js
 # Load all wrapper scripts
 . $PSScriptRoot\..\SQLServer\Connect-SqlInstance.ps1
 . $PSScriptRoot\..\SQLServer\Invoke-SqlQuery.ps1
+. $PSScriptRoot\..\SQLServer\Write-SqlTable.ps1
 . $PSScriptRoot\..\Oracle\Import-OraLibrary.ps1
 . $PSScriptRoot\..\Oracle\Connect-OraInstance.ps1
 . $PSScriptRoot\..\Oracle\Invoke-OraQuery.ps1
+. $PSScriptRoot\..\Oracle\Write-OraTable.ps1
 . $PSScriptRoot\..\MySQL\Import-MyLibrary.ps1
 . $PSScriptRoot\..\MySQL\Connect-MyInstance.ps1
 . $PSScriptRoot\..\MySQL\Invoke-MyQuery.ps1
+. $PSScriptRoot\..\MySQL\Write-MyTable.ps1
 . $PSScriptRoot\..\PostgreSQL\Import-PgLibrary.ps1
 . $PSScriptRoot\..\PostgreSQL\Connect-PgInstance.ps1
 . $PSScriptRoot\..\PostgreSQL\Invoke-PgQuery.ps1
+. $PSScriptRoot\..\PostgreSQL\Write-PgTable.ps1
 
+# Load geographic data
+$geoJSON = Invoke-RestMethod -Method Get -Uri https://datahub.io/core/geo-countries/r/0.geojson
 
-# SQL Server
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'SQLServer'
 if ($dbDef) {
@@ -46,18 +51,20 @@ if ($dbDef) {
     foreach ($query in $dbDef.SqlQueries) {
         Invoke-SqlQuery -Connection $sqlSaConnection -Query $query
     }
-    
-    $Env:SQLSERVER_INSTANCE = $dbDef.Instance
-    $Env:SQLSERVER_USERNAME = 'StackOverflow'
-    $Env:SQLSERVER_PASSWORD = $dbDef.AdminPassword
-    $Env:SQLSERVER_DATABASE = 'StackOverflow'
-    Push-Location -Path $PSScriptRoot\..\SQLServer
-    .\Application.ps1
-    Pop-Location
+
+    try {
+        $start = Get-Date
+        $credential = [PSCredential]::new('StackOverflow', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+        $connection = Connect-SqlInstance -Instance $dbDef.Instance -Credential $credential -Database 'StackOverflow' -EnableException
+        Import-Schema -Path $PSScriptRoot\SampleSchema.psd1 -DBMS SQLServer -Connection $connection -EnableException
+        Import-Data -Path $PSScriptRoot\SampleData.json -DBMS SQLServer -Connection $connection -EnableException
+        $duration = (Get-Date) - $start
+        Write-Host "Sample data import to SQL Server finished in $($duration.TotalSeconds) seconds"
+    } catch {
+        Write-Host "Sample data import to SQL Server failed: $_"
+    }
 }
 
-
-# Oracle
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'Oracle'
 if ($dbDef) {
@@ -75,38 +82,48 @@ if ($dbDef) {
         Invoke-OraQuery -Connection $oraSysConnection -Query $query
     }
 
-    $Env:ORACLE_INSTANCE = $dbDef.Instance
-    $Env:ORACLE_USERNAME = 'stackoverflow'
-    $Env:ORACLE_PASSWORD = $dbDef.AdminPassword
-    Push-Location -Path $PSScriptRoot\..\Oracle
-    .\Application.ps1
-    Pop-Location
+    try {
+        $start = Get-Date
+        $credential = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+        $connection = Connect-OraInstance -Instance $dbDef.Instance -Credential $credential -EnableException
+        Import-Schema -Path $PSScriptRoot\SampleSchema.psd1 -DBMS Oracle -Connection $connection -EnableException
+        Import-Data -Path $PSScriptRoot\SampleData.json -DBMS Oracle -Connection $connection -EnableException
+        $duration = (Get-Date) - $start
+        Write-Host "Sample data import to Oracle finished in $($duration.TotalSeconds) seconds"
+    } catch {
+        Write-Host "Sample data import to Oracle failed: $_"
+    }
 
-    $credential = [PSCredential]::new('geodemo', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
-    $connection = Connect-OraInstance -Instance $dbDef.Instance -Credential $credential
-    Invoke-OraQuery -Connection $connection -Query 'CREATE TABLE countries (name VARCHAR2(50), iso CHAR(3), geometry SDO_GEOMETRY)'
-    $geoJSON = Invoke-RestMethod -Method Get -Uri https://datahub.io/core/geo-countries/r/0.geojson
-    foreach ($feature in $geoJSON.features) {
-        $invokeParams = @{
-            Connection      = $connection
-            Query           = 'INSERT INTO countries VALUES (:name, :iso, sdo_util.from_geojson(:geometry))'
-            ParameterValues = @{
-                name     = $feature.properties.ADMIN
-                iso      = $feature.properties.ISO_A3
-                geometry = ($feature.geometry | ConvertTo-Json -Depth 4 -Compress) -replace '\.(\d{10})\d+', '.$1'
+    try {
+        $start = Get-Date
+        $credential = [PSCredential]::new('geodemo', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+        $connection = Connect-OraInstance -Instance $dbDef.Instance -Credential $credential -EnableException
+        Invoke-OraQuery -Connection $connection -Query 'CREATE TABLE countries (name VARCHAR2(50), iso CHAR(3), geometry SDO_GEOMETRY)'
+        $geoJSON = Invoke-RestMethod -Method Get -Uri https://datahub.io/core/geo-countries/r/0.geojson
+        foreach ($feature in $geoJSON.features) {
+            $invokeParams = @{
+                Connection      = $connection
+                Query           = 'INSERT INTO countries VALUES (:name, :iso, sdo_util.from_geojson(:geometry))'
+                ParameterValues = @{
+                    name     = $feature.properties.ADMIN
+                    iso      = $feature.properties.ISO_A3
+                    geometry = ($feature.geometry | ConvertTo-Json -Depth 4 -Compress) -replace '\.(\d{10})\d+', '.$1'
+                }
+                EnableException = $true
             }
-            EnableException = $true
+            try {
+                Invoke-OraQuery @invokeParams
+            } catch {
+                Write-Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
+            }
         }
-        try {
-            Invoke-OraQuery @invokeParams
-        } catch {
-            Write-Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
-        }
+        $duration = (Get-Date) - $start
+        Write-Host "Geographic data import to Oracle finished in $($duration.TotalSeconds) seconds"
+    } catch {
+        Write-Host "Geographic data import to Oracle failed: $_"
     }
 }
 
-
-# MySQL
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'MySQL'
 if ($dbDef) {
@@ -124,18 +141,19 @@ if ($dbDef) {
         Invoke-MyQuery -Connection $myRootConnection -Query $query
     }
 
-    $Env:MYSQL_INSTANCE = $dbDef.Instance
-    $Env:MYSQL_USERNAME = 'stackoverflow'
-    $Env:MYSQL_PASSWORD = $dbDef.AdminPassword
-    $Env:MYSQL_DATABASE = 'stackoverflow'
-    Push-Location -Path $PSScriptRoot\..\MySQL
-    .\Application.ps1
-    Pop-Location
+    try {
+        $start = Get-Date
+        $credential = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+        $connection = Connect-MyInstance -Instance $dbDef.Instance -Credential $credential -Database 'stackoverflow' -EnableException
+        Import-Schema -Path $PSScriptRoot\SampleSchema.psd1 -DBMS MySQL -Connection $connection -EnableException
+        Import-Data -Path $PSScriptRoot\SampleData.json -DBMS MySQL -Connection $connection -EnableException
+        $duration = (Get-Date) - $start
+        Write-Host "Sample data import to MySQL finished in $($duration.TotalSeconds) seconds"
+    } catch {
+        Write-Host "Sample data import to MySQL failed: $_"
+    }
 }
 
-
-# MariaDB
-# https://stackoverflow.com/questions/74060289/mysqlconnection-open-system-invalidcastexception-object-cannot-be-cast-from-d
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'MariaDB'
 if ($dbDef) {
@@ -153,17 +171,19 @@ if ($dbDef) {
         Invoke-MyQuery -Connection $myRootConnection -Query $query
     }
 
-    $Env:MYSQL_INSTANCE = $dbDef.Instance
-    $Env:MYSQL_USERNAME = 'stackoverflow'
-    $Env:MYSQL_PASSWORD = $dbDef.AdminPassword
-    $Env:MYSQL_DATABASE = 'stackoverflow'
-    Push-Location -Path $PSScriptRoot\..\MySQL
-    .\Application.ps1
-    Pop-Location
+    try {
+        $start = Get-Date
+        $credential = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+        $connection = Connect-MyInstance -Instance $dbDef.Instance -Credential $credential -Database 'stackoverflow' -EnableException
+        Import-Schema -Path $PSScriptRoot\SampleSchema.psd1 -DBMS MySQL -Connection $connection -EnableException
+        Import-Data -Path $PSScriptRoot\SampleData.json -DBMS MySQL -Connection $connection -EnableException
+        $duration = (Get-Date) - $start
+        Write-Host "Sample data import to MariaDB finished in $($duration.TotalSeconds) seconds"
+    } catch {
+        Write-Host "Sample data import to MariaDB failed: $_"
+    }
 }
 
-
-# PostgreSQL
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'PostgreSQL'
 if ($dbDef) {
@@ -185,17 +205,19 @@ if ($dbDef) {
         }
     }
 
-    $Env:POSTGRESQL_INSTANCE = $dbDef.Instance
-    $Env:POSTGRESQL_USERNAME = 'stackoverflow'
-    $Env:POSTGRESQL_PASSWORD = $dbDef.AdminPassword
-    $Env:POSTGRESQL_DATABASE = 'stackoverflow'
-    Push-Location -Path $PSScriptRoot\..\PostgreSQL
-    .\Application.ps1
-    Pop-Location
+    try {
+        $start = Get-Date
+        $credential = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+        $connection = Connect-PgInstance -Instance $dbDef.Instance -Credential $credential -Database 'stackoverflow' -EnableException
+        Import-Schema -Path $PSScriptRoot\SampleSchema.psd1 -DBMS PostgreSQL -Connection $connection -EnableException
+        Import-Data -Path $PSScriptRoot\SampleData.json -DBMS PostgreSQL -Connection $connection -EnableException
+        $duration = (Get-Date) - $start
+        Write-Host "Sample data import to PostgreSQL finished in $($duration.TotalSeconds) seconds"
+    } catch {
+        Write-Host "Sample data import to PostgreSQL failed: $_"
+    }
 }
 
-
-# PostGIS
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'PostGIS'
 if ($dbDef) {
@@ -217,25 +239,31 @@ if ($dbDef) {
         }
     }
 
-    $credential = [PSCredential]::new('geodemo', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
-    $connection = Connect-PgInstance -Instance $dbDef.Instance -Credential $credential -Database geodemo
-    Invoke-PgQuery -Connection $connection -Query 'CREATE TABLE countries (name VARCHAR(50), iso CHAR(3), geometry GEOMETRY)' 
-    $geoJSON = Invoke-RestMethod -Method Get -Uri https://datahub.io/core/geo-countries/r/0.geojson
-    foreach ($feature in $geoJSON.features) {
-        $invokeParams = @{
-            Connection      = $connection
-            Query           = 'INSERT INTO countries VALUES (:name, :iso, ST_GeomFromGeoJSON(:geometry))'
-            ParameterValues = @{
-                name     = $feature.properties.ADMIN
-                iso      = $feature.properties.ISO_A3
-                geometry = $feature.geometry | ConvertTo-Json -Depth 4 -Compress 
+    try {
+        $start = Get-Date
+        $credential = [PSCredential]::new('geodemo', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+        $connection = Connect-PgInstance -Instance $dbDef.Instance -Credential $credential -Database geodemo
+        Invoke-PgQuery -Connection $connection -Query 'CREATE TABLE countries (name VARCHAR(50), iso CHAR(3), geometry GEOMETRY)' 
+        foreach ($feature in $geoJSON.features) {
+            $invokeParams = @{
+                Connection      = $connection
+                Query           = 'INSERT INTO countries VALUES (:name, :iso, ST_GeomFromGeoJSON(:geometry))'
+                ParameterValues = @{
+                    name     = $feature.properties.ADMIN
+                    iso      = $feature.properties.ISO_A3
+                    geometry = $feature.geometry | ConvertTo-Json -Depth 4 -Compress 
+                }
+                EnableException = $true
             }
-            EnableException = $true
+            try {
+                Invoke-PgQuery @invokeParams
+            } catch {
+                Write-Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
+            }
         }
-        try {
-            Invoke-PgQuery @invokeParams
-        } catch {
-            Write-Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
-        }
+        $duration = (Get-Date) - $start
+        Write-Host "Geographic data import to PostGIS finished in $($duration.TotalSeconds) seconds"
+    } catch {
+        Write-Host "Geographic data import to PostGIS failed: $_"
     }
 }
