@@ -264,7 +264,7 @@ Set-Location -Path /mnt/GitHub/PowerShell-for-DBAs/MySQL
 if ('MariaDB' -in $DBMS) { 
     $containerParams = @{
         Name        = 'MariaDB'
-        Image       = 'mariadb:10.9'
+        Image       = 'mariadb:latest'
         Network     = 'dbms-net'
         Memory      = '2g'
         Port        = @(
