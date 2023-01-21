@@ -38,6 +38,7 @@ try {
     $null = 7za e tmp.7z
     Remove-Item -Path tmp.7z
     Pop-Location
+    $duration = (Get-Date) - $start
     Write-Host "Dowload sample data finished in $($duration.TotalSeconds) seconds"
 } catch {
     Write-Host "Dowload sample data failed: $_"
