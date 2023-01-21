@@ -145,7 +145,7 @@ if ($dbDef) {
     try {
         $start = Get-Date
         $credential = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
-        $connection = Connect-MyInstance -Instance $dbDef.Instance -Credential $credential -Database 'stackoverflow' -EnableException
+        $connection = Connect-MyInstance -Instance $dbDef.Instance -Credential $credential -Database 'stackoverflow' -AllowLoadLocalInfile -EnableException
         Import-Schema -Path $PSScriptRoot\SampleSchema.psd1 -DBMS MySQL -Connection $connection -EnableException
         Import-Data -Path $PSScriptRoot\SampleData.json -DBMS MySQL -Connection $connection -EnableException
         $duration = (Get-Date) - $start

@@ -97,7 +97,7 @@ if ($dbDef) {
         $start = Get-Date
         $credential = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
         Import-MyLibrary -EnableException
-        $connection = Connect-MyInstance -Instance $dbDef.Instance -Credential $credential -Database 'stackoverflow' -EnableException
+        $connection = Connect-MyInstance -Instance $dbDef.Instance -Credential $credential -Database 'stackoverflow' -AllowLoadLocalInfile -EnableException
         foreach ($table in $tables) {
             $columnMap = $null
             if ($table -eq 'Badges') {
