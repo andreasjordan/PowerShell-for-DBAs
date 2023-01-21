@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param (
-    [String]$DatabaseDefinitionFile = '/tmp/tmp_DatabaseDefinition.json'
+    [String]$DatabaseDefinitionFile = '/tmp/tmp_DatabaseDefinition.json',
+    [String]$StackexchangeSite = 'dba.meta'
 )
 
 # Add more sample data from the internet, work in progress.
@@ -33,8 +34,7 @@ try {
     }
     $null = New-Item -Path $dataPath -ItemType Directory
     Push-Location -Path $dataPath
-    #Invoke-WebRequest -Uri https://archive.org/download/stackexchange/dba.stackexchange.com.7z -OutFile tmp.7z -UseBasicParsing
-    Invoke-WebRequest -Uri https://archive.org/download/stackexchange/dba.meta.stackexchange.com.7z -OutFile tmp.7z -UseBasicParsing
+    Invoke-WebRequest -Uri https://archive.org/download/stackexchange/$StackexchangeSite.stackexchange.com.7z -OutFile tmp.7z -UseBasicParsing
     $null = 7za e tmp.7z
     Remove-Item -Path tmp.7z
     Pop-Location
@@ -44,7 +44,6 @@ try {
     Write-Host "Dowload sample data failed: $_"
     return
 }
-
 
 $tables = 'Badges', 'Comments', 'PostLinks', 'Posts', 'Users', 'Votes'
 
@@ -68,7 +67,6 @@ if ($dbDef) {
     }
 }
 
-
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'Oracle'
 if ($dbDef) {
     try {
@@ -89,7 +87,6 @@ if ($dbDef) {
         Write-Host "Sample data import to Oracle failed: $_"
     }
 }
-
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'MySQL'
 if ($dbDef) {
@@ -112,7 +109,6 @@ if ($dbDef) {
     }
 }
 
-
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'MariaDB'
 if ($dbDef) {
     try {
@@ -133,7 +129,6 @@ if ($dbDef) {
         Write-Host "Sample data import to MariaDB failed: $_"
     }
 }
-
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'PostgreSQL'
 if ($dbDef) {
