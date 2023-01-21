@@ -50,7 +50,7 @@ if ($dbDef) {
             if ($table -eq 'Badges') {
                 $columnMap = @{ CreationDate = 'Date' }
             }
-            Import-SqlTable -Path $dataPath\$table.xml -Connection $connection -Table $table -TruncateTable -ColumnMap $columnMap -EnableException
+            Import-SqlTable -Path $dataPath/$table.xml -Connection $connection -Table $table -TruncateTable -ColumnMap $columnMap -EnableException
         }
         $duration = (Get-Date) - $start
         Write-Host "Sample data import to SQL Server finished in $($duration.TotalSeconds) seconds"
@@ -65,13 +65,14 @@ if ($dbDef) {
     try {
         $start = Get-Date
         $credential = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+        Import-OraLibrary -EnableException
         $connection = Connect-OraInstance -Instance $dbDef.Instance -Credential $credential -EnableException
         foreach ($table in $tables) {
             $columnMap = $null
             if ($table -eq 'Badges') {
                 $columnMap = @{ CreationDate = 'Date' }
             }
-            Import-OraTable -Path $dataPath\$table.xml -Connection $connection -Table $table -TruncateTable -ColumnMap $columnMap -EnableException
+            Import-OraTable -Path $dataPath/$table.xml -Connection $connection -Table $table -TruncateTable -ColumnMap $columnMap -EnableException
         }
         $duration = (Get-Date) - $start
         Write-Host "Sample data import to Oracle finished in $($duration.TotalSeconds) seconds"
@@ -86,13 +87,14 @@ if ($dbDef) {
     try {
         $start = Get-Date
         $credential = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+        Import-MyLibrary -EnableException
         $connection = Connect-MyInstance -Instance $dbDef.Instance -Credential $credential -Database 'stackoverflow' -EnableException
         foreach ($table in $tables) {
             $columnMap = $null
             if ($table -eq 'Badges') {
                 $columnMap = @{ CreationDate = 'Date' }
             }
-            Import-MyTable -Path $dataPath\$table.xml -Connection $connection -Table $table -TruncateTable -ColumnMap $columnMap -EnableException
+            Import-MyTable -Path $dataPath/$table.xml -Connection $connection -Table $table -TruncateTable -ColumnMap $columnMap -EnableException
         }
         $duration = (Get-Date) - $start
         Write-Host "Sample data import to MySQL finished in $($duration.TotalSeconds) seconds"
@@ -107,13 +109,14 @@ if ($dbDef) {
     try {
         $start = Get-Date
         $credential = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+        Import-MyLibrary -EnableException
         $connection = Connect-MyInstance -Instance $dbDef.Instance -Credential $credential -Database 'stackoverflow' -EnableException
         foreach ($table in $tables) {
             $columnMap = $null
             if ($table -eq 'Badges') {
                 $columnMap = @{ CreationDate = 'Date' }
             }
-            Import-MyTable -Path $dataPath\$table.xml -Connection $connection -Table $table -TruncateTable -ColumnMap $columnMap -EnableException
+            Import-MyTable -Path $dataPath/$table.xml -Connection $connection -Table $table -TruncateTable -ColumnMap $columnMap -EnableException
         }
         $duration = (Get-Date) - $start
         Write-Host "Sample data import to MariaDB finished in $($duration.TotalSeconds) seconds"
@@ -128,13 +131,14 @@ if ($dbDef) {
     try {
         $start = Get-Date
         $credential = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+        Import-PgLibrary -EnableException
         $connection = Connect-PgInstance -Instance $dbDef.Instance -Credential $credential -Database 'stackoverflow' -EnableException
         foreach ($table in $tables) {
             $columnMap = $null
             if ($table -eq 'Badges') {
                 $columnMap = @{ CreationDate = 'Date' }
             }
-            Import-PgTable -Path $dataPath\$table.xml -Connection $connection -Table $table -TruncateTable -ColumnMap $columnMap -EnableException
+            Import-PgTable -Path $dataPath/$table.xml -Connection $connection -Table $table -TruncateTable -ColumnMap $columnMap -EnableException
         }
         $duration = (Get-Date) - $start
         Write-Host "Sample data import to PostgreSQL finished in $($duration.TotalSeconds) seconds"
