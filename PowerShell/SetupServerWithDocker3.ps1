@@ -26,16 +26,24 @@ $DatabaseDefinition = Get-Content -Path $DatabaseDefinitionFile | ConvertFrom-Js
 
 # Load sample data
 $dataPath = '/tmp/stackexchange'
-if (Test-Path -Path $dataPath) {
-    Remove-Item -Path $dataPath -Recurse -Force
+try {
+    $start = Get-Date
+    if (Test-Path -Path $dataPath) {
+        Remove-Item -Path $dataPath -Recurse -Force
+    }
+    $null = New-Item -Path $dataPath -ItemType Directory
+    Push-Location -Path $dataPath
+    #Invoke-WebRequest -Uri https://archive.org/download/stackexchange/dba.stackexchange.com.7z -OutFile tmp.7z -UseBasicParsing
+    Invoke-WebRequest -Uri https://archive.org/download/stackexchange/dba.meta.stackexchange.com.7z -OutFile tmp.7z -UseBasicParsing
+    $null = 7za e tmp.7z
+    Remove-Item -Path tmp.7z
+    Pop-Location
+    Write-Host "Dowload sample data finished in $($duration.TotalSeconds) seconds"
+} catch {
+    Write-Host "Dowload sample data failed: $_"
+    return
 }
-$null = New-Item -Path $dataPath -ItemType Directory
-Push-Location -Path $dataPath
-#Invoke-WebRequest -Uri https://archive.org/download/stackexchange/dba.stackexchange.com.7z -OutFile tmp.7z -UseBasicParsing
-Invoke-WebRequest -Uri https://archive.org/download/stackexchange/dba.meta.stackexchange.com.7z -OutFile tmp.7z -UseBasicParsing
-$null = 7za e tmp.7z
-Remove-Item -Path tmp.7z
-Pop-Location
+
 
 $tables = 'Badges', 'Comments', 'PostLinks', 'Posts', 'Users', 'Votes'
 
