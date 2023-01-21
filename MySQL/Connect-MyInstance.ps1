@@ -6,6 +6,7 @@ function Connect-MyInstance {
         [Parameter(Mandatory)][PSCredential]$Credential,
         [string]$Database,
         [switch]$PooledConnection,
+        [switch]$AllowLoadLocalInfile,
         [switch]$EnableException
     )
 
@@ -34,7 +35,11 @@ function Connect-MyInstance {
         Write-Verbose -Message "Disabling connection pooling"
         $csb.Pooling = $false
     }
-    $csb.AllowLoadLocalInfile = $true  # Needed for Write-MyTable
+    if ($AllowLoadLocalInfile) {
+        Write-Verbose -Message "Enabling AllowLoadLocalInfile to support Write-MyTable"
+        $csb.AllowLoadLocalInfile = $true
+    }
+    
     $connection = [MySqlConnector.MySqlConnection]::new($csb.ConnectionString)
 
     try {
