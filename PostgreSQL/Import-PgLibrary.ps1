@@ -29,6 +29,7 @@ function Import-PgLibrary {
                     Invoke-WebRequest -Uri "https://www.nuget.org/api/v2/package/$($lib.Package)" -OutFile package.zip -UseBasicParsing
                     Expand-Archive -Path package.zip -DestinationPath $packagePath
                     Remove-Item -Path package.zip
+                    Get-ChildItem -Path $packagePath -Exclude lib | Remove-Item -Recurse -Force
                 }
                 Add-Type -Path "$packagePath\lib\$($lib.LibPath)"
             }
