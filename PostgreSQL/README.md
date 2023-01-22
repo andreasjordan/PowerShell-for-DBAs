@@ -45,23 +45,6 @@ Expand-Archive -Path npgsql.nupkg.zip -DestinationPath .\PostgreSQL
 Remove-Item -Path npgsql.nupkg.zip
 ```
 
-## Create an environment variable with the location of the dll
-
-To be able to use the same scripts on all platforms and versions, I use an environment variable named "POSTGRESQL_DLL" with the complete path to the needed dll file.
-
-I use local PowerShell profiles, but you can use other ways as well.
-
-I use this code to create the profile if there is no profile:
-```
-if (!(Test-Path -Path $PROFILE)) { $null = New-Item -ItemType File -Path $PROFILE -Force }
-```
-
-I use this code for Npgsql:
-```
-"`$Env:POSTGRESQL_DLL = '$((Get-Location).Path)/lib/netstandard2.1/Npgsql.dll'" | Add-Content -Path $PROFILE
-```
-
-
 ## Install the application
 
 I use a sample "application" (just a bunch of tables) that is based on the schema and data from the StackOverflow database.

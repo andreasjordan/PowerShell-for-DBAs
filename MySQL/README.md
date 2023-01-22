@@ -71,28 +71,6 @@ https://www.devart.com/dotconnect/mysql/
 This free version might also be an option, but is for Windows only. You will find further details in the 2023-01 release of this repository.
 
 
-## Create an environment variable with the location of the dll
-
-To be able to use the same scripts on all platforms and versions, I use an environment variable named "MYSQL_DLL" with the complete path to the needed dll file.
-
-I use local PowerShell profiles, but you can use other ways as well.
-
-I use this code to create the profile if there is no profile:
-```
-if (!(Test-Path -Path $PROFILE)) { $null = New-Item -ItemType File -Path $PROFILE -Force }
-```
-
-I use this code for the MySQL Connector/NET 8.0.30 for PowerShell 5.1:
-```
-"`$Env:MYSQL_DLL = '$((Get-Location).Path)/v4.5.2/MySql.Data.dll'" | Add-Content -Path $PROFILE
-```
-
-I use this code for the NuGet package MySql.Data:
-```
-"`$Env:MYSQL_DLL = '$((Get-Location).Path)/MySQL/lib/net6.0/MySql.Data.dll'" | Add-Content -Path $PROFILE
-```
-
-
 ## Install the application
 
 I use a sample "application" (just a bunch of tables) that is based on the schema and data from the StackOverflow database.
