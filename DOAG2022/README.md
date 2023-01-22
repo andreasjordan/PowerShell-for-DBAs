@@ -8,4 +8,4 @@ I was a guest at the DOAG conference + exhibition in 2022 and gave a presentatio
 
 Here you can find the [presentation](PowerShell_for_Oracle_DBAs_DOAG2022_en.pdf) and the [democode](demo_en.ps1) in English.
 
-I also recorded a video with the presentation in english and uploaded ist to [YouTube](https://youtu.be/tEcc05YlKsY).
+I also recorded a video with the presentation in english and uploaded it to [YouTube](https://youtu.be/tEcc05YlKsY).
