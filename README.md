@@ -136,3 +136,5 @@ To reduce the repository but also keep the old version availably I decided to pu
 * How to use third-party-provided clients (like those from DevArt)
 * How to use the new namespace Microsoft.Data.SqlClient instead of System.Data.SqlClient for SQL Server - because it is not easy to install the needed DLLs
 * How to use dbatools for SQL Server - because I want the same interface and naming conventions for all databases
+
+Please browse the [tag 2023-01](https://github.com/andreasjordan/PowerShell-for-DBAs/tree/2023-01) of this repository to see all the details.
