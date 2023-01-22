@@ -7,7 +7,9 @@ I don't want to build a product or module. I want to provide a proof of concept,
 
 This is about using publicly available software (like database clients or NuGet packages) and a few lines of PowerShell code to show database administrators how to work with PowerShell. 
 
-The basic idea is to install the .NET driver for the specific database management software and use the included DLL in PowerShell. Two PowerShell commands with a few lines of code wrap up the use of the required classes: One to open the connection, the other to execute queries. Other commands are possible, maybe there will be ideas about that here too.
+The basic idea is to install the .NET driver for the specific database management software and use the included DLL in PowerShell. Two PowerShell commands with a few lines of code wrap up the use of the required classes: One to open the connection, the other to execute queries. For ease of use I added a command to download and import the required .NET libraries.
+
+Because I needed it for a project, I implemented commands to transfer data from Oracle to SQL Server. To have the same functionality for all database systems, I created all the needed commands and even some more for the main four database systems I focus on in this project.
 
 
 ## What database management systems do I cover?
@@ -44,6 +46,8 @@ I have taken the 10GB version you can download [here](https://www.brentozar.com/
 I then selected some of the most popular questions and all related data (like answers, comments, users, etc.) and put that data in the JSON file [SampleData.json](./PowerShell/SampleData.json). I also changed one table and renamed the column named "Date" to "CreationDate" to not mess with the identically named data type. I don't use all the fancy data types, but only those needed for the data: numbers, timestamps and characters. See [CreateSampleData.ps1](./PowerShell/CreateSampleData.ps1) for details.
 
 So I have stored the table structure in a structured format as well ([SampleSchema.psd1](./PowerShell/SampleSchema.psd1)) and automatically generate the correct DDL statements for each database system. See [Import-Schema.ps1](./PowerShell/Import-Schema.ps1) and [Import-Data.ps1](./PowerShell/Import-Data.ps1) on how I load the data.
+
+While working on the commands to transfer data between database systems, I also created commands to import and export data from and to files. The import command can read files in the xml format that the [Stack Exchange Data Dump](https://archive.org/details/stackexchange) uses. So it is possible to import all the different files into the four database systems I focus on in this project. See [CreateSampleData3.ps1](./PowerShell/CreateSampleData3.ps1) for details.
 
 
 ## What commands are included?
