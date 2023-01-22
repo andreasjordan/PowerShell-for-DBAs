@@ -47,7 +47,7 @@ I then selected some of the most popular questions and all related data (like an
 
 So I have stored the table structure in a structured format as well ([SampleSchema.psd1](./PowerShell/SampleSchema.psd1)) and automatically generate the correct DDL statements for each database system. See [Import-Schema.ps1](./PowerShell/Import-Schema.ps1) and [Import-Data.ps1](./PowerShell/Import-Data.ps1) on how I load the data.
 
-While working on the commands to transfer data between database systems, I also created commands to import and export data from and to files. The import command can read files in the xml format that the [Stack Exchange Data Dump](https://archive.org/details/stackexchange) uses. So it is possible to import all the different files into the four database systems I focus on in this project. See [CreateSampleData3.ps1](./PowerShell/CreateSampleData3.ps1) for details.
+While working on the commands to transfer data between database systems, I also created commands to import and export data from and to files. The import command can read files in the xml format that the [Stack Exchange Data Dump](https://archive.org/details/stackexchange) uses. This makes it possible to import all the different files into the four database systems I'm focusing on in this project. See [CreateSampleData3.ps1](./PowerShell/CreateSampleData3.ps1) for details.
 
 
 ## What commands are included?
