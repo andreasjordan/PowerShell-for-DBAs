@@ -15,7 +15,8 @@ function Import-OraTable {
 
     Write-PSFMessage -Level Verbose -Message "Opening file"
     try {
-        $fileStream = [IO.FileStream]::new($Path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read)
+        $filePath = Resolve-Path -Path $Path
+        $fileStream = [IO.FileStream]::new($filePath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read)
         $streamReader = [System.IO.StreamReader]::new($fileStream, $Encoding)
     } catch {
         if ($null -ne $streamReader) { $streamReader.Dispose() }

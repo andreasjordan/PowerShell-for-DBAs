@@ -11,7 +11,8 @@ function Export-SqlTable {
 
     Write-PSFMessage -Level Verbose -Message "Opening file"
     try {
-        $streamWriter = [System.IO.StreamWriter]::new($Path, $false, $Encoding)
+        $filePath = Resolve-Path -Path $Path
+        $streamWriter = [System.IO.StreamWriter]::new($filePath, $false, $Encoding)
     } catch {
         Stop-PSFFunction -Message "Opening file failed: $($_.Exception.Message)" -Target $Path -EnableException $EnableException
         return
