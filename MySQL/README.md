@@ -1,78 +1,127 @@
 How to use PowerShell as a MySQL or MariaDB database administrator.
 
-If you are missing some files, please download the 2023-01 release of this repository to find them.
-
-## Install the server
-
-You can use any existing server in your environment. If you want to setup a server just for tests, you find some recommendations in this section.
-
-### MySQL on Windows
-
-You can use the windows version of the [MySQL Installer 8.0.30](https://dev.mysql.com/downloads/installer/) (mysql-installer-community-8.0.30.0.msi). You will find further details in the 2023-01 release of this repository.
+Currently, this directory contains only the various wrapper commands and instructions on how to use them. If you are looking for information on how to install the database system and how to possibly use different clients, please use the [tag 2023-01](https://github.com/andreasjordan/PowerShell-for-DBAs/tree/2023-01) of this repository.
 
 
-### MySQL on Docker
+## Installation
 
-I use the image [mysql:latest](https://hub.docker.com/_/mysql) for my labs. See my install script [SetupServerWithDocker.ps1](../PowerShell/SetupServerWithDocker.ps1) in the PowerShell folder for details.
+If you don't want to download the complete repository, you can download the needed wrapper commands with this code from a suitable location:
 
-
-### MariaDB on Docker
-
-I use the image [mariadb:latest](https://hub.docker.com/_/mariadb) for my labs. See my install script [SetupServerWithDocker.ps1](../PowerShell/SetupServerWithDocker.ps1) in the PowerShell folder for details.
-
-
-## Install the client
-
-We can use (nearly) the same sources and installation code on all the target environments:
-* PowerShell 5.1 on Windows
-* PowerShell 7.2 on Windows
-* PowerShell 7.2 on Linux
-
-
-### NuGet package MySqlConnector
-
-I now use this package as it has a bulk copy class. But it only works on PowerShell 7.3, but that is ok for now. If you need to use PowerShell 5.1, then use one of the other packages.
-
-
-### NuGet package MySql.Data
-
-Versions after 6.10.9 have a lot of non-solvable dependencies, but this can be ignored on Add-Type as the needed dll is loaded anyway. See [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details and [Application.ps1](Application.ps1) for the code to ignore the error.
-
-I only download and extract the package, no need to use nuget or any other tool.
-
-I run this code in a suitable location where a subfolder MySQL with the content of the Nuget package will be created:
-
+```powershell
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/MySQL/Import-MyLibrary.ps1 -OutFile Import-MyLibrary.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/MySQL/Connect-MyInstance.ps1 -OutFile Connect-MyInstance.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/MySQL/Invoke-MyQuery.ps1 -OutFile Invoke-MyQuery.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/MySQL/Read-MyQuery.ps1 -OutFile Read-MyQuery.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/MySQL/Export-MyTable.ps1 -OutFile Export-MyTable.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/MySQL/Import-MyTable.ps1 -OutFile Import-MyTable.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/MySQL/Get-MyTableInformation.ps1 -OutFile Get-MyTableInformation.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/MySQL/Get-MyTableReader.ps1 -OutFile Get-MyTableReader.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/MySQL/Write-MyTable.ps1 -OutFile Write-MyTable.ps1 -UseBasicParsing
 ```
-Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/MySql.Data -OutFile mysql.data.nupkg.zip -UseBasicParsing
-Expand-Archive -Path mysql.data.nupkg.zip -DestinationPath .\MySQL
-Remove-Item -Path mysql.data.nupkg.zip
+
+To download the required libraries of the NuGet package, just dot source and run Import-MyLibrary:
+```powershell
+. ./Import-MyLibrary.ps1
+Import-MyLibrary
 ```
 
 
-### MySQL Connector/NET 8.0.30
+## Importing
 
-Like with the NuGet package, we have non-solvable dependencies on some target environments, but this can be ignored on Add-Type as the needed dll is loaded anyway. See [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details and [Application.ps1](Application.ps1) for the code to ignore the error.
+To make the wrapper commands available in the current session, just dot source them at the beginning of every skript:
 
-https://dev.mysql.com/downloads/connector/net/
-
-I run this code in a suitable location where a subfolder MySQL with the content of the connector will be created:
-
+```powershell
+. ./Import-MyLibrary.ps1
+. ./Connect-MyInstance.ps1
+. ./Invoke-MyQuery.ps1
+. ./Read-MyQuery.ps1
+. ./Export-MyTable.ps1
+. ./Import-MyTable.ps1
+. ./Get-MyTableInformation.ps1
+. ./Get-MyTableReader.ps1
+. ./Write-MyTable.ps1
 ```
-Invoke-WebRequest -Uri https://dev.mysql.com/get/Downloads/Connector-Net/mysql-connector-net-8.0.30-noinstall.zip -OutFile mysql-connector-net-noinstall.zip -UseBasicParsing
-Expand-Archive -Path mysql-connector-net-noinstall.zip -DestinationPath .\MySQL
-Remove-Item -Path mysql-connector-net-noinstall.zip
+
+To import the NuGet libraries in the current session, just run Import-MyLibrary at the beginning of every skript:
+
+```powershell
+Import-MyLibrary
 ```
 
 
-### Devart dotConnect for MySQL 9.0 Express
+## The first connection
 
-https://www.devart.com/dotconnect/mysql/
+In case you have setup the lab using my AutomatedLab with DockerDatabases as the hostname and installed the sample database stackoverflow including the tables (see SetupSampleDatabases.ps1 and SetupSampleSchemaStackoverflow.ps1 for details) you can now connect to the MySQL instance:
 
-This free version might also be an option, but is for Windows only. You will find further details in the 2023-01 release of this repository.
+```powershell
+$connection = Connect-MyInstance -Instance DockerDatabases -Credential stackoverflow -Database stackoverflow
+```
 
 
-## Install the application
+## Importing more sample data
 
-I use a sample "application" (just a bunch of tables) that is based on the schema and data from the StackOverflow database.
+To download some sample data from the [Stack Exchange Data Dump](https://archive.org/details/stackexchange) you can use this code:
 
-See my script [Application.ps1](Application.ps1) in this folder for details.
+```powershell
+Invoke-WebRequest -Uri https://archive.org/download/stackexchange/dba.meta.stackexchange.com.7z -OutFile tmp.7z -UseBasicParsing
+# Extract the file tmp.7z using 7zip.
+# On Linux use: 7za e tmp.7z
+# On Windows use: C:\Progra~1\7-Zip\7z.exe e tmp.7z
+# This should create some xml files in the current directory.
+```
+
+To import the xml files to the corresponding tables you can use this code:
+
+```powershell
+# You need -AllowLoadLocalInfile to be able to use Import-MyTable, so open a new connection:
+$connection = Connect-MyInstance -Instance DockerDatabases -Credential stackoverflow -Database stackoverflow -AllowLoadLocalInfile
+Import-MyTable -Path ./Badges.xml -Connection $connection -Table Badges -ColumnMap @{ CreationDate = 'Date' }
+Import-MyTable -Path ./Comments.xml -Connection $connection -Table Comments
+Import-MyTable -Path ./PostLinks.xml -Connection $connection -Table PostLinks
+Import-MyTable -Path ./Posts.xml -Connection $connection -Table Posts
+Import-MyTable -Path ./Users.xml -Connection $connection -Table Users
+Import-MyTable -Path ./Votes.xml -Connection $connection -Table Votes
+```
+
+In case there is already data in the tables, you can use `-TruncateTable` when calling `Import-MyTable`.
+
+
+## Query data
+
+Some ideas to query data:
+
+```powershell
+Invoke-MyQuery -Connection $connection -Query "SELECT * FROM Users WHERE Id = ?Id" -ParameterValues @{ Id = -1 } | Format-List
+
+Read-MyQuery -Connection $connection -Query "SELECT Id, DisplayName, Reputation FROM Users ORDER BY Reputation DESC" | Select-Object -First 5 | Format-Table
+```
+
+More ideas may follow...
+
+
+## Change data
+
+Some ideas to change data:
+
+```powershell
+Invoke-MyQuery -Connection $connection -Query "UPDATE Users SET Reputation = Reputation + 1 WHERE Id = ?Id" -ParameterValues @{ Id = -1 }
+
+Invoke-MyQuery -Connection $connection -Query "CREATE TABLE Test (Id INT, Text VARCHAR(100), Now TIMESTAMP(3))"
+$params = @{
+    Id   = 1
+    Text = 'Just a text'
+    Now  = [datetime]::Now
+}
+Invoke-MyQuery -Connection $connection -Query "INSERT INTO Test VALUES (?Id, ?Text, ?Now)" -ParameterValues $params
+Invoke-MyQuery -Connection $connection -Query "SELECT * FROM Test" | Format-Table
+Invoke-MyQuery -Connection $connection -Query "DROP TABLE Test"
+```
+
+More ideas may follow...
+
+
+## And the DBA?
+
+You can find some ideas on how to use the commands as a DBA in the DOAG2022 folder in this repository - you just need to adapt them to MySQL.
+
+More ideas may follow...

@@ -1,84 +1,125 @@
 How to use PowerShell as an Oracle database administrator.
 
-If you are missing some files, please download the 2023-01 release of this repository to find them.
-
-## Install the server
-
-You can use any existing server in your environment. If you want to setup a server just for tests, you find some recommendations in this section.
-
-### Windows
-
-You can use the free express edition of Oracle 21c. You will find further details in the 2023-01 release of this repository.
+Currently, this directory contains only the various wrapper commands and instructions on how to use them. If you are looking for information on how to install the database system and how to possibly use different clients, please use the [tag 2023-01](https://github.com/andreasjordan/PowerShell-for-DBAs/tree/2023-01) of this repository.
 
 
-### Docker
+## Installation
 
-I use the image [container-registry.oracle.com/database/express:latest](https://container-registry.oracle.com/) for my labs. Click on "Database" and then on "express" to get to the "Oracle Database XE Release 21c (21.3.0.0) Docker Image Documentation". See my install script [SetupServerWithDocker.ps1](../PowerShell/SetupServerWithDocker.ps1) in the PowerShell folder for details.
+If you don't want to download the complete repository, you can download the needed wrapper commands with this code from a suitable location:
 
-
-## Install the client for PowerShell 5.1 on Windows
-
-### Oracle Database 19c Client
-
-You can use the Oracle Database 19c Client, as this is the last client with a ready-to-use DLL. In the later versions, there are only NuGet packaged included. If you want to use the NuGet packages, I think it is much easier to install them directly without the client. But if you are not allowed to download things from the internet, using the 21c client might be a good option. You will find further details in the 2023-01 release of this repository.
-
-But you can also use other ways to install the client. If you are unsure what components to install, just install all of them. If the oracle client is automatically installed by a software distribution tool, test if the file "Oracle.ManagedDataAccess.dll" is present in the path "odp.net\managed\common" in your oracle home.
-
-
-### NuGet package Oracle.ManagedDataAccess
-
-Versions after 19.16.0 have a non-solvable dependency to [System.Text.Json, Version=4.0.1.1], but this can be ignored on Add-Type as the needed dll is loaded anyway. See [this discussion](https://community.oracle.com/tech/developers/discussion/4502297) for details and [Application.ps1](Application.ps1) for the code to ignore the error.
-
-I only download and extract the package, no need to use nuget.exe or any other tool.
-
-I run this code in a suitable location where a subfolder Oracle with the content of the Nuget package will be created:
-
+```powershell
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/Oracle/Import-OraLibrary.ps1 -OutFile Import-OraLibrary.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/Oracle/Connect-OraInstance.ps1 -OutFile Connect-OraInstance.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/Oracle/Invoke-OraQuery.ps1 -OutFile Invoke-OraQuery.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/Oracle/Read-OraQuery.ps1 -OutFile Read-OraQuery.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/Oracle/Export-OraTable.ps1 -OutFile Export-OraTable.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/Oracle/Import-OraTable.ps1 -OutFile Import-OraTable.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/Oracle/Get-OraTableInformation.ps1 -OutFile Get-OraTableInformation.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/Oracle/Get-OraTableReader.ps1 -OutFile Get-OraTableReader.ps1 -UseBasicParsing
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/andreasjordan/PowerShell-for-DBAs/main/Oracle/Write-OraTable.ps1 -OutFile Write-OraTable.ps1 -UseBasicParsing
 ```
-Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Oracle.ManagedDataAccess -OutFile oracle.manageddataaccess.nupkg.zip -UseBasicParsing
-Expand-Archive -Path oracle.manageddataaccess.nupkg.zip -DestinationPath .\Oracle
-Remove-Item -Path oracle.manageddataaccess.nupkg.zip
+
+To download the required libraries of the NuGet package, just dot source and run Import-OraLibrary:
+```powershell
+. ./Import-OraLibrary.ps1
+Import-OraLibrary
 ```
 
 
-### Devart dotConnect for Oracle 10.0 Express
+## Importing
 
-https://www.devart.com/dotconnect/oracle/
+To make the wrapper commands available in the current session, just dot source them at the beginning of every skript:
 
-This free version might also be an option. You will find further details in the 2023-01 release of this repository.
-
-
-## Install the client for PowerShell 7.2 on Windows
-
-### NuGet package Oracle.ManagedDataAccess.Core
-
-I only download and extract the package, no need to use nuget.exe or any other tool.
-
-I run this code in a suitable location where a subfolder Oracle with the content of the Nuget package will be created:
-
-```
-Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Oracle.ManagedDataAccess.Core -OutFile oracle.manageddataaccess.core.nupkg.zip -UseBasicParsing
-Expand-Archive -Path oracle.manageddataaccess.core.nupkg.zip -DestinationPath .\Oracle 
-Remove-Item -Path oracle.manageddataaccess.core.nupkg.zip
+```powershell
+. ./Import-OraLibrary.ps1
+. ./Connect-OraInstance.ps1
+. ./Invoke-OraQuery.ps1
+. ./Read-OraQuery.ps1
+. ./Export-OraTable.ps1
+. ./Import-OraTable.ps1
+. ./Get-OraTableInformation.ps1
+. ./Get-OraTableReader.ps1
+. ./Write-OraTable.ps1
 ```
 
+To import the NuGet libraries in the current session, just run Import-OraLibrary at the beginning of every skript:
 
-## Install the client for PowerShell 7.2 on Linux
-
-### NuGet package Oracle.ManagedDataAccess.Core
-
-I only download and extract the package, no need to use nuget or any other tool.
-
-I run this code in a suitable location where a subfolder Oracle with the content of the Nuget package will be created:
-
-```
-Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Oracle.ManagedDataAccess.Core -OutFile oracle.manageddataaccess.core.nupkg.zip -UseBasicParsing
-Expand-Archive -Path oracle.manageddataaccess.core.nupkg.zip -DestinationPath ./Oracle 
-Remove-Item -Path oracle.manageddataaccess.core.nupkg.zip
+```powershell
+Import-OraLibrary
 ```
 
 
-## Install the application
+## The first connection
 
-I use a sample "application" (just a bunch of tables) that is based on the schema and data from the StackOverflow database.
+In case you have setup the lab using my AutomatedLab with DockerDatabases as the hostname and installed the sample database stackoverflow including the tables (see SetupSampleDatabases.ps1 and SetupSampleSchemaStackoverflow.ps1 for details) you can now connect to the Oracle instance:
 
-See my script [Application.ps1](Application.ps1) in this folder for details.
+```powershell
+$connection = Connect-OraInstance -Instance DockerDatabases/XEPDB1 -Credential stackoverflow
+```
+
+
+## Importing more sample data
+
+To download some sample data from the [Stack Exchange Data Dump](https://archive.org/details/stackexchange) you can use this code:
+
+```powershell
+Invoke-WebRequest -Uri https://archive.org/download/stackexchange/dba.meta.stackexchange.com.7z -OutFile tmp.7z -UseBasicParsing
+# Extract the file tmp.7z using 7zip.
+# On Linux use: 7za e tmp.7z
+# On Windows use: C:\Progra~1\7-Zip\7z.exe e tmp.7z
+# This should create some xml files in the current directory.
+```
+
+To import the xml files to the corresponding tables you can use this code:
+
+```powershell
+Import-OraTable -Path ./Badges.xml -Connection $connection -Table Badges -ColumnMap @{ CreationDate = 'Date' }
+Import-OraTable -Path ./Comments.xml -Connection $connection -Table Comments
+Import-OraTable -Path ./PostLinks.xml -Connection $connection -Table PostLinks
+Import-OraTable -Path ./Posts.xml -Connection $connection -Table Posts
+Import-OraTable -Path ./Users.xml -Connection $connection -Table Users
+Import-OraTable -Path ./Votes.xml -Connection $connection -Table Votes
+```
+
+In case there is already data in the tables, you can use `-TruncateTable` when calling `Import-OraTable`.
+
+
+## Query data
+
+Some ideas to query data:
+
+```powershell
+Invoke-OraQuery -Connection $connection -Query "SELECT * FROM Users WHERE Id = :Id" -ParameterValues @{ Id = -1 } | Format-List
+
+Read-OraQuery -Connection $connection -Query "SELECT Id, DisplayName, Reputation FROM Users ORDER BY Reputation DESC" | Select-Object -First 5 | Format-Table
+```
+
+More ideas may follow...
+
+
+## Change data
+
+Some ideas to change data:
+
+```powershell
+Invoke-OraQuery -Connection $connection -Query "UPDATE Users SET Reputation = Reputation + 1 WHERE Id = :Id" -ParameterValues @{ Id = -1 }
+
+Invoke-OraQuery -Connection $connection -Query "CREATE TABLE Test (Id INT, Text VARCHAR(100), Now TIMESTAMP(3))"
+$params = @{
+    Id   = 1
+    Text = 'Just a text'
+    Now  = [datetime]::Now
+}
+Invoke-OraQuery -Connection $connection -Query "INSERT INTO Test VALUES (:Id, :Text, :Now)" -ParameterValues $params
+Invoke-OraQuery -Connection $connection -Query "SELECT * FROM Test" | Format-Table
+Invoke-OraQuery -Connection $connection -Query "DROP TABLE Test"
+```
+
+More ideas may follow...
+
+
+## And the DBA?
+
+You can find some ideas on how to use the commands as a DBA in the DOAG2022 folder in this repository.
+
+More ideas may follow...
