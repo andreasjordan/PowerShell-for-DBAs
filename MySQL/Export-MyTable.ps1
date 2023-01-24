@@ -11,7 +11,7 @@ function Export-MyTable {
 
     Write-PSFMessage -Level Verbose -Message "Opening file"
     try {
-        $filePath = Resolve-Path -Path $Path
+        $filePath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
         $streamWriter = [System.IO.StreamWriter]::new($filePath, $false, $Encoding)
     } catch {
         Stop-PSFFunction -Message "Opening file failed: $($_.Exception.Message)" -Target $Path -EnableException $EnableException
