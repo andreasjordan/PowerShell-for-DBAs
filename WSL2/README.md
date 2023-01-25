@@ -27,22 +27,28 @@ Just open it via start menu and follow the instructions. Then wait until it can 
 
 Create a symbolic link to access the scripts in this folder from inside the WSL2 with a short path. Run get_symlink.ps1 in this folder to copy the needed command to the clipboard. Then paste the command in the linux vm and execute it. You will be placed in this folder and can now easily execute the numbered scripts to setup the vm. 
 
-You need to execute the shell scripts starting with 01, 02, 03, 05 and 06 with sudo.
+You need to execute the shell scripts starting with 01 to 05 with sudo.
+
+Script `08_import_docker_images.ps1` uses "C:\tmp\DockerImages" to save the images for a later run. Please make sure to have that directory in place or change the script to use a different directory.
 
 If you want to run all scripts at once, use:
 ```
 sudo ./01_setup_DNS.sh && \
 sudo ./02_update_packages.sh && \
 sudo ./03_install_pwsh.sh && \
-./04_setup_pwsh.ps1 && \
-sudo ./05_install_docker.sh && \
-sudo ./06_setup_docker.sh && \
-./07_setup_git.sh && \
-./08_setup_container.sh && \
+sudo ./04_install_docker.sh && \
+sudo ./05_install_7zip.sh && \
+pwsh ./06_install_pwsh_modules.ps1 && \
+pwsh ./07_select_databases.ps1 && \
+pwsh ./08_import_docker_images.ps1 && \
+pwsh ./09_start_databases.ps1 && \
+pwsh ../PowerShell/01_SetupSampleDatabases.ps1 && \
+pwsh ../PowerShell/02_SetupSampleSchemas.ps1 && \
+pwsh ../PowerShell/03_ImportSampleDataFromJson.ps1 && \
+pwsh ../PowerShell/04_ImportSampleDataFromStackexchange.ps1 && \
+pwsh ../PowerShell/05_ImportSampleGeographicData.ps1 && \
 echo 'All OK'
 ```
-
-If you later want to update the resources, you just need to run the scripts starting with 07 and 08 again.
 
 
 ## Use the new WSL2
@@ -50,6 +56,5 @@ If you later want to update the resources, you just need to run the scripts star
 I included some PowerShell scripts to work with the containers:
 * start_container.ps1
 * stop_container.ps1
-* rebuild_container.ps1
 
 I plan to include more scripts later...

@@ -2,9 +2,6 @@
 
 $ErrorActionPreference = 'Stop'
 
-# Start docker service
-$null = sudo service docker start
-
 # Get list of container
 $container = sudo docker container ls -a --format '{{json .}}' | ConvertFrom-Json
 
