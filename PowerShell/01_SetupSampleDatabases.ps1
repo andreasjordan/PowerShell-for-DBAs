@@ -14,6 +14,7 @@ if ($dbDef) {
     . $PSScriptRoot\..\SQLServer\Connect-SqlInstance.ps1
     . $PSScriptRoot\..\SQLServer\Invoke-SqlQuery.ps1
     $sqlSaCredential = [PSCredential]::new('sa', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+    Write-PSFMessage -Level Host -Message "Waiting for connection to SQL Server"
     while ($true) {
         try {
             $sqlSaConnection = Connect-SqlInstance -Instance $dbDef.Instance -Credential $sqlSaCredential -EnableException
@@ -25,6 +26,7 @@ if ($dbDef) {
     foreach ($query in $dbDef.SqlQueries) {
         Invoke-SqlQuery -Connection $sqlSaConnection -Query $query -EnableException
     }
+    Write-PSFMessage -Level Host -Message "Creating sample database and user on SQL Server finished"
 }
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'Oracle'
@@ -34,6 +36,7 @@ if ($dbDef) {
     . $PSScriptRoot\..\Oracle\Invoke-OraQuery.ps1
     Import-OraLibrary -EnableException
     $oraSysCredential = [PSCredential]::new('sys', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+    Write-PSFMessage -Level Host -Message "Waiting for connection to Oracle"
     while ($true) {
         try {
             $oraSysConnection = Connect-OraInstance -Instance $dbDef.Instance -Credential $oraSysCredential -AsSysdba -EnableException
@@ -45,6 +48,7 @@ if ($dbDef) {
     foreach ($query in $dbDef.SqlQueries) {
         Invoke-OraQuery -Connection $oraSysConnection -Query $query -EnableException
     }
+    Write-PSFMessage -Level Host -Message "Creating sample users on Oracle finished"
 }
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'MySQL'
@@ -54,6 +58,7 @@ if ($dbDef) {
     . $PSScriptRoot\..\MySQL\Invoke-MyQuery.ps1
     Import-MyLibrary -EnableException
     $myRootCredential = [PSCredential]::new('root', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+    Write-PSFMessage -Level Host -Message "Waiting for connection to MySQL"
     while ($true) {
         try {
             $myRootConnection = Connect-MyInstance -Instance $dbDef.Instance -Credential $myRootCredential -EnableException
@@ -65,6 +70,7 @@ if ($dbDef) {
     foreach ($query in $dbDef.SqlQueries) {
         Invoke-MyQuery -Connection $myRootConnection -Query $query -EnableException
     }
+    Write-PSFMessage -Level Host -Message "Creating sample database and user on MySQL finished"
 }
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'MariaDB'
@@ -74,6 +80,7 @@ if ($dbDef) {
     . $PSScriptRoot\..\MySQL\Invoke-MyQuery.ps1
     Import-MyLibrary -EnableException
     $myRootCredential = [PSCredential]::new('root', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+    Write-PSFMessage -Level Host -Message "Waiting for connection to MariaDB"
     while ($true) {
         try {
             $myRootConnection = Connect-MyInstance -Instance $dbDef.Instance -Credential $myRootCredential -EnableException
@@ -85,6 +92,7 @@ if ($dbDef) {
     foreach ($query in $dbDef.SqlQueries) {
         Invoke-MyQuery -Connection $myRootConnection -Query $query -EnableException
     }
+    Write-PSFMessage -Level Host -Message "Creating sample database and user on MariaDB finished"
 }
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'PostgreSQL'
@@ -94,6 +102,7 @@ if ($dbDef) {
     . $PSScriptRoot\..\PostgreSQL\Invoke-PgQuery.ps1
     Import-PgLibrary -EnableException
     $pgPostgresCredential = [PSCredential]::new('postgres', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+    Write-PSFMessage -Level Host -Message "Waiting for connection to PostgreSQL"
     while ($true) {
         try {
             $pgPostgresConnection = Connect-PgInstance -Instance $dbDef.Instance -Credential $pgPostgresCredential -EnableException
@@ -109,6 +118,7 @@ if ($dbDef) {
             Invoke-PgQuery -Connection $pgPostgresConnection -Query $query -EnableException
         }
     }
+    Write-PSFMessage -Level Host -Message "Creating sample database and user on PostgreSQL finished"
 }
 
 
@@ -119,6 +129,7 @@ if ($dbDef) {
     . $PSScriptRoot\..\PostgreSQL\Invoke-PgQuery.ps1
     Import-PgLibrary -EnableException
     $pgPostgresCredential = [PSCredential]::new('postgres', (ConvertTo-SecureString -String $dbDef.AdminPassword -AsPlainText -Force))
+    Write-PSFMessage -Level Host -Message "Waiting for connection to PostGIS"
     while ($true) {
         try {
             Import-PgLibrary -EnableException
@@ -135,4 +146,5 @@ if ($dbDef) {
             Invoke-PgQuery -Connection $pgPostgresConnection -Query $query -EnableException
         }
     }
+    Write-PSFMessage -Level Host -Message "Creating sample database and user on PostGIS finished"
 }
