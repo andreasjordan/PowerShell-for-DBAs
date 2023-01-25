@@ -2,6 +2,7 @@
 $ErrorActionPreference = 'Stop'
 
 $hostname = 'DockerDatabases'
+#$hostname = 'localhost'
 $credential = [PSCredential]::new('stackoverflow', (ConvertTo-SecureString -String 'Passw0rd!' -AsPlainText -Force))
 $database = 'stackoverflow'
 
@@ -41,10 +42,11 @@ $config = @(
         Folder   = 'MySQL'
         Prefix   = 'My'
         Instance = @{
-            Instance   = $hostname
-#            Instance   = "$($hostname):13306"  # MariaDB
-            Credential = $credential
-            Database   = $database
+            Instance             = $hostname             # MySQL
+#            Instance             = "$($hostname):13306"  # MariaDB
+            Credential           = $credential
+            Database             = $database
+            AllowLoadLocalInfile = $true
         }
     }
     @{
@@ -64,6 +66,7 @@ $tables = 'Badges', 'Comments', 'PostLinks', 'Posts', 'Users', 'Votes'
 . .\Import-Schema.ps1
 
 foreach ($cfg in $config) {
+    # $cfg = $config[0]
     # $cfg = $config[-1]
 
     Write-PSFMessage -Level Host -Message "Starting with $($cfg.Folder)"
@@ -363,5 +366,27 @@ foreach ($info in $tableInfo) {
     Write-MyTable -Connection $targetConnection -Table $targetTable -DataReader $reader -DataReaderRowCount $info.Rows -TruncateTable -EnableException
 }
 
-Write-PSFMessage -Level Host -Message "Finished"
+Write-PSFMessage -Level Host -Message "Showing last record of every table from every database"
+foreach ($table in $tables) {
+    # $table = $tables[0]
+    $results = foreach ($cfg in $config) {
+        # $cfg = $config[0]
+        $instanceParams = $cfg.Instance
+        if ($cfg.Prefix -eq 'Sql') {
+            $connection = Connect-SqlInstance @instanceParams
+            Read-SqlQuery -Connection $connection -Query "SELECT * FROM $table ORDER BY Id DESC" | Select-Object -First 1
+        } elseif ($cfg.Prefix -eq 'Ora') {
+            $connection = Connect-OraInstance @instanceParams
+            Read-OraQuery -Connection $connection -Query "SELECT * FROM $table ORDER BY Id DESC" | Select-Object -First 1
+        } elseif ($cfg.Prefix -eq 'My') {
+            $connection = Connect-MyInstance @instanceParams
+            Read-MyQuery -Connection $connection -Query "SELECT * FROM $table ORDER BY Id DESC" | Select-Object -First 1
+        } elseif ($cfg.Prefix -eq 'Pg') {
+            $connection = Connect-PgInstance @instanceParams
+            Read-PgQuery -Connection $connection -Query "SELECT * FROM $table ORDER BY Id DESC" | Select-Object -First 1
+        }
+    }
+    $results | Format-Table
+}
 
+Write-PSFMessage -Level Host -Message "Finished"
