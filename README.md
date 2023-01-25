@@ -32,9 +32,9 @@ Are there other database systems that I should add here?
 
 ## What operating systems do I use?
 
-For the server part I now use docker to have a simple way to set up all the different database systems the same way.
+For the server part I now use docker to have a simple way to set up all the different database systems the same way. I recommend using [AutomatedLab](https://github.com/andreasjordan/demos/tree/master/AutomatedLab) and [this](https://github.com/andreasjordan/demos/blob/master/AutomatedLab/CustomScripts/Docker_Databases.ps1) script. But you can also use [WSL2](./WSL2/README.md).
 
-For the client part I try to support both Windows and Linux, and I use both PowerShell 5.1 and 7.3. While setting up all databases on docker, I also set up a PowerShell container and test from there. See [SetupServerWithDocker.ps1](./PowerShell/SetupServerWithDocker.ps1) for details.
+For the client part I try to support both Windows and Linux, and I use both PowerShell 5.1 (but only for SQL Server and Oracle) and 7.3. While setting up all databases on docker I use PowerShell and scripts from this repository to setup some sample databases with sample data. Have a look at the scripts in the PowerShell folder.
 
 
 ## What sample data do I use?
@@ -45,9 +45,9 @@ I have taken the 10GB version you can download [here](https://www.brentozar.com/
 
 I then selected some of the most popular questions and all related data (like answers, comments, users, etc.) and put that data in the JSON file [SampleData.json](./PowerShell/SampleData.json). I also changed one table and renamed the column named "Date" to "CreationDate" to not mess with the identically named data type. I don't use all the fancy data types, but only those needed for the data: numbers, timestamps and characters. See [CreateSampleData.ps1](./PowerShell/CreateSampleData.ps1) for details.
 
-So I have stored the table structure in a structured format as well ([SampleSchema.psd1](./PowerShell/SampleSchema.psd1)) and automatically generate the correct DDL statements for each database system. See [Import-Schema.ps1](./PowerShell/Import-Schema.ps1) and [Import-Data.ps1](./PowerShell/Import-Data.ps1) on how I load the data.
+So I have stored the table structure in a structured format as well ([SampleSchema.psd1](./PowerShell/SampleSchema.psd1)) and automatically generate the correct DDL statements for each database system. See [Import-Schema.ps1](./PowerShell/Import-Schema.ps1) and [03_ImportSampleDataFromJson.ps1](./PowerShell/03_ImportSampleDataFromJson.ps1) on how I load the data.
 
-While working on the commands to transfer data between database systems, I also created commands to import and export data from and to files. The import command can read files in the xml format that the [Stack Exchange Data Dump](https://archive.org/details/stackexchange) uses. This makes it possible to import all the different files into the four database systems I'm focusing on in this project. See [CreateSampleData3.ps1](./PowerShell/CreateSampleData3.ps1) for details.
+While working on the commands to transfer data between database systems, I also created commands to import and export data from and to files. The import command can read files in the xml format that the [Stack Exchange Data Dump](https://archive.org/details/stackexchange) uses. This makes it possible to import all the different files into the four database systems I'm focusing on in this project. See [04_ImportSampleDataFromStackexchange.ps1](./PowerShell/04_ImportSampleDataFromStackexchange.ps1) for details.
 
 
 ## What commands are included?
