@@ -102,7 +102,7 @@ function Write-SqlTable {
         $bulkCopyOptions += [System.Data.SqlClient.SqlBulkCopyOptions]::UseInternalTransaction
         $bulkCopy = [System.Data.SqlClient.SqlBulkCopy]::new($Connection, $bulkCopyOptions, $null)
         $bulkCopy.DestinationTableName = $Table
-        #$columnMappings | ForEach-Object -Process { $null = $bulkCopy.ColumnMappings.Add($_) }
+        $columnMappings | ForEach-Object -Process { $null = $bulkCopy.ColumnMappings.Add($_) }
         $bulkCopy.BatchSize = $BatchSize
         $bulkCopy.NotifyAfter = $BatchSize
         $bulkCopy.BulkCopyTimeout = 0
