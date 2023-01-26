@@ -389,4 +389,25 @@ foreach ($table in $tables) {
     $results | Format-Table
 }
 
+Write-PSFMessage -Level Host -Message "Test for column mapping from Oracle to SQL Server"
+$sourceInstanceParams = ($config | Where-Object Prefix -eq 'Ora').Instance
+$targetInstanceParams = ($config | Where-Object Prefix -eq 'Sql').Instance
+$sourceConnection = Connect-OraInstance @sourceInstanceParams -EnableException
+$targetConnection = Connect-SqlInstance @targetInstanceParams -EnableException
+$createQuery = @'
+CREATE TABLE BadgesTest
+( Id           int          NOT NULL
+, Name         nvarchar(40)
+, CreationDate datetime
+, UserId       int
+, CONSTRAINT BadgesTest_PK
+  PRIMARY KEY CLUSTERED (Id)
+)
+'@
+Invoke-SqlQuery -Connection $targetConnection -Query $createQuery -EnableException
+$tableInfo = Get-OraTableInformation -Connection $sourceConnection -Table Badges -EnableException
+$reader = Get-OraTableReader -Connection $sourceConnection -Table $tableInfo.Table -EnableException
+Write-SqlTable -Connection $targetConnection -Table BadgesTest -DataReader $reader -DataReaderRowCount $tableInfo.Rows -EnableException
+Invoke-SqlQuery -Connection $targetConnection -Query "DROP TABLE BadgesTest"
+
 Write-PSFMessage -Level Host -Message "Finished"
