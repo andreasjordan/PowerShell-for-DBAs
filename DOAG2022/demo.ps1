@@ -3,6 +3,9 @@
 
 #region *** Einrichtung der PowerShell Session *** 
 
+# Der Pfad zum Oracle Client muss entsprechend angepasst werden.
+# Die Dateien Connect-OraInstance.ps1 und Invoke-OraQuery.ps1 sind hier abgelegt:
+# https://github.com/andreasjordan/PowerShell-for-DBAs/tree/main/Oracle
 
 Add-Type -Path C:\oracle\product\19.0.0\client_1\odp.net\managed\common\Oracle.ManagedDataAccess.dll
 . C:\DOAG\Connect-OraInstance.ps1
