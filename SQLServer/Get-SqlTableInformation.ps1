@@ -9,12 +9,13 @@ function Get-SqlTableInformation {
     try {
         $queryParams = @{
             Connection      = $Connection
+            As              = 'SingleValue'
             EnableException = $true
         }
 
         if ($Table.Count -eq 0) {
             Write-PSFMessage -Level Verbose -Message "Getting list of tables in current schema"
-            $Table = Invoke-SqlQuery -Query 'SELECT name FROM sys.tables' -As SingleValue @queryParams | Sort-Object
+            $Table = Invoke-SqlQuery -Query 'SELECT name FROM sys.tables' @queryParams | Sort-Object
         }
     
         foreach ($tbl in $Table) {
