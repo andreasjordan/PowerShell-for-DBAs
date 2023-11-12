@@ -20,9 +20,8 @@ function Get-SqlTableInformation {
         foreach ($tbl in $Table) {
             Write-PSFMessage -Level Verbose -Message "Getting information about $tbl"
             # Query might be wrong, please test and give feedback
-            $query = @'
-SELECT SUM(u.used_pages) AS pages
-     , SUM(p.rows) AS rows
+            $pagesQuery = @'
+SELECT SUM(u.used_pages)
   FROM sys.tables AS t 
      , sys.partitions AS p
      , sys.allocation_units AS u
@@ -31,11 +30,12 @@ SELECT SUM(u.used_pages) AS pages
    AND t.name = @name
    AND p.index_id <= 1
 '@
-            $result = Invoke-SqlQuery -Query $query -ParameterValues @{ name = $tbl } @queryParams
+            $pages = Invoke-SqlQuery -Query $pagesQuery -ParameterValues @{ name = $tbl } @queryParams
+            $rows = Invoke-SqlQuery -Query "SELECT COUNT(*) FROM $tbl" @queryParams
             [PSCustomObject]@{
                 Table = $tbl
-                Pages = [int]$result.pages
-                Rows  = [int]$result.rows
+                Pages = [int]$pages
+                Rows  = [int]$rows
             }
         }
     } catch {
