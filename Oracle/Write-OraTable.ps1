@@ -8,6 +8,7 @@ function Write-OraTable {
         [int]$DataReaderRowCount,
         [int]$BatchSize = 1000,
         [switch]$TruncateTable,
+        [switch]$NoCommit,
         [switch]$EnableException
     )
 
@@ -101,7 +102,9 @@ function Write-OraTable {
     try {
         $script:completed = 0
         $bulkCopyOptions = 0
-        $bulkCopyOptions += [Oracle.ManagedDataAccess.Client.OracleBulkCopyOptions]::UseInternalTransaction
+        if (-not $NoCommit) {
+            $bulkCopyOptions += [Oracle.ManagedDataAccess.Client.OracleBulkCopyOptions]::UseInternalTransaction
+        }
         $bulkCopy = [Oracle.ManagedDataAccess.Client.OracleBulkCopy]::new($Connection, $bulkCopyOptions)
         $bulkCopy.DestinationTableName = $Table
         foreach ($mapping in $columnMappings) {
