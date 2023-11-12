@@ -148,5 +148,6 @@ function Write-OraTable {
     } finally {
         $bulkCopy.Dispose()
         if ($PSBoundParameters.Keys -contains 'DataReader') { $DataReader.Dispose() }
+        Write-Progress -Id 1 -Activity x -Completed
     }
 }

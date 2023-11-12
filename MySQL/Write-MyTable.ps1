@@ -149,5 +149,6 @@ function Write-MyTable {
         return
     } finally {
         if ($PSBoundParameters.Keys -contains 'DataReader') { $DataReader.Dispose() }
+        Write-Progress -Id 1 -Activity x -Completed
     }
 }

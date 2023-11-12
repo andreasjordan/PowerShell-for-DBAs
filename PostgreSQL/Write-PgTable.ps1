@@ -100,6 +100,7 @@ function Write-PgTable {
             return
         }
         $null = $dataAdapter.Update($dataTable)
+        Write-Progress -Id 1 -Activity x -Completed
     } elseif ($PSBoundParameters.Keys -contains 'DataReader') {
 #        Write-PSFMessage -Level Verbose -Message "Getting source schema table"
 #        Write-Progress -Id 1 -Activity "Getting source schema table"
@@ -139,6 +140,7 @@ function Write-PgTable {
         }
         $null = $dataAdapter.Update($dataTable)
         $DataReader.Dispose()
+        Write-Progress -Id 1 -Activity x -Completed
     } else {
         Stop-PSFFunction -Message "Neither Data nor DataReader is used, so nothing to do." -EnableException $EnableException
         return

@@ -145,5 +145,6 @@ function Write-SqlTable {
     } finally {
         $bulkCopy.Dispose()
         if ($DataReader) { $DataReader.Dispose() }
+        Write-Progress -Id 1 -Activity x -Completed
     }
 }
