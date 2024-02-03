@@ -12,6 +12,10 @@ function Import-MyLibrary {
             Package = 'MySqlConnector'
             LibPath = 'net7.0\MySqlConnector.dll'
         }
+        @{
+            Package = 'Microsoft.Extensions.Logging.Abstractions'
+            LibPath = 'net7.0\Microsoft.Extensions.Logging.Abstractions.dll'
+        }
     )
 
     try {
