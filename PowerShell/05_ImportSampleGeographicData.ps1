@@ -11,7 +11,12 @@ Import-Module -Name PSFramework
 $DatabaseDefinition = Get-Content -Path $DatabaseDefinitionFile | ConvertFrom-Json
 
 # Load geographic data
-$geoJSON = Invoke-RestMethod -Method Get -Uri $DataUri
+try {
+    $geoJSON = Invoke-RestMethod -Method Get -Uri $DataUri
+} catch {
+    Write-PSFMessage -Level Warning -Message "Loading geographic data failed: $_"
+    return
+}
 
 $dbDef = $DatabaseDefinition | Where-Object ContainerName -eq 'Oracle'
 if ($dbDef) {
