@@ -12,7 +12,11 @@ $DatabaseDefinition = Get-Content -Path $DatabaseDefinitionFile | ConvertFrom-Js
 
 # Load geographic data
 try {
-    $geoJSON = Invoke-RestMethod -Method Get -Uri $DataUri
+    if ($DataUri -match '^http') {
+        $geoJSON = Invoke-RestMethod -Method Get -Uri $DataUri
+    } else {
+        $geoJSON = Get-Content -Path $DataUri
+    }
 } catch {
     Write-PSFMessage -Level Warning -Message "Loading geographic data failed: $_"
     return
