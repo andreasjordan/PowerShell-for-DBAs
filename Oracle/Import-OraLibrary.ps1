@@ -10,7 +10,7 @@ function Import-OraLibrary {
     if ($PSVersionTable.PSVersion.ToString().Substring(0,3) -eq '5.1') {
         $library = @(
             @{
-                Package = 'Oracle.ManagedDataAccess'
+                Package = 'Oracle.ManagedDataAccess/19.25.0'
                 LibPath = 'net462\Oracle.ManagedDataAccess.dll'
             }
         )
