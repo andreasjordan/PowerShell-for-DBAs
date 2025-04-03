@@ -10,4 +10,6 @@ apt update && \
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin && \
 update-alternatives --set iptables /usr/sbin/iptables-legacy && \
 service docker start && \
+# As of April 2025, we need a restart so that docker can setup the network for the containers.
+service docker restart && \
 echo 'OK'

@@ -1,29 +1,37 @@
 # Setup WSL2 for working with pwsh, docker and a lot of databases
 
-Since I use a Windows 10 computer for my daily work, the easiest way to set up different database systems is to use Docker within the included WSL2. This solution does not use Docker Desktop and is therefore also free for professional use.
+Since I use a Windows 11 computer for my daily work, the easiest way to set up different database systems is to use Docker within the included WSL2. This solution does not use Docker Desktop and is therefore also free for professional use.
 
 The WSL2 can be completely rebuilt very easily, providing a test environment that is always the same.
 
 
 ## Setup Ubuntu in WSL2
 
-There are a lot of good resources out there, so I will just link some I used:
-* https://learn.microsoft.com/en-us/windows/wsl/install-manual
-* https://www.omgubuntu.co.uk/how-to-install-wsl2-on-windows-10
-* https://michlstechblog.info/blog/windows-enable-windows-subsystem-for-linux/
+There are a lot of good resources out there, so I will just point to the official documentation:
+* https://learn.microsoft.com/en-us/windows/wsl/install
+
+Basically just run this in an elevated cmd:
+```
+wsl --install
+```
 
 
 ## Reset the current WSL2
 
 To remove the current WSL2, run this in an elevated cmd:
 ```
-wsl --unregister Ubuntu-22.04
+wsl --unregister Ubuntu
+```
+
+Then you can setup Ubuntu again with:
+```
+wsl --install
 ```
 
 
 ## Setup the new WSL2
 
-Just open it via start menu and follow the instructions. Then wait until it can be rebooted.
+Just open it via start menu and follow the instructions. After creating the user, you have to reboot the system with `sudo reboot`. Otherwise docker can not create the network successfully.
 
 Create a symbolic link to access the scripts in this folder from inside the WSL2 with a short path. Run get_symlink.ps1 in this folder to copy the needed command to the clipboard. Then paste the command in the linux vm and execute it. You will be placed in this folder and can now easily execute the numbered scripts to setup the vm. 
 

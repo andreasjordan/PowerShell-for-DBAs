@@ -114,7 +114,7 @@ I use this technology for some time now in different projects with both SQL Serv
 
 On 2022-09-22 I presented some demos at the [DOAG in Nuremberg](https://shop.doag.org/events/anwenderkonferenz/2022/agenda/#eventDay.all#textSearch.PowerShell), you find the presentation and the democode in the folder [DOAG2022](./DOAG2022/README.md).
 
-On 2022-12-08 I was guest at the [PowerShell UserGroup Inn-Salzach](https://www.meetup.com/de-DE/PowerShell-UserGroup-Inn-Salzach), you find the demo code and a link to the video on YouTune in the folder [PSUG](./PSUG/README.md).
+On 2022-12-08 I was guest at the [PowerShell UserGroup Inn-Salzach](https://www.meetup.com/de-DE/PowerShell-UserGroup-Inn-Salzach), you find the demo code and a link to the video on YouTube in the folder [PSUG](./PSUG/README.md).
 
 On 2022-12-12 I held a workshop day at the [IT-Tage](https://www.ittage.informatik-aktuell.de/programm/2022/sql-server-powershell-fuer-datenbank-admins-dba.html), you find the demos in the folder [IT-Tage2022](./IT-Tage2022/README.md).
 
@@ -123,9 +123,9 @@ On 2022-12-12 I held a workshop day at the [IT-Tage](https://www.ittage.informat
 
 It all began with a windows based lab. I learned how to install and configure the different database systems from a command line. It worked quite well, but even though I only used the free versions of the database systems, not all the programs I needed could be easily downloaded from the internet. So it was not completely "infrastructure-as-code".
 
-Next step was to use docker containers, as I was able to get docker images for all the different database systems without having to log in anywhere. As Docker Desktop it not completly free anymore, I also moved to Linux based on WSL2 on my windows 10 maschine. Resetting the WSL2 was easy but still not a one click action as I had to enter username and password followd by configuring the networking.
+Next step was to use docker containers, as I was able to get docker images for all the different database systems without having to log in anywhere. As Docker Desktop it not completly free anymore, I also moved to Linux based on WSL2 on my windows 11 maschine. Resetting the WSL2 was easy but still not a one click action as I had to enter username and password followd by configuring the networking.
 
-I now use the PowerShell module AutomatedLab to set up my labs, as it also installs Linux systems without interaction.
+I then used the PowerShell module AutomatedLab to set up my labs, as it also installs Linux systems without interaction. But the used Linux version was too old and the repository was shut down. So this part needs some updates - but I don't have time for that. If you could help, please contact me.
 
 On the client side, I used three different sources to get the needed DLL for .NET: Vendor-provided clients (like the Oracle Client), third-party-provided clients (like those from DevArt), and NuGet packages. All three work very well, but there are small differences so the code has to be slightly adusted.
 
