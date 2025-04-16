@@ -37,8 +37,8 @@ if ($dbDef) {
                 Connection      = $connection
                 Query           = 'INSERT INTO countries VALUES (:name, :iso, sdo_util.from_geojson(:geometry))'
                 ParameterValues = @{
-                    name     = $feature.properties.ADMIN
-                    iso      = $feature.properties.ISO_A3
+                    name     = $feature.properties.name
+                    iso      = $feature.properties.'ISO3166-1-Alpha-3'
                     geometry = ($feature.geometry | ConvertTo-Json -Depth 4 -Compress) -replace '\.(\d{10})\d+', '.$1'
                 }
                 EnableException = $true
@@ -46,7 +46,7 @@ if ($dbDef) {
             try {
                 Invoke-OraQuery @invokeParams
             } catch {
-                Write-PSFMessage -Level Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
+                Write-PSFMessage -Level Warning -Message "Failed to import $($feature.properties.name): $_"
             }
         }
         $duration = (Get-Date) - $start
@@ -71,8 +71,8 @@ if ($dbDef) {
                 Connection      = $connection
                 Query           = 'INSERT INTO countries VALUES (:name, :iso, ST_GeomFromGeoJSON(:geometry))'
                 ParameterValues = @{
-                    name     = $feature.properties.ADMIN
-                    iso      = $feature.properties.ISO_A3
+                    name     = $feature.properties.name
+                    iso      = $feature.properties.'ISO3166-1-Alpha-3'
                     geometry = $feature.geometry | ConvertTo-Json -Depth 4 -Compress 
                 }
                 EnableException = $true
@@ -80,7 +80,7 @@ if ($dbDef) {
             try {
                 Invoke-PgQuery @invokeParams
             } catch {
-                Write-PSFMessage -Level Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
+                Write-PSFMessage -Level Warning -Message "Failed to import $($feature.properties.name): $_"
             }
         }
         $duration = (Get-Date) - $start

@@ -17,15 +17,15 @@ foreach ($feature in $geoJSON.features) {
         Connection      = $connection
         Query           = 'INSERT INTO countries VALUES (:name, :iso, sdo_util.from_geojson(:geometry))'
         ParameterValues = @{
-            name     = $feature.properties.ADMIN
-            iso      = $feature.properties.ISO_A3
+            name     = $feature.properties.name
+            iso      = $feature.properties.'ISO3166-1-Alpha-3'
             geometry = ($feature.geometry | ConvertTo-Json -Depth 4 -Compress) -replace '\.(\d{10})\d+', '.$1'
         }
     }
     try {
         Invoke-OraQuery @invokeParams
     } catch {
-        Write-Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
+        Write-Warning -Message "Failed to import $($feature.properties.name): $_"
     }
 }
 

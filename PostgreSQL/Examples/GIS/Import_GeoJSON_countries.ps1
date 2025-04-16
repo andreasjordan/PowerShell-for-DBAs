@@ -17,14 +17,14 @@ foreach ($feature in $geoJSON.features) {
         Connection      = $connection
         Query           = 'INSERT INTO countries VALUES (:name, :iso, ST_GeomFromGeoJSON(:geometry))'
         ParameterValues = @{
-            name     = $feature.properties.ADMIN
-            iso      = $feature.properties.ISO_A3
+            name     = $feature.properties.name
+            iso      = $feature.properties.'ISO3166-1-Alpha-3'
             geometry = $feature.geometry | ConvertTo-Json -Depth 4 -Compress 
         }
     }
     try {
         Invoke-PgQuery @invokeParams
     } catch {
-        Write-Warning -Message "Failed to import $($feature.properties.ADMIN): $_"
+        Write-Warning -Message "Failed to import $($feature.properties.name): $_"
     }
 }
