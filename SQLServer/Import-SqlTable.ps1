@@ -130,6 +130,8 @@ function Import-SqlTable {
             }
         }
         $bulkCopy.WriteToServer($dataTable)
+        $stopwatch.Stop()
+        Write-PSFMessage -Level Verbose -Message "Finished import in $($stopwatch.ElapsedMilliseconds) Milliseconds"
     } catch {
         Stop-PSFFunction -Message "Inserting rows failed: $($_.Exception.InnerException.Message)" -Target $Table -EnableException $EnableException
         return
