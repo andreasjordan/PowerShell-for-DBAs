@@ -125,7 +125,8 @@ function Write-OraTable {
             if ($stopwatch.Elapsed.TotalSeconds -gt 1) {
                 $progressParam.CurrentOperation = "$([int]($completed / $stopwatch.Elapsed.TotalSeconds)) rows per second"
             }
-            Write-Progress @progressParam
+            # TODO: Exception: Bulk copy failed: Cannot validate argument on parameter 'PercentComplete'. The 123 argument is greater than the maximum allowed range of 100. Supply an argument that is less than or equal to 100 and then try the command again.
+            try { Write-Progress @progressParam } catch { }
         })
     } catch {
         if ($bulkCopy) { $bulkCopy.Dispose() }
