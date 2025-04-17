@@ -82,9 +82,12 @@ function Write-PgTable {
     }
 
     if ($PSBoundParameters.Keys -contains 'Data') {
-        Write-PSFMessage -Level Verbose -Message "Filling data table"
+        Write-PSFMessage -Level Verbose -Message "Filling data table and inserting rows"
         Write-Progress -Id 1 -Activity "Filling data table for $Table"
         try {
+            $rowCount = $Data.Count
+            $completed = 0
+            $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
             foreach ($row in $Data) {
                 $newRow = $dataTable.NewRow()
                 foreach ($column in $targetSchemaTable) {
@@ -94,13 +97,34 @@ function Write-PgTable {
                     } 
                 }
                 $dataTable.Rows.Add($newRow)
+                $completed++
+
+                if ($completed % $BatchSize -eq 0) {
+                    $null = $dataAdapter.Update($dataTable)
+                    $dataTable.Clear()
+        
+                    $progressParam = @{ 
+                        Id               = 1
+                        Activity         = "Inserting rows into $Table"
+                        Status           = "$completed of $rowCount rows transfered"
+                        PercentComplete  = $completed * 100 / $rowCount
+                        SecondsRemaining = $stopwatch.Elapsed.TotalSeconds * ($rowCount - $completed) / $completed
+                    }
+                    if ($stopwatch.Elapsed.TotalSeconds -gt 1) {
+                        $progressParam.CurrentOperation = "$([int]($completed / $stopwatch.Elapsed.TotalSeconds)) rows per second"
+                    }
+                    Write-Progress @progressParam
+                }
             }
+            $null = $dataAdapter.Update($dataTable)
+            $stopwatch.Stop()
+            Write-PSFMessage -Level Verbose -Message "Finished import in $($stopwatch.ElapsedMilliseconds) Milliseconds"
         } catch {
             Stop-PSFFunction -Message "Filling data table failed: $($_.Exception.Message)" -Target $row -EnableException $EnableException
             return
+        } finally {
+            Write-Progress -Id 1 -Activity x -Completed
         }
-        $null = $dataAdapter.Update($dataTable)
-        Write-Progress -Id 1 -Activity x -Completed
     } elseif ($PSBoundParameters.Keys -contains 'DataReader') {
 #        Write-PSFMessage -Level Verbose -Message "Getting source schema table"
 #        Write-Progress -Id 1 -Activity "Getting source schema table"
@@ -110,37 +134,45 @@ function Write-PgTable {
 #            Stop-PSFFunction -Message "Getting source schema table failed: $($_.Exception.InnerException.Message)" -Target $Table -EnableException $EnableException
 #            return
 #        }
-        $rowCount = $DataReaderRowCount
-        $completed = 0
-        $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-        while($DataReader.Read()) {
-            $newRow = $dataTable.NewRow()
-            foreach ($column in $targetSchemaTable) {
-                $newRow[$column.ColumnName] = $DataReader.GetValue($DataReader.GetOrdinal($column.ColumnName))
-            }
-            $dataTable.Rows.Add($newRow)
-            $completed++
-
-            if ($completed % $BatchSize -eq 0) {
-                $null = $dataAdapter.Update($dataTable)
-                $dataTable.Clear()
+        try {
+            $rowCount = $DataReaderRowCount
+            $completed = 0
+            $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+            while($DataReader.Read()) {
+                $newRow = $dataTable.NewRow()
+                foreach ($column in $targetSchemaTable) {
+                    $newRow[$column.ColumnName] = $DataReader.GetValue($DataReader.GetOrdinal($column.ColumnName))
+                }
+                $dataTable.Rows.Add($newRow)
+                $completed++
     
-                $progressParam = @{ 
-                    Id               = 1
-                    Activity         = "Inserting rows into $Table"
-                    Status           = "$completed of $rowCount rows transfered"
-                    PercentComplete  = $completed * 100 / $rowCount
-                    SecondsRemaining = $stopwatch.Elapsed.TotalSeconds * ($rowCount - $completed) / $completed
+                if ($completed % $BatchSize -eq 0) {
+                    $null = $dataAdapter.Update($dataTable)
+                    $dataTable.Clear()
+        
+                    $progressParam = @{ 
+                        Id               = 1
+                        Activity         = "Inserting rows into $Table"
+                        Status           = "$completed of $rowCount rows transfered"
+                        PercentComplete  = $completed * 100 / $rowCount
+                        SecondsRemaining = $stopwatch.Elapsed.TotalSeconds * ($rowCount - $completed) / $completed
+                    }
+                    if ($stopwatch.Elapsed.TotalSeconds -gt 1) {
+                        $progressParam.CurrentOperation = "$([int]($completed / $stopwatch.Elapsed.TotalSeconds)) rows per second"
+                    }
+                    Write-Progress @progressParam
                 }
-                if ($stopwatch.Elapsed.TotalSeconds -gt 1) {
-                    $progressParam.CurrentOperation = "$([int]($completed / $stopwatch.Elapsed.TotalSeconds)) rows per second"
-                }
-                Write-Progress @progressParam
             }
+            $null = $dataAdapter.Update($dataTable)
+            $DataReader.Dispose()
+            $stopwatch.Stop()
+            Write-PSFMessage -Level Verbose -Message "Finished import in $($stopwatch.ElapsedMilliseconds) Milliseconds"
+        } catch {
+            Stop-PSFFunction -Message "???? failed: $($_.Exception.Message)" -EnableException $EnableException
+            return
+        } finally {
+            Write-Progress -Id 1 -Activity x -Completed
         }
-        $null = $dataAdapter.Update($dataTable)
-        $DataReader.Dispose()
-        Write-Progress -Id 1 -Activity x -Completed
     } else {
         Stop-PSFFunction -Message "Neither Data nor DataReader is used, so nothing to do." -EnableException $EnableException
         return
