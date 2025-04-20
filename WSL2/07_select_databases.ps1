@@ -1,6 +1,7 @@
 #!/usr/bin/pwsh
 
 Param(
+    [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$ContainerName
 )
 
