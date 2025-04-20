@@ -10,11 +10,11 @@ function Import-PgLibrary {
     $library = @(
         @{
             Package = 'Npgsql'
-            LibPath = 'net7.0\Npgsql.dll'
+            LibPath = 'net8.0\Npgsql.dll'
         }
         @{
             Package = 'Microsoft.Extensions.Logging.Abstractions'
-            LibPath = 'net7.0\Microsoft.Extensions.Logging.Abstractions.dll'
+            LibPath = 'net9.0\Microsoft.Extensions.Logging.Abstractions.dll'
         }
     )
 
