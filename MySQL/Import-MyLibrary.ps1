@@ -10,11 +10,11 @@ function Import-MyLibrary {
     $library = @(
         @{
             Package = 'MySqlConnector'
-            LibPath = 'net7.0\MySqlConnector.dll'
+            LibPath = 'net9.0\MySqlConnector.dll'
         }
         @{
             Package = 'Microsoft.Extensions.Logging.Abstractions'
-            LibPath = 'net7.0\Microsoft.Extensions.Logging.Abstractions.dll'
+            LibPath = 'net9.0\Microsoft.Extensions.Logging.Abstractions.dll'
         }
     )
 
