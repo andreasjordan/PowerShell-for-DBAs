@@ -1,5 +1,9 @@
 #!/usr/bin/pwsh
 
+Param(
+    [string[]]$ContainerName
+)
+
 $ErrorActionPreference = 'Stop'
 
 Import-Module -Name PSFramework
@@ -97,7 +101,11 @@ $DatabaseDefinition = @(
 )
 
 # $DatabaseDefinition = $DatabaseDefinition | Where-Object ContainerName -in SQLServer, Oracle
-$DatabaseDefinition = $DatabaseDefinition | Out-ConsoleGridView -Title 'Select docker conatiners to start'
+if ($ContainerName) {
+    $DatabaseDefinition = $DatabaseDefinition | Where-Object ContainerName -in $ContainerName
+} else {
+    $DatabaseDefinition = $DatabaseDefinition | Out-ConsoleGridView -Title 'Select docker conatiners to start'
+}
 
 $DatabaseDefinition | ConvertTo-Json | Set-Content -Path /tmp/tmp_DatabaseDefinition.json
 
