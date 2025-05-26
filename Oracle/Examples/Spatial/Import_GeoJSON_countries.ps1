@@ -19,7 +19,7 @@ foreach ($feature in $geoJSON.features) {
         ParameterValues = @{
             name     = $feature.properties.name
             iso      = $feature.properties.'ISO3166-1-Alpha-3'
-            geometry = ($feature.geometry | ConvertTo-Json -Depth 4 -Compress) -replace '\.(\d{10})\d+', '.$1'
+            geometry = $feature.geometry | ConvertTo-Json -Depth 4 -Compress
         }
     }
     try {
@@ -28,8 +28,3 @@ foreach ($feature in $geoJSON.features) {
         Write-Warning -Message "Failed to import $($feature.properties.name): $_"
     }
 }
-
-<#
-Some info on why I have to limit the number of decimal places in line 22:
-https://community.oracle.com/tech/developers/discussion/comment/16859191
-#>
