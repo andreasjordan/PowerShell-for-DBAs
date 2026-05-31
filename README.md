@@ -1,5 +1,7 @@
 # PowerShell for DBAs
-How to use PowerShell as a database administrator.
+
+This repository provides infrastructure as code, sample data and demo code to show how PowerShell can be used as a database administrator.
+
 
 ## What is my idea?
 
@@ -30,11 +32,65 @@ Work in progress and help is needed:
 Are there other database systems that I should add here?
 
 
-## What operating systems do I use?
+## Infrastructure
 
-For the server part I now use docker to have a simple way to set up all the different database systems the same way. I recommend using [AutomatedLab](https://github.com/andreasjordan/demos/tree/master/AutomatedLab) and [this](https://github.com/andreasjordan/demos/blob/master/AutomatedLab/CustomScripts/Docker_Databases.ps1) script. But you can also use [WSL2](./WSL2/README.md).
+The repository is designed for and tested on a Windows 11 system with 32 GB of RAM. WSL2 is configured with Docker to run the databases inside containers.
 
-For the client part I try to support both Windows and Linux, and I use both PowerShell 5.1 (but only for SQL Server and Oracle) and 7.3. While setting up all databases on docker I use PowerShell and scripts from this repository to setup some sample databases with sample data. Have a look at the scripts in the PowerShell folder.
+The initial PowerShell code must be run inside WSL2 to set up the sample data.
+
+The demo PowerShell code can be executed either inside WSL2 or on the Windows 11 system. However, to run all demos, PowerShell 7.5 or later is required.
+
+A video of the installation is available here: https://youtu.be/0NNNqPau4Go
+
+
+### Install WSL2
+
+I use the Ubuntu 24.04 image by running `wsl --install -d Ubuntu-24.04` in an elevated Command Prompt or PowerShell on a current Windows 11 system. To start from scratch, you can remove Ubuntu by running `wsl --unregister Ubuntu-24.04`. At the end of the installation, Ubuntu starts automatically, and you are prompted to create a Unix user account. The username and password do not matter.
+
+
+### Clone or download the repository
+
+Open a non-elevated PowerShell and navigate to a folder of your choice. In this guide, I will use `C:\tmp`.
+
+```
+if (-not (Test-Path -Path C:\tmp)) {
+    $null = New-Item -Path C:\tmp -ItemType Directory
+}
+Set-Location -Path C:\tmp
+```
+
+If you have git installed, you can just clone the repository:
+
+```
+git clone https://github.com/andreasjordan/PowerShell-for-DBAs.git
+```
+
+Or you can download and extract the repository:
+
+```
+[Net.WebClient]::new().DownloadFile('https://github.com/andreasjordan/PowerShell-for-DBAs/archive/refs/heads/main.zip', "$PWD\PowerShell-for-DBAs.zip")
+Expand-Archive -Path $PWD\PowerShell-for-DBAs.zip -DestinationPath $PWD
+Rename-Item -Path $PWD\PowerShell-for-DBAs-main -NewName PowerShell-for-DBAs
+Remove-Item -Path $PWD\PowerShell-for-DBAs.zip
+Get-ChildItem -Path $PWD\PowerShell-for-DBAs -Filter *.ps1 -Recurse | Unblock-File
+```
+
+
+### Start the installation
+
+To run all setup steps, simply execute `01_setup.ps1` in a non-elevated PowerShell.
+
+During the setup, you will be prompted to choose which database containers to create.
+
+At the end, the script enters WSL2 to keep all Docker containers running. If you exit, WSL2 will shut down along with all containers.
+
+
+### Work with the docker containers
+
+I included some PowerShell scripts to work with the containers from a root WSL2 session:
+* start_containers.ps1
+* stop_containers.ps1
+* remove_containers.ps1
 
 
 ## What sample data do I use?

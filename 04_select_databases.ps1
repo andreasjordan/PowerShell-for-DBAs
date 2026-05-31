@@ -18,7 +18,8 @@ $hostname = 'localhost'
 $DatabaseDefinition = @(
     [PSCustomObject]@{
         ContainerName     = 'SQLServer'
-        ContainerImage    = 'mcr.microsoft.com/mssql/server:2022-latest'
+        # To find latest SQL Server images, see https://mcr.microsoft.com/en-us/artifact/mar/mssql/server
+        ContainerImage    = 'mcr.microsoft.com/mssql/server:2025-CU5-ubuntu-24.04'
         ContainerMemoryGB = 2
         ContainerConfig   = "-p 1433:1433 -e MSSQL_SA_PASSWORD='$password' -e ACCEPT_EULA=Y -e MSSQL_PID=Express"
         Instance          = $hostname
@@ -31,7 +32,11 @@ $DatabaseDefinition = @(
     }
     [PSCustomObject]@{
         ContainerName     = 'Oracle'
-        ContainerImage    = 'container-registry.oracle.com/database/express:latest'
+        # To find latest Oracle images, see https://container-registry.oracle.com/ords/ocr/ba/database/express
+        # From the website: 
+        # The Oracle XE Database server Docker image contains Oracle Database Express Edition Release 21c (21.3.0.0) running on Oracle Linux 7. 
+        # This image contains a default database in a multitenant configuration with one pluggable database.
+        ContainerImage    = 'container-registry.oracle.com/database/express:21.3.0-xe'
         ContainerMemoryGB = 3
         ContainerConfig   = "-p 1521:1521 -e ORACLE_PWD='$password' -e ORACLE_CHARACTERSET=AL32UTF8"
         Instance          = "$hostname/XEPDB1"
@@ -47,7 +52,8 @@ $DatabaseDefinition = @(
     }
     [PSCustomObject]@{
         ContainerName     = 'MySQL'
-        ContainerImage    = 'mysql:latest'
+        # To find latest MySQL images, see https://hub.docker.com/_/mysql
+        ContainerImage    = 'mysql:9.7.0'
         ContainerMemoryGB = 1
         ContainerConfig   = "-p 3306:3306 -e MYSQL_ROOT_PASSWORD='$password'"
         Instance          = $hostname
@@ -62,7 +68,8 @@ $DatabaseDefinition = @(
     }
     [PSCustomObject]@{
         ContainerName     = 'MariaDB'
-        ContainerImage    = 'mariadb:latest'
+        # To find latest MariaDB images, see https://hub.docker.com/_/mariadb
+        ContainerImage    = 'mariadb:12.2.2'
         ContainerMemoryGB = 1
         ContainerConfig   = "-p 13306:3306 -e MARIADB_ROOT_PASSWORD='$password'"
         Instance          = "$($hostname):13306"
@@ -75,7 +82,8 @@ $DatabaseDefinition = @(
     }
     [PSCustomObject]@{
         ContainerName     = 'PostgreSQL'
-        ContainerImage    = 'postgres:latest'
+        # To find latest PostgreSQL images, see https://hub.docker.com/_/postgres
+        ContainerImage    = 'postgres:18.4'
         ContainerMemoryGB = 1
         ContainerConfig   = "-p 5432:5432 -e POSTGRES_PASSWORD='$password'"
         Instance          = $hostname
@@ -87,7 +95,8 @@ $DatabaseDefinition = @(
     }
     [PSCustomObject]@{
         ContainerName     = 'PostGIS'
-        ContainerImage    = 'postgis/postgis'
+        # To find latest PostGIS images, see https://hub.docker.com/r/postgis/postgis
+        ContainerImage    = 'postgis/postgis:18-3.6'
         ContainerMemoryGB = 1
         ContainerConfig   = "-p 15432:5432 -e POSTGRES_PASSWORD='$password'"
         Instance          = "$($hostname):15432"
@@ -105,7 +114,7 @@ $DatabaseDefinition = @(
 if ($ContainerName) {
     $DatabaseDefinition = $DatabaseDefinition | Where-Object ContainerName -in $ContainerName
 } else {
-    $DatabaseDefinition = $DatabaseDefinition | Out-ConsoleGridView -Title 'Select docker conatiners to start'
+    $DatabaseDefinition = $DatabaseDefinition | Out-ConsoleGridView -Title 'Select docker containers to create'
 }
 
 $DatabaseDefinition | ConvertTo-Json | Set-Content -Path /tmp/tmp_DatabaseDefinition.json
