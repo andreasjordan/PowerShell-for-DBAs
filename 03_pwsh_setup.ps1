@@ -15,9 +15,3 @@ foreach ($module in 'PSFramework Microsoft.PowerShell.ConsoleGuiTools'.Split(' '
         Install-Module -Name $module -Scope AllUsers
     }
 }
-
-. $PSScriptRoot/../Oracle/Import-OraLibrary.ps1
-Import-OraLibrary
-
-. $PSScriptRoot/../PostgreSQL/Import-PgLibrary.ps1
-Import-PgLibrary
